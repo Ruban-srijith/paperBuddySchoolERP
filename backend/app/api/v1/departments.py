@@ -1,0 +1,132 @@
+"""
+Department Management API router.
+GET    /departments              — List all departments
+POST   /departments              — Create department (Admin only)
+GET    /departments/{id}/teachers — List teachers in department
+GET    /departments/{id}/subjects — List subjects under department
+"""
+import uuid
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
+from sqlalchemy import func
+from app.db.database import get_db
+from app.db.models import User, UserRole, Department, Subject
+from app.core.auth import get_current_user, require_role
+from app.schemas.departments import DepartmentCreateRequest, DepartmentUpdateRequest, DepartmentResponse
+
+router = APIRouter(prefix="/departments", tags=["Department Management"])
+
+
+@router.get("")
+async def list_departments(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all departments with dean info and teacher count."""
+    result = await db.execute(
+        select(Department).options(selectinload(Department.dean))
+    )
+    departments = result.scalars().all()
+
+    dept_list = []
+    for dept in departments:
+        # Count teachers in this department
+        count_res = await db.execute(
+            select(func.count(User.id)).where(User.department_id == dept.id)
+        )
+        teacher_count = count_res.scalar() or 0
+
+        dept_list.append({
+            "id": dept.id,
+            "name": dept.name,
+            "code": dept.code,
+            "dean_id": dept.dean_id,
+            "dean_name": dept.dean.full_name if dept.dean else None,
+            "teacher_count": teacher_count,
+            "created_at": dept.created_at,
+        })
+
+    return dept_list
+
+
+@router.post("")
+async def create_department(
+    req: DepartmentCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+):
+    """Create a new department (Admin only)."""
+    # Check duplicate
+    existing = await db.execute(select(Department).where(Department.code == req.code))
+    if existing.scalars().first():
+        raise HTTPException(status_code=409, detail=f"Department with code '{req.code}' already exists")
+
+    dept = Department(
+        id=str(uuid.uuid4()),
+        name=req.name,
+        code=req.code,
+        dean_id=req.dean_id,
+    )
+    db.add(dept)
+    await db.commit()
+    await db.refresh(dept)
+
+    return {
+        "id": dept.id,
+        "name": dept.name,
+        "code": dept.code,
+        "dean_id": dept.dean_id,
+        "dean_name": None,
+        "teacher_count": 0,
+        "created_at": dept.created_at,
+    }
+
+
+@router.get("/{department_id}/teachers")
+async def get_department_teachers(
+    department_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all teachers in a department."""
+    result = await db.execute(
+        select(User)
+        .where(User.department_id == department_id)
+        .order_by(User.full_name)
+    )
+    teachers = result.scalars().all()
+
+    return [
+        {
+            "id": t.id,
+            "email": t.email,
+            "full_name": t.full_name,
+            "role": t.role.value,
+            "assigned_grade": t.assigned_grade,
+        }
+        for t in teachers
+    ]
+
+
+@router.get("/{department_id}/subjects")
+async def get_department_subjects(
+    department_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List subjects under a department."""
+    result = await db.execute(
+        select(Subject).where(Subject.department_id == department_id)
+    )
+    subjects = result.scalars().all()
+
+    return [
+        {
+            "id": s.id,
+            "code": s.code,
+            "name": s.name,
+        }
+        for s in subjects
+    ]

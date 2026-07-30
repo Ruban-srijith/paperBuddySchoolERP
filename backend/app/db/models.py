@@ -1,0 +1,348 @@
+import uuid
+from datetime import datetime, date
+from sqlalchemy import Column, String, Text, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint
+from sqlalchemy.orm import relationship
+import enum
+from app.db.database import Base
+
+class UserRole(str, enum.Enum):
+    SUPER_ADMIN = "super_admin"
+    CORRESPONDENT = "correspondent"
+    ADMIN = "admin"
+    PRINCIPAL = "principal"
+    VICE_PRINCIPAL = "vice_principal"
+    DEAN = "dean"
+    DEPT_HEAD = "dept_head"
+    TEACHER = "teacher"
+    MENTOR = "mentor"
+    STUDENT = "student"
+    PARENT = "parent"
+
+class AttendanceStatus(str, enum.Enum):
+    PRESENT = "present"
+    ABSENT = "absent"
+    LATE = "late"
+
+class SubmissionStatus(str, enum.Enum):
+    NOT_SUBMITTED = "not_submitted"
+    SUBMITTED = "submitted"
+    LATE = "late"
+    GRADED = "graded"
+
+class EmailStatus(str, enum.Enum):
+    QUEUED = "queued"
+    SENT = "sent"
+    FAILED = "failed"
+
+# ─── Role Hierarchy Utility ────────────────────────────────────
+# Used for permission checks: higher roles inherit access
+ROLE_HIERARCHY = {
+    UserRole.SUPER_ADMIN: 10,
+    UserRole.CORRESPONDENT: 9,
+    UserRole.ADMIN: 8,
+    UserRole.PRINCIPAL: 7,
+    UserRole.VICE_PRINCIPAL: 6,
+    UserRole.DEAN: 5,
+    UserRole.DEPT_HEAD: 4,
+    UserRole.TEACHER: 3,
+    UserRole.MENTOR: 2,
+    UserRole.STUDENT: 1,
+    UserRole.PARENT: 1,
+}
+
+
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), unique=True, nullable=False)
+    code = Column(String(20), unique=True, nullable=False)
+    dean_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    dean = relationship("User", foreign_keys=[dean_id], back_populates="headed_department")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String(255), unique=True, nullable=False)
+    full_name = Column(String(100), nullable=False)
+    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.STUDENT)
+    password_hash = Column(String(255), nullable=True)  # bcrypt hash
+    department_id = Column(String(36), ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
+    assigned_grade = Column(String(20), nullable=True)  # e.g., "10", "LKG", "UKG"
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    student_profile = relationship("Student", uselist=False, back_populates="user", cascade="all, delete-orphan")
+    department = relationship("Department", foreign_keys=[department_id], backref="members")
+    headed_department = relationship("Department", foreign_keys=[Department.dean_id], back_populates="dean", uselist=False)
+    mentor_assignments = relationship("MentorAssignment", back_populates="mentor", foreign_keys="MentorAssignment.mentor_id")
+
+
+class MentorAssignment(Base):
+    __tablename__ = "mentor_assignments"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    mentor_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint('mentor_id', 'class_id', name='uq_mentor_class'),)
+
+    mentor = relationship("User", foreign_keys=[mentor_id], back_populates="mentor_assignments")
+    school_class = relationship("Class")
+
+
+class Student(Base):
+    __tablename__ = "students"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="SET NULL"), nullable=True)
+    admission_number = Column(String(50), unique=True, nullable=False)
+    roll_number = Column(String(50), nullable=True)
+    full_name = Column(String(100), nullable=False)
+    father_name = Column(String(100), nullable=True)
+    mother_name = Column(String(100), nullable=True)
+    guardian_phone = Column(String(20), nullable=True)
+    date_of_birth = Column(String(20), nullable=True)
+    blood_group = Column(String(10), nullable=True)
+    address = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    user = relationship("User", back_populates="student_profile")
+    school_class = relationship("Class")
+
+class Class(Base):
+    __tablename__ = "classes"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    grade = Column(String(20), nullable=False)  # LKG, UKG, 1, 2, ..., 12
+    section = Column(String(10), nullable=False)
+
+    __table_args__ = (UniqueConstraint('grade', 'section', name='uq_class_grade_section'),)
+
+class Subject(Base):
+    __tablename__ = "subjects"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    code = Column(String(20), unique=True, nullable=False)
+    name = Column(String(100), nullable=False)
+    department_id = Column(String(36), ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
+
+    department = relationship("Department")
+
+class Classroom(Base):
+    __tablename__ = "classrooms"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(50), unique=True, nullable=False)
+    capacity = Column(Integer, nullable=True)
+    is_lab = Column(Boolean, default=False)
+
+class SyllabusNode(Base):
+    __tablename__ = "syllabus_nodes"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    chapter_name = Column(String(150), nullable=False)
+    topic_name = Column(String(200), nullable=False)
+    weightage_percent = Column(Numeric(5, 2), default=0.00)
+    is_completed = Column(Boolean, default=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    subject = relationship("Subject")
+
+class Timetable(Base):
+    __tablename__ = "timetables"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    classroom_id = Column(String(36), ForeignKey("classrooms.id", ondelete="SET NULL"), nullable=True)
+    day_of_week = Column(String(10), nullable=False)
+    time_slot = Column(String(20), nullable=False)
+
+    school_class = relationship("Class")
+    teacher = relationship("User")
+    subject = relationship("Subject")
+    classroom = relationship("Classroom")
+
+class Attendance(Base):
+    __tablename__ = "attendance"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    marked_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    date = Column(Date, nullable=False, default=date.today)
+    status = Column(SQLEnum(AttendanceStatus), nullable=False)
+
+    __table_args__ = (UniqueConstraint('student_id', 'date', name='uq_student_date_attendance'),)
+
+    student = relationship("User", foreign_keys=[student_id])
+    marked_by_user = relationship("User", foreign_keys=[marked_by])
+
+class DailyWorkLog(Base):
+    __tablename__ = "daily_work_logs"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    syllabus_node_id = Column(String(36), ForeignKey("syllabus_nodes.id", ondelete="SET NULL"), nullable=True)
+    date = Column(Date, nullable=False, default=date.today)
+    summary = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    teacher = relationship("User")
+    school_class = relationship("Class")
+    subject = relationship("Subject")
+    syllabus_node = relationship("SyllabusNode")
+
+class LabAssignment(Base):
+    __tablename__ = "lab_assignments"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    file_url = Column(Text, nullable=True)
+    due_date = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    school_class = relationship("Class")
+    subject = relationship("Subject")
+    teacher = relationship("User")
+
+class LabSubmission(Base):
+    __tablename__ = "lab_submissions"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    lab_assignment_id = Column(String(36), ForeignKey("lab_assignments.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    file_url = Column(Text, nullable=True)
+    status = Column(SQLEnum(SubmissionStatus), nullable=False, default=SubmissionStatus.NOT_SUBMITTED)
+    submitted_at = Column(DateTime(timezone=True), nullable=True)
+    grade = Column(Numeric(5, 2), nullable=True)
+    feedback = Column(Text, nullable=True)
+
+    __table_args__ = (UniqueConstraint('lab_assignment_id', 'student_id', name='uq_lab_student_submission'),)
+
+    lab_assignment = relationship("LabAssignment")
+    student = relationship("User")
+
+class EmailLog(Base):
+    __tablename__ = "email_logs"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    recipient_email = Column(String(255), nullable=False)
+    subject = Column(String(200), nullable=False)
+    body_summary = Column(Text, nullable=True)
+    event_type = Column(String(50), nullable=True)
+    related_id = Column(String(36), nullable=True)
+    dedup_key = Column(String(255), unique=True, nullable=True)
+    status = Column(SQLEnum(EmailStatus), nullable=False, default=EmailStatus.QUEUED)
+    retry_count = Column(Integer, nullable=False, default=0)
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+
+class MentorLog(Base):
+    __tablename__ = "mentor_logs"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    mentor_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    category = Column(String(50), nullable=False, default="academic")  # academic, behavioral, general
+    notes = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    mentor = relationship("User", foreign_keys=[mentor_id])
+    student = relationship("User", foreign_keys=[student_id])
+
+
+class FeePayment(Base):
+    __tablename__ = "fee_payments"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(200), nullable=False, default="Term Tuition Fee")
+    amount = Column(Numeric(10, 2), nullable=False)
+    payment_method = Column(String(50), nullable=False, default="Card")
+    transaction_id = Column(String(100), unique=True, nullable=False)
+    receipt_number = Column(String(100), unique=True, nullable=False)
+    status = Column(String(20), nullable=False, default="paid")
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    student = relationship("User", foreign_keys=[student_id])
+
+
+class ParentStudentMap(Base):
+    __tablename__ = "parent_student_map"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    parent_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    relationship_type = Column(String(50), nullable=False, default="Parent")
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint('parent_id', 'student_id', name='uq_parent_student'),)
+
+    parent = relationship("User", foreign_keys=[parent_id])
+    student = relationship("User", foreign_keys=[student_id])
+
+
+class LeaveRequest(Base):
+    __tablename__ = "leave_requests"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    applicant_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    leave_type = Column(String(50), nullable=False, default="Casual")  # Casual, Medical, Academic
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    reason = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="pending")  # pending, approved, rejected
+    approved_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    applicant = relationship("User", foreign_keys=[applicant_id])
+    approver = relationship("User", foreign_keys=[approved_by])
+
+
+class TeacherSubstitution(Base):
+    __tablename__ = "teacher_substitutions"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    timetable_id = Column(String(36), ForeignKey("timetables.id", ondelete="CASCADE"), nullable=False)
+    original_teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    substitute_teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    date = Column(Date, nullable=False, default=date.today)
+    status = Column(String(20), nullable=False, default="assigned")  # assigned, completed
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    timetable = relationship("Timetable")
+    original_teacher = relationship("User", foreign_keys=[original_teacher_id])
+    substitute_teacher = relationship("User", foreign_keys=[substitute_teacher_id])
+
+
+class BusRoute(Base):
+    __tablename__ = "bus_routes"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    route_name = Column(String(100), nullable=False)
+    driver_name = Column(String(100), nullable=False)
+    driver_phone = Column(String(20), nullable=False)
+    bus_number = Column(String(50), nullable=False)
+    current_location = Column(String(150), nullable=False, default="School Main Gate")
+    status = Column(String(20), nullable=False, default="in_transit")  # in_transit, arrived, scheduled
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+
