@@ -7,26 +7,50 @@ import {
   FileSearch, Calendar, CheckSquare, BookOpen, FlaskConical, 
   Mail, LayoutDashboard, GraduationCap, Sparkles, Users,
   Building2, LogOut, Shield, ChevronDown, UserCheck, CreditCard,
-  CheckCircle2, RefreshCw, Heart
+  CheckCircle2, RefreshCw, Heart, DollarSign, Award, TrendingUp,
+  Clock, Activity, FileSpreadsheet, LayoutGrid, FileCheck,
+  CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
+  Megaphone, Trophy, DoorOpen, UsersRound, Menu, X
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
+import { ToastProvider } from '@/components/Toast';
 
 // Map nav item keys to their config
 const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge?: string; color: string }> = {
-  dashboard:     { href: '/',             label: 'Dashboard Overview',    icon: LayoutDashboard, color: 'group-hover:text-indigo-400' },
-  users:         { href: '/users',        label: 'User Management',       icon: Users,           color: 'group-hover:text-pink-400' },
-  departments:   { href: '/departments',  label: 'Departments',           icon: Building2,       color: 'group-hover:text-teal-400' },
-  ocr:           { href: '/ocr',          label: 'Ensemble OCR Parser',   icon: FileSearch,      color: 'group-hover:text-cyan-400',   badge: 'AI' },
-  timetable:     { href: '/timetable',    label: 'Timetable Optimizer',   icon: Calendar,        color: 'group-hover:text-indigo-400' },
-  substitutions: { href: '/substitutions',label: 'Teacher Substitutions', icon: RefreshCw,       color: 'group-hover:text-cyan-400' },
-  attendance:    { href: '/attendance',   label: 'Attendance & Logs',     icon: CheckSquare,     color: 'group-hover:text-emerald-400' },
-  portion:       { href: '/portion',      label: 'Smart Portion Tracker', icon: BookOpen,        color: 'group-hover:text-amber-400' },
-  labs:          { href: '/labs',         label: 'Lab Submissions',       icon: FlaskConical,    color: 'group-hover:text-purple-400' },
-  emails:        { href: '/emails',       label: 'Email Intimations',     icon: Mail,            color: 'group-hover:text-rose-400' },
-  mentorship:    { href: '/mentorship',   label: 'Mentorship System',     icon: UserCheck,       color: 'group-hover:text-violet-400' },
-  fees:          { href: '/fees',         label: 'Fee Payment Portal',    icon: CreditCard,      color: 'group-hover:text-emerald-400' },
-  approvals:     { href: '/approvals',    label: 'Leave Approvals',       icon: CheckCircle2,    color: 'group-hover:text-amber-400' },
-  parent_portal: { href: '/parent',       label: 'Parent Portal',         icon: Heart,           color: 'group-hover:text-pink-400' },
+  dashboard:            { href: '/dashboard',                     label: 'Dashboard Overview',         icon: LayoutDashboard, color: 'group-hover:text-indigo-400' },
+  salary_approvals:     { href: '/salary-approvals',     label: 'Salary Approvals',          icon: DollarSign,      color: 'group-hover:text-emerald-400' },
+  event_approvals:      { href: '/event-approvals',      label: 'Approve Major Events',      icon: Award,           color: 'group-hover:text-amber-400' },
+  revenue:              { href: '/revenue',              label: 'Monthly Revenue',           icon: TrendingUp,      color: 'group-hover:text-cyan-400' },
+  toppers:              { href: '/toppers',              label: 'Class Toppers List',        icon: Trophy,          color: 'group-hover:text-yellow-400' },
+  pending_approvals:    { href: '/pending-approvals',    label: 'Pending Approvals',         icon: Clock,           color: 'group-hover:text-amber-400' },
+  workload:             { href: '/workload',             label: 'Teachers Workload',         icon: Activity,        color: 'group-hover:text-blue-400' },
+  staff_management:     { href: '/staff-management',     label: 'Staff Management Hub',      icon: UsersRound,      color: 'group-hover:text-indigo-400' },
+  reports:              { href: '/reports',              label: 'Reports & Analytics',       icon: FileSpreadsheet, color: 'group-hover:text-teal-400' },
+  classroom_allocation: { href: '/classroom-allocation', label: 'Classroom Allocation',     icon: LayoutGrid,      color: 'group-hover:text-purple-400', badge: 'AI' },
+  exams:                { href: '/exams',                label: 'Examination Center',        icon: FileCheck,       color: 'group-hover:text-rose-400' },
+  calendar:             { href: '/calendar',             label: 'Academic Calendar',         icon: CalendarDays,    color: 'group-hover:text-indigo-400' },
+  my_class:             { href: '/my-class',             label: 'My Class View',             icon: GraduationCap,   color: 'group-hover:text-cyan-400' },
+  homework:             { href: '/homework',             label: 'Homework Tracker',          icon: ClipboardList,   color: 'group-hover:text-amber-400' },
+  assignments:          { href: '/assignments',          label: 'Assignments',               icon: FileText,        color: 'group-hover:text-emerald-400' },
+  doubts:               { href: '/doubts',               label: 'Doubts & Leave Approvals',  icon: HelpCircle,      color: 'group-hover:text-violet-400' },
+  leave_apply:          { href: '/leave-apply',          label: 'Apply for Leave',           icon: CalendarPlus,    color: 'group-hover:text-rose-400' },
+  announcements:        { href: '/announcements',        label: 'Class Announcements',       icon: Megaphone,       color: 'group-hover:text-yellow-400' },
+  exam_schedule:        { href: '/exam-schedule',        label: 'Exam Schedule',             icon: FileCheck,       color: 'group-hover:text-indigo-400' },
+  queries:              { href: '/queries',              label: 'Doubts & Leave Queries',    icon: HelpCircle,      color: 'group-hover:text-violet-400' },
+  users:                { href: '/users',                label: 'User Management',           icon: Users,           color: 'group-hover:text-pink-400' },
+  departments:          { href: '/departments',          label: 'Departments',               icon: Building2,       color: 'group-hover:text-teal-400' },
+  class_allotments:     { href: '/class-allotments',     label: 'Class Teachers Allotments', icon: Users,           color: 'group-hover:text-amber-400' },
+  ocr:                  { href: '/ocr',                  label: 'Ensemble OCR Parser',       icon: FileSearch,      color: 'group-hover:text-cyan-400',   badge: 'AI' },
+  timetable:            { href: '/timetable',            label: 'Timetable Grid',            icon: Calendar,        color: 'group-hover:text-indigo-400' },
+  substitutions:        { href: '/substitutions',        label: 'Teacher Substitutions',     icon: RefreshCw,       color: 'group-hover:text-cyan-400' },
+  attendance:           { href: '/attendance',           label: 'Attendance & Logs',         icon: CheckSquare,     color: 'group-hover:text-emerald-400' },
+  portion:              { href: '/portion',              label: 'Smart Portion Tracker',     icon: BookOpen,        color: 'group-hover:text-amber-400' },
+  labs:                 { href: '/labs',                 label: 'Lab Submissions',           icon: FlaskConical,    color: 'group-hover:text-purple-400' },
+  emails:               { href: '/emails',               label: 'Email Intimations',         icon: Mail,            color: 'group-hover:text-rose-400' },
+  mentorship:           { href: '/mentorship',           label: 'Mentorship System',         icon: UserCheck,       color: 'group-hover:text-violet-400' },
+  fees:                 { href: '/fees',                 label: 'Fee Payment Portal',        icon: CreditCard,      color: 'group-hover:text-emerald-400' },
+  approvals:            { href: '/approvals',            label: 'Leave Approvals',           icon: CheckCircle2,    color: 'group-hover:text-amber-400' },
+  parent_portal:        { href: '/parent',               label: 'Parent Portal',             icon: Heart,           color: 'group-hover:text-pink-400' },
 };
 
 function AppShell({ children }: { children: React.ReactNode }) {
@@ -34,19 +58,20 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated, logout, checkAuth } = useAuthStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
   useEffect(() => {
-    if (pathname !== '/login' && !isAuthenticated) {
+    if (pathname !== '/login' && pathname !== '/' && !isAuthenticated) {
       router.push('/login');
     }
   }, [pathname, isAuthenticated, router]);
 
-  // Don't show shell on login page
-  if (pathname === '/login') {
+  // Don't show shell on login page or landing page
+  if (pathname === '/login' || pathname === '/') {
     return <>{children}</>;
   }
 
@@ -74,25 +99,31 @@ function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#090d16', color: '#f3f4f6' }}>
       {/* Top Navbar */}
-      <header className="h-16 glass-panel border-b border-gray-800/60 sticky top-0 z-50 px-6 flex items-center justify-between">
+      <header className="h-16 glass-panel border-b border-gray-800/60 sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <GraduationCap className="w-6 h-6 text-white" />
+          <button
+            onClick={() => setShowMobileMenu(true)}
+            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <Link href="/" className="flex items-center space-x-2 md:space-x-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 flex-shrink-0">
+              <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
-            <div>
-              <span className="font-bold text-xl tracking-tight gradient-text">PaperBuddy ERP</span>
-              <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
-                v2.0 RBAC
+            <div className="flex flex-col justify-center whitespace-nowrap">
+              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight gradient-text">CampusCopilot AI</span>
+              <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 w-fit">
+                v2.5 Multi-Role
               </span>
             </div>
           </Link>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-500/30">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="hidden lg:flex items-center space-x-2 text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-500/30 whitespace-nowrap">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span>FastAPI & OR-Tools Active</span>
+            <span>FastAPI & Live Engine Active</span>
           </div>
 
           {/* User Profile Dropdown */}
@@ -102,7 +133,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               className="flex items-center space-x-3 pl-4 border-l border-gray-800 hover:bg-gray-800/30 rounded-lg px-3 py-1.5 transition-colors"
             >
               <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${roleColor} flex items-center justify-center text-white font-semibold text-xs shadow-lg`}>
-                {user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {user.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
               </div>
               <div className="text-left hidden md:block">
                 <p className="text-xs font-semibold text-gray-200">{user.full_name}</p>
@@ -121,7 +152,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             {showUserMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
-                <div className="absolute right-0 top-full mt-2 w-64 glass-panel rounded-xl border border-gray-700/60 shadow-2xl z-50 overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-[#090d16] bg-opacity-95 backdrop-blur-2xl rounded-xl border border-gray-700/60 shadow-2xl z-50 overflow-hidden">
                   <div className="p-4 border-b border-gray-800/60">
                     <p className="font-semibold text-sm text-white">{user.full_name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{user.email}</p>
@@ -152,12 +183,28 @@ function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 relative">
+        {/* Mobile Sidebar Overlay Backdrop */}
+        {showMobileMenu && (
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setShowMobileMenu(false)}
+          ></div>
+        )}
+
         {/* Left Sidebar — Dynamic by Role */}
-        <aside className="w-64 glass-panel border-r border-gray-800/60 p-4 hidden lg:flex flex-col justify-between">
+        <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass-panel border-r border-gray-800/60 p-4 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:max-h-[calc(100vh-4rem)] ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="space-y-6">
-            <div className="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-              ERP Operations
+            <div className="flex items-center justify-between px-3">
+              <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                {roleLabel} Menu
+              </div>
+              <button 
+                onClick={() => setShowMobileMenu(false)}
+                className="lg:hidden p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-800/50"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
             <nav className="space-y-1">
               {navItems.map((key) => {
@@ -169,16 +216,17 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   <Link
                     key={key}
                     href={config.href}
-                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group
+                    onClick={() => setShowMobileMenu(false)}
+                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group
                       ${isActive 
-                        ? 'text-white bg-indigo-600/20 border border-indigo-500/30' 
+                        ? 'text-white bg-indigo-600/20 border border-indigo-500/30 shadow-sm' 
                         : 'text-gray-300 hover:text-white hover:bg-indigo-600/15'
                       }`}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : `text-gray-400 ${config.color}`}`} />
                     <span>{config.label}</span>
                     {config.badge && (
-                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">
+                      <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">
                         {config.badge}
                       </span>
                     )}
@@ -189,20 +237,20 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Role Info Card */}
-          <div className="p-3 glass-panel-glow rounded-xl text-xs space-y-2">
+          <div className="p-3 mt-6 glass-panel-glow rounded-xl text-xs space-y-2">
             <div className="flex items-center space-x-2 text-indigo-300 font-semibold">
               <Shield className="w-4 h-4 text-indigo-400" />
-              <span>8-Role RBAC System</span>
+              <span>Multi-Role RBAC</span>
             </div>
             <p className="text-[11px] text-gray-400 leading-relaxed">
-              Logged in as <span className="text-indigo-300 font-medium">{roleLabel}</span>. 
-              {user.assigned_grade ? ` Grade ${user.assigned_grade} scope.` : ' Full system access.'}
+              Logged in as <span className="text-indigo-300 font-medium">{roleLabel}</span>.
+              {user.assigned_grade ? ` Grade ${user.assigned_grade} scope.` : ' Operational scope active.'}
             </p>
           </div>
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
           {children}
         </main>
       </div>
@@ -225,5 +273,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     );
   }
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <ToastProvider>
+      <AppShell>{children}</AppShell>
+    </ToastProvider>
+  );
 }

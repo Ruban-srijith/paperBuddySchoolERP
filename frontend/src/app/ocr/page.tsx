@@ -351,7 +351,7 @@ function OCRVerificationContent() {
 
 export default function OCRVerificationPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'admin', 'principal']}>
+    <ProtectedRoute>
       <OCRVerificationContent />
     </ProtectedRoute>
   );

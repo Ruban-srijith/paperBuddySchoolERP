@@ -40,13 +40,13 @@ interface AuthState {
 
 // Role display names for UI
 export const ROLE_LABELS: Record<UserRole, string> = {
-  super_admin: 'Super Admin',
+  super_admin: 'Super Admin (Correspondent)',
   correspondent: 'Correspondent',
-  admin: 'Admin',
+  admin: 'Admin (Principal)',
   principal: 'Principal',
-  vice_principal: 'Vice Principal',
-  dean: 'Dean',
-  dept_head: 'Dept Head',
+  vice_principal: 'Sub-admin (Vice-Principal)',
+  dean: 'Dean of Academics',
+  dept_head: 'Head of Department',
   teacher: 'Teacher',
   mentor: 'Mentor',
   student: 'Student',
@@ -55,7 +55,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 // Role colors for badges
 export const ROLE_COLORS: Record<UserRole, string> = {
-  super_admin: 'from-red-500 to-orange-500',
+  super_admin: 'from-red-500 to-amber-500',
   correspondent: 'from-amber-500 to-red-500',
   admin: 'from-indigo-500 to-purple-500',
   principal: 'from-amber-500 to-yellow-500',
@@ -69,25 +69,155 @@ export const ROLE_COLORS: Record<UserRole, string> = {
 };
 
 // Navigation items per role
-export type NavItem = {
-  href: string;
-  label: string;
-  icon: string; // lucide icon name
-  badge?: string;
-};
-
 export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
-  super_admin:   ['dashboard', 'users', 'departments', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  correspondent: ['dashboard', 'users', 'departments', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  admin:         ['dashboard', 'users', 'departments', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  principal:     ['dashboard', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  vice_principal:['dashboard', 'timetable', 'substitutions', 'attendance', 'portion', 'labs'],
-  dean:          ['dashboard', 'timetable', 'attendance', 'portion', 'labs', 'mentorship'],
-  dept_head:     ['dashboard', 'timetable', 'attendance', 'portion', 'labs', 'mentorship'],
-  teacher:       ['dashboard', 'timetable', 'attendance', 'portion', 'labs'],
-  mentor:        ['dashboard', 'mentorship', 'attendance', 'portion'],
-  student:       ['dashboard', 'timetable', 'attendance', 'portion', 'labs', 'fees'],
-  parent:        ['parent_portal'],
+  super_admin: [
+    'dashboard',
+    'salary_approvals',
+    'event_approvals',
+    'revenue',
+    'toppers',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'class_allotments',
+    'ocr'
+  ],
+  correspondent: [
+    'dashboard',
+    'salary_approvals',
+    'event_approvals',
+    'revenue',
+    'toppers',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'class_allotments',
+    'ocr'
+  ],
+  admin: [
+    'dashboard',
+    'pending_approvals',
+    'workload',
+    'staff_management',
+    'reports',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'class_allotments',
+    'ocr'
+  ],
+  principal: [
+    'dashboard',
+    'pending_approvals',
+    'workload',
+    'staff_management',
+    'reports',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'class_allotments',
+    'ocr'
+  ],
+  vice_principal: [
+    'dashboard',
+    'timetable',
+    'classroom_allocation',
+    'workload',
+    'exams',
+    'calendar',
+    'reports',
+    'labs',
+    'substitutions',
+    'attendance',
+    'portion',
+    'departments',
+    'class_allotments',
+    'ocr'
+  ],
+  dean: [
+    'dashboard',
+    'timetable',
+    'classroom_allocation',
+    'workload',
+    'exams',
+    'calendar',
+    'reports',
+    'labs',
+    'attendance',
+    'portion',
+    'ocr'
+  ],
+  dept_head: [
+    'dashboard',
+    'timetable',
+    'workload',
+    'calendar',
+    'labs',
+    'attendance',
+    'portion',
+    'ocr'
+  ],
+  teacher: [
+    'dashboard',
+    'my_class',
+    'attendance',
+    'timetable',
+    'homework',
+    'assignments',
+    'labs',
+    'portion',
+    'calendar',
+    'doubts',
+    'leave_apply',
+    'announcements',
+    'departments',
+    'ocr'
+  ],
+  mentor: [
+    'dashboard',
+    'mentorship',
+    'attendance',
+    'portion',
+    'ocr'
+  ],
+  student: [
+    'dashboard',
+    'timetable',
+    'attendance',
+    'homework',
+    'assignments',
+    'exam_schedule',
+    'portion',
+    'labs',
+    'calendar',
+    'queries',
+    'fees',
+    'ocr'
+  ],
+  parent: [
+    'parent_portal',
+    'ocr'
+  ],
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({

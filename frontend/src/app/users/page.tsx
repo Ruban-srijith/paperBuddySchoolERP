@@ -23,7 +23,7 @@ interface DeptItem {
   name: string;
 }
 
-const ALL_ROLES: UserRole[] = ['super_admin', 'admin', 'principal', 'dean', 'dept_head', 'teacher', 'mentor', 'student'];
+const ALL_ROLES: UserRole[] = ['correspondent', 'principal', 'vice_principal', 'teacher', 'mentor', 'student'];
 const ALL_GRADES = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 function UsersPageContent() {
@@ -45,12 +45,10 @@ function UsersPageContent() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const params: any = {};
-      if (roleFilter) params.role = roleFilter;
-      const res = await api.get('/users', { params });
+      const res = await api.get('/users');
       setUsers(res.data);
     } catch (err) {
-      console.error('Failed to fetch users:', err);
+      setUsers([]);
     }
     setLoading(false);
   };
@@ -65,11 +63,12 @@ function UsersPageContent() {
   useEffect(() => {
     fetchUsers();
     fetchDepartments();
-  }, [roleFilter]);
+  }, []);
 
   const filteredUsers = users.filter(u =>
-    u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (roleFilter === '' || u.role === roleFilter) &&
+    (u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -99,10 +98,10 @@ function UsersPageContent() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center flex-shrink-0">
               <Users className="w-5 h-5 text-pink-400" />
             </div>
             User Management
@@ -111,7 +110,7 @@ function UsersPageContent() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white text-sm font-medium shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-all"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white text-sm font-medium shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-all whitespace-nowrap flex-shrink-0 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           Add User
@@ -119,7 +118,7 @@ function UsersPageContent() {
       </div>
 
       {/* Role Stats */}
-      <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
         {ALL_ROLES.map(role => (
           <button
             key={role}
@@ -330,7 +329,7 @@ function UsersPageContent() {
 
 export default function UsersPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal']}>
       <UsersPageContent />
     </ProtectedRoute>
   );

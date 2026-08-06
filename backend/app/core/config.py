@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     # Fallback sqlite for quick testing when postgres is unavailable
     SQLITE_DATABASE_URL: str = "sqlite+aiosqlite:///./school_erp.db"
 
+    # MongoDB Settings (Local MongoDB)
+    MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+    MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "paperbuddy_erp")
+
     # JWT Authentication Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "paperbuddy-super-secret-key-change-in-production-2026")
     ALGORITHM: str = "HS256"
@@ -20,7 +24,10 @@ class Settings(BaseSettings):
     DEFAULT_PASSWORD: str = "school@123"
     
     class Config:
+        env_file = ".env"
         case_sensitive = True
+        extra = "allow"
 
 settings = Settings()
+
 

@@ -123,6 +123,9 @@ class Class(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     grade = Column(String(20), nullable=False)  # LKG, UKG, 1, 2, ..., 12
     section = Column(String(10), nullable=False)
+    class_teacher_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    class_teacher = relationship("User", foreign_keys=[class_teacher_id])
 
     __table_args__ = (UniqueConstraint('grade', 'section', name='uq_class_grade_section'),)
 
@@ -344,5 +347,153 @@ class BusRoute(Base):
     current_location = Column(String(150), nullable=False, default="School Main Gate")
     status = Column(String(20), nullable=False, default="in_transit")  # in_transit, arrived, scheduled
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+
+class AcademicCalendarEvent(Base):
+    __tablename__ = "academic_calendar_events"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    event_type = Column(String(50), nullable=False, default="Academic")  # Holiday, Examination, Event, Academic, Meeting
+    grade_scope = Column(String(50), nullable=False, default="all")  # "all", "LKG", "10", etc.
+    created_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    created_by = relationship("User", foreign_keys=[created_by_id])
+
+
+class SalaryRecord(Base):
+    __tablename__ = "salary_records"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    staff_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    month = Column(String(20), nullable=False)
+    year = Column(Integer, nullable=False)
+    base_salary = Column(Numeric(10, 2), nullable=False)
+    allowances = Column(Numeric(10, 2), default=0.00)
+    deductions = Column(Numeric(10, 2), default=0.00)
+    net_salary = Column(Numeric(10, 2), nullable=False)
+    status = Column(String(20), nullable=False, default="pending")  # pending, approved, rejected
+    approved_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    remarks = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    staff = relationship("User", foreign_keys=[staff_id])
+    approved_by = relationship("User", foreign_keys=[approved_by_id])
+
+
+class SchoolEventProposal(Base):
+    __tablename__ = "school_event_proposals"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=False)
+    organizer_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    target_grades = Column(String(100), nullable=False, default="all")
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    budget = Column(Numeric(10, 2), default=0.00)
+    status = Column(String(20), nullable=False, default="pending")  # pending, approved, rejected
+    approved_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    feedback = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    organizer = relationship("User", foreign_keys=[organizer_id])
+    approved_by = relationship("User", foreign_keys=[approved_by_id])
+
+
+class ExamSchedule(Base):
+    __tablename__ = "exam_schedules"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    exam_name = Column(String(150), nullable=False)  # e.g., "Term 1 Midterm Exam"
+    grade = Column(String(20), nullable=False)  # e.g., "10", "12"
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    exam_date = Column(Date, nullable=False)
+    start_time = Column(String(20), nullable=False)
+    end_time = Column(String(20), nullable=False)
+    max_marks = Column(Integer, default=100)
+    classroom_id = Column(String(36), ForeignKey("classrooms.id", ondelete="SET NULL"), nullable=True)
+    hall_allotment = Column(String(100), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    subject = relationship("Subject")
+    classroom = relationship("Classroom")
+
+
+class Homework(Base):
+    __tablename__ = "homeworks"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=False)
+    assigned_date = Column(Date, nullable=False, default=date.today)
+    due_date = Column(Date, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    school_class = relationship("Class")
+    subject = relationship("Subject")
+    teacher = relationship("User")
+
+
+class Assignment(Base):
+    __tablename__ = "assignments"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    max_points = Column(Integer, default=100)
+    due_date = Column(DateTime(timezone=True), nullable=False)
+    attachment_url = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    school_class = relationship("Class")
+    subject = relationship("Subject")
+    teacher = relationship("User")
+
+
+class StudentQuery(Base):
+    __tablename__ = "student_queries"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    query_type = Column(String(50), nullable=False, default="doubt")  # "doubt" or "leave_application"
+    teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="SET NULL"), nullable=True)
+    question_or_reason = Column(Text, nullable=False)
+    response = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False, default="pending")  # pending, answered, approved, rejected
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    student = relationship("User", foreign_keys=[student_id])
+    teacher = relationship("User", foreign_keys=[teacher_id])
+    subject = relationship("Subject")
+    school_class = relationship("Class")
+
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="SET NULL"), nullable=True)  # Null = All Classes
+    author_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(200), nullable=False)
+    content = Column(Text, nullable=False)
+    priority = Column(String(20), default="normal")  # normal, high, urgent
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    author = relationship("User", foreign_keys=[author_id])
+    school_class = relationship("Class")
+
 
 

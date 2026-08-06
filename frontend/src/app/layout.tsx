@@ -3,7 +3,7 @@ import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
 
 export const metadata: Metadata = {
-  title: "PaperBuddy - AI-Powered School Operations & ERP System",
+  title: "CampusCopilot AI - AI-Powered School Operations & ERP System",
   description: "Next-Gen AI Autonomous School Management System with 8-Role RBAC, LKG to 12th Standard",
 };
 

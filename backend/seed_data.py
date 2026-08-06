@@ -11,7 +11,9 @@ from app.db.models import (
     User, Student, Class, Subject, Classroom, SyllabusNode,
     LabAssignment, UserRole, Department, MentorAssignment,
     MentorLog, FeePayment, ParentStudentMap, LeaveRequest,
-    TeacherSubstitution, BusRoute
+    TeacherSubstitution, BusRoute, AcademicCalendarEvent,
+    SalaryRecord, SchoolEventProposal, ExamSchedule,
+    Homework, Assignment, StudentQuery, Announcement
 )
 from app.core.auth import hash_password
 
@@ -51,6 +53,7 @@ SECTIONS = ["A", "B"]
 
 async def seed():
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     async with AsyncSessionLocal() as session:
@@ -386,6 +389,175 @@ async def seed():
             status="in_transit"
         )
         session.add(bus1)
+
+        # ═══════════════════════════════════════════════════════
+        # 11. ACADEMIC CALENDAR EVENTS
+        # ═══════════════════════════════════════════════════════
+        cal_events = [
+            AcademicCalendarEvent(
+                id="cal11111-1111-1111-1111-111111111111",
+                title="Independence Day & Flag Hoisting",
+                description="Annual Independence Day ceremonial flag hoisting and cultural programs.",
+                start_date=date(2026, 8, 15),
+                end_date=date(2026, 8, 15),
+                event_type="Holiday",
+                grade_scope="all",
+                created_by_id=VP_ID
+            ),
+            AcademicCalendarEvent(
+                id="cal22222-2222-2222-2222-222222222222",
+                title="Term 1 Mid-Term Examination",
+                description="Mid-term theory and practical examinations for Grades 6 through 12.",
+                start_date=date(2026, 8, 20),
+                end_date=date(2026, 8, 28),
+                event_type="Examination",
+                grade_scope="all",
+                created_by_id=VP_ID
+            ),
+            AcademicCalendarEvent(
+                id="cal33333-3333-3333-3333-333333333333",
+                title="National Science Exhibition & Tech Fest",
+                description="Inter-school science showcase and robotics competitions in main auditorium.",
+                start_date=date(2026, 9, 5),
+                end_date=date(2026, 9, 6),
+                event_type="Event",
+                grade_scope="all",
+                created_by_id=VP_ID
+            ),
+            AcademicCalendarEvent(
+                id="cal44444-4444-4444-4444-444444444444",
+                title="Staff Academic Council & Curriculum Review",
+                description="Term 1 progress review and lesson planning sync for all faculty.",
+                start_date=date(2026, 8, 30),
+                end_date=date(2026, 8, 30),
+                event_type="Meeting",
+                grade_scope="all",
+                created_by_id=PRINCIPAL_ID
+            ),
+        ]
+        session.add_all(cal_events)
+
+        # ═══════════════════════════════════════════════════════
+        # 12. SALARY RECORDS (SUPERADMIN APPROVAL)
+        # ═══════════════════════════════════════════════════════
+        salary_records = [
+            SalaryRecord(
+                id="sal11111-1111-1111-1111-111111111111",
+                staff_id=TEACHER_1_ID,
+                month="July",
+                year=2026,
+                base_salary=65000.00,
+                allowances=5000.00,
+                deductions=2000.00,
+                net_salary=68000.00,
+                status="approved",
+                approved_by_id=CORRESPONDENT_ID,
+                remarks="Regular monthly salary approved."
+            ),
+            SalaryRecord(
+                id="sal22222-2222-2222-2222-222222222222",
+                staff_id=TEACHER_2_ID,
+                month="August",
+                year=2026,
+                base_salary=72000.00,
+                allowances=6000.00,
+                deductions=2500.00,
+                net_salary=75500.00,
+                status="pending",
+                remarks="Awaiting Correspondent approval for August payroll."
+            ),
+            SalaryRecord(
+                id="sal33333-3333-3333-3333-333333333333",
+                staff_id=TEACHER_3_ID,
+                month="August",
+                year=2026,
+                base_salary=70000.00,
+                allowances=5500.00,
+                deductions=2200.00,
+                net_salary=73300.00,
+                status="pending",
+                remarks="August salary request submitted."
+            ),
+        ]
+        session.add_all(salary_records)
+
+        # ═══════════════════════════════════════════════════════
+        # 13. MAJOR EVENT PROPOSALS
+        # ═══════════════════════════════════════════════════════
+        event_proposals = [
+            SchoolEventProposal(
+                id="evp11111-1111-1111-1111-111111111111",
+                title="Annual Inter-School Sports Meet 2026",
+                description="3-day athletic meet with 24 participating schools, track events, and prize distribution.",
+                organizer_id=TEACHER_1_ID,
+                target_grades="all",
+                start_date=date(2026, 9, 18),
+                end_date=date(2026, 9, 20),
+                budget=250000.00,
+                status="pending",
+            ),
+            SchoolEventProposal(
+                id="evp22222-2222-2222-2222-222222222222",
+                title="Astronomy & Night Sky Observation Camp",
+                description="Telescope observation and astrophysicist guest lecture for Grades 8-12.",
+                organizer_id=TEACHER_2_ID,
+                target_grades="8-12",
+                start_date=date(2026, 10, 10),
+                end_date=date(2026, 10, 11),
+                budget=85000.00,
+                status="approved",
+                approved_by_id=CORRESPONDENT_ID,
+                feedback="Approved. Please coordinate safety with campus security."
+            )
+        ]
+        session.add_all(event_proposals)
+
+        # ═══════════════════════════════════════════════════════
+        # 14. HOMEWORK, QUERIES & ANNOUNCEMENTS
+        # ═══════════════════════════════════════════════════════
+        hw1 = Homework(
+            id="hw111111-1111-1111-1111-111111111111",
+            class_id=c10a.id,
+            subject_id=sub1.id,
+            teacher_id=TEACHER_1_ID,
+            title="Exercise 4.3 — Quadratic Equations Factorization",
+            description="Complete Q1 through Q10 on page 84. Submit step-by-step working.",
+            assigned_date=date.today(),
+            due_date=date.today() + timedelta(days=2),
+        )
+        session.add(hw1)
+
+        q1 = StudentQuery(
+            id="sq111111-1111-1111-1111-111111111111",
+            student_id=STU_1_ID,
+            query_type="doubt",
+            teacher_id=TEACHER_1_ID,
+            subject_id=sub1.id,
+            class_id=c10a.id,
+            question_or_reason="In Quadratic Equations exercise 4.3 Q7, why do we reject the negative root for train speed?",
+            response="Because speed magnitude in classical mechanics cannot be negative.",
+            status="answered",
+        )
+        q2 = StudentQuery(
+            id="sq222222-2222-2222-2222-222222222222",
+            student_id=STU_1_ID,
+            query_type="leave_application",
+            teacher_id=TEACHER_1_ID,
+            class_id=c10a.id,
+            question_or_reason="Request 2 days leave (Aug 10-11) for Science Olympiad finals.",
+            status="pending",
+        )
+        session.add_all([q1, q2])
+
+        anc1 = Announcement(
+            id="anc11111-1111-1111-1111-111111111111",
+            class_id=None,
+            author_id=PRINCIPAL_ID,
+            title="Independence Day Flag Hoisting & Parade",
+            content="Independence Day celebration on Aug 15th at 8:00 AM. Dress code: Formal white uniform.",
+            priority="high",
+        )
+        session.add(anc1)
 
         await session.commit()
         print("=" * 60)

@@ -55,7 +55,7 @@ async def list_departments(
 async def create_department(
     req: DepartmentCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Create a new department (Admin only)."""
     # Check duplicate

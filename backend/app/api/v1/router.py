@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from app.api.v1 import (
     auth, users, students, departments, ocr, timetable, attendance,
-    portion, labs, emails, mentorship, fees, approvals, substitutions, parent, ai
+    portion, labs, emails, mentorship, fees, approvals, substitutions, parent, ai,
+    calendar, approvals_ext, academics, mongodb_status, classes
 )
 
 api_router = APIRouter()
@@ -27,3 +28,12 @@ api_router.include_router(approvals.router)
 api_router.include_router(substitutions.router)
 api_router.include_router(parent.router)
 api_router.include_router(ai.router)
+
+# Multi-Role Extensions: Calendar, Governance Approvals, Academics & Workload
+api_router.include_router(calendar.router)
+api_router.include_router(approvals_ext.router)
+api_router.include_router(academics.router)
+api_router.include_router(mongodb_status.router)
+api_router.include_router(classes.router)
+
+

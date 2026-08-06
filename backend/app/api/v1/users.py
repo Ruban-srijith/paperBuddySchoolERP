@@ -42,7 +42,7 @@ async def list_users(
     department_id: Optional[str] = Query(None, description="Filter by department"),
     grade: Optional[str] = Query(None, description="Filter by assigned grade"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN, UserRole.DEPT_HEAD)),
 ):
     """List all users with optional filtering."""
     query = select(User).options(selectinload(User.department))
@@ -71,7 +71,7 @@ async def list_users(
 async def create_user(
     req: UserCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Create a new user with role assignment (Admin only)."""
     try:
@@ -113,7 +113,7 @@ async def update_user(
     user_id: str,
     req: UserUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Update user profile & role (Admin only)."""
     result = await db.execute(select(User).where(User.id == user_id))

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore, ROLE_LABELS } from '@/store/authStore';
-import { GraduationCap, Eye, EyeOff, LogIn, Sparkles, Shield } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, LogIn, Sparkles, Shield, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/');
+      router.push('/dashboard');
     }
   }, [isAuthenticated, router]);
 
@@ -26,14 +27,14 @@ export default function LoginPage() {
     e.preventDefault();
     const success = await login(email, password);
     if (success) {
-      router.push('/');
+      router.push('/dashboard');
     }
   };
 
   const quickLogins = [
-    { label: 'Super Admin', email: 'superadmin@school.edu' },
-    { label: 'Admin', email: 'admin@school.edu' },
+    { label: 'Correspondent', email: 'correspondent@school.edu' },
     { label: 'Principal', email: 'principal@school.edu' },
+    { label: 'Vice-Principal', email: 'vp@school.edu' },
     { label: 'Teacher', email: 'sarah.connor@school.edu' },
     { label: 'Student', email: 'kishor.k@school.edu' },
     { label: 'Mentor', email: 'mentor.10a@school.edu' },
@@ -58,6 +59,11 @@ export default function LoginPage() {
         }}
       ></div>
 
+      <Link href="/" className="absolute top-4 sm:top-6 left-4 sm:left-6 flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-gray-400 bg-gray-900/50 border border-gray-800/60 hover:text-white hover:bg-gray-800 transition-all z-50 hover:-translate-x-1">
+        <ArrowLeft className="w-4 h-4" />
+        Back to Home
+      </Link>
+
       <div className="relative z-10 w-full max-w-md">
         {/* Logo & Branding */}
         <div className="text-center mb-8 space-y-3">
@@ -65,7 +71,7 @@ export default function LoginPage() {
             <GraduationCap className="w-9 h-9 text-white" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
-            <span className="gradient-text">PaperBuddy</span>
+            <span className="gradient-text">CampusCopilot AI</span>
             <span className="text-gray-300"> ERP</span>
           </h1>
           <p className="text-gray-400 text-sm">AI-Powered School Operations System</p>
@@ -160,7 +166,7 @@ export default function LoginPage() {
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span>Quick Demo Login</span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {quickLogins.map((ql) => (
                 <button
                   key={ql.email}
@@ -183,7 +189,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center mt-6 text-xs text-gray-500 space-y-1">
-          <p>PaperBuddy ERP v2.0 — AI-Core with 8-Role RBAC</p>
+          <p>CampusCopilot AI v2.0 — AI-Core with 8-Role RBAC</p>
           <p>LKG to 12th Standard • Multi-Department Management</p>
         </div>
       </div>
