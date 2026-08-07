@@ -162,7 +162,7 @@ function DashboardContent() {
             ) : isTeacher ? (
               <>Welcome, <span className="gradient-text">{user.full_name}</span></>
             ) : (
-              <>Welcome to <span className="gradient-text">CampusCopilot AI</span></>
+              <>Welcome to <span className="gradient-text">PaperBuddy</span></>
             )}
           </h1>
           <p className="text-gray-300 text-sm leading-relaxed">

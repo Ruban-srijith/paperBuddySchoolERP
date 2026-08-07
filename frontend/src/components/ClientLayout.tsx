@@ -12,7 +12,7 @@ import {
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
   Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
-  BookCopy, Library, MonitorSmartphone
+  BookCopy, Library, MonitorSmartphone, UserCircle
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -142,7 +142,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
             <div className="flex flex-col justify-center whitespace-nowrap">
-              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight gradient-text">CampusCopilot AI</span>
+              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight gradient-text">PaperBuddy</span>
               <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 w-fit">
                 v2.5 Multi-Role
               </span>
@@ -198,6 +198,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     </div>
                   </div>
                   <div className="p-2">
+                    <Link 
+                      href="/profile"
+                      onClick={() => setShowUserMenu(false)}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white transition-colors"
+                    >
+                      <UserCircle className="w-4 h-4" />
+                      My Profile
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors"

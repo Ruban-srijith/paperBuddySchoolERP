@@ -384,7 +384,7 @@ export default function FeesPage() {
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">CampusCopilot AI Fee Receipt</h3>
+                    <h3 className="text-base font-bold text-white">PaperBuddy Fee Receipt</h3>
                     <p className="text-[10px] text-gray-400">GST Registration: 33AAAAA0000A1Z5</p>
                   </div>
                 </div>

@@ -76,7 +76,7 @@ export default function LoginPage() {
             <GraduationCap className="w-9 h-9 text-white" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
-            <span className="gradient-text">CampusCopilot AI</span>
+            <span className="gradient-text">PaperBuddy</span>
             <span className="text-gray-300"> ERP</span>
           </h1>
           <p className="text-gray-400 text-sm">AI-Powered School Operations System</p>
@@ -194,7 +194,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center mt-6 text-xs text-gray-500 space-y-1">
-          <p>CampusCopilot AI v2.0 — AI-Core with 8-Role RBAC</p>
+          <p>PaperBuddy v2.0 — AI-Core with 8-Role RBAC</p>
           <p>LKG to 12th Standard • Multi-Department Management</p>
         </div>
       </div>

@@ -111,7 +111,7 @@ export default function StudentExamSchedulePage() {
           <ul className="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
             <li>Students must be seated in the examination hall 15 minutes prior to the commencement of the exam.</li>
             <li>Possession of digital smartwatches or unauthorized electronic calculators in the hall is strictly prohibited.</li>
-            <li>Carry your physical printed Hall Ticket and CampusCopilot AI student ID badge to all sessions.</li>
+            <li>Carry your physical printed Hall Ticket and PaperBuddy student ID badge to all sessions.</li>
           </ul>
         </div>
 
@@ -125,7 +125,7 @@ export default function StudentExamSchedulePage() {
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">CampusCopilot AI Certified Hall Ticket</h3>
+                    <h3 className="text-base font-bold text-white">PaperBuddy Certified Hall Ticket</h3>
                     <p className="text-[10px] text-gray-400">CBSE Affiliation No: 1930281 • Term 1 2026</p>
                   </div>
                 </div>
