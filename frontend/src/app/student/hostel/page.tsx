@@ -1,0 +1,63 @@
+"use client";
+
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { LogOut, AlertCircle, Clock } from "lucide-react";
+
+export default function StudentHostelPortal() {
+  return (
+    <ProtectedRoute allowedRoles={['student', 'super_admin', 'admin', 'principal']}>
+      <div className="space-y-6 max-w-4xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <LogOut className="w-8 h-8 text-indigo-400" />
+            Hostel Services
+          </h1>
+          <p className="text-gray-400 mt-2">Apply for weekend outpasses and track status.</p>
+        </header>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="glass-panel p-6 rounded-2xl border border-gray-800">
+            <h2 className="text-xl font-bold text-white mb-4">Apply for Outpass</h2>
+            <form className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Departure</label>
+                <input type="datetime-local" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Return</label>
+                <input type="datetime-local" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Reason</label>
+                <textarea className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white h-24" placeholder="Going home for the weekend..."></textarea>
+              </div>
+              <button type="button" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl">
+                Submit Request
+              </button>
+            </form>
+          </div>
+
+          <div className="glass-panel p-6 rounded-2xl border border-gray-800">
+            <h2 className="text-xl font-bold text-white mb-4">My Requests</h2>
+            <div className="space-y-3">
+              <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-sm font-bold text-white">Oct 12 - Oct 14</span>
+                  <span className="px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs rounded-md">Pending</span>
+                </div>
+                <p className="text-xs text-gray-400">Family function</p>
+              </div>
+              <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-sm font-bold text-white">Sep 20 - Sep 22</span>
+                  <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs rounded-md">Approved</span>
+                </div>
+                <p className="text-xs text-gray-400">Weekend trip</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ProtectedRoute>
+  );
+}

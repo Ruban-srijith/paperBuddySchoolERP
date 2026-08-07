@@ -132,13 +132,15 @@ function DashboardContent() {
   const isFinance = user.role === 'finance';
   const isWarden = user.role === 'warden';
 
-  if (isFinance && typeof window !== 'undefined') {
-    router.push('/finance');
-    return null;
-  }
+  useEffect(() => {
+    if (isFinance) {
+      router.push('/finance');
+    } else if (isWarden) {
+      router.push('/warden');
+    }
+  }, [isFinance, isWarden, router]);
 
-  if (isWarden && typeof window !== 'undefined') {
-    router.push('/warden');
+  if (isFinance || isWarden) {
     return null;
   }
 

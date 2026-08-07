@@ -596,3 +596,111 @@ class Outpass(Base):
 
     student = relationship("User", foreign_keys=[student_id])
     approver = relationship("User", foreign_keys=[approved_by])
+
+# =====================================================================
+# Advanced Finance Models (Phase 5)
+# =====================================================================
+
+class DepartmentBudget(Base):
+    __tablename__ = "department_budgets"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    department_name = Column(String(100), nullable=False) # e.g., 'Academics', 'Hostel', 'Events', 'Infrastructure', 'Technology'
+    academic_year = Column(String(20), nullable=False)
+    allocated_amount = Column(Numeric(12, 2), nullable=False, default=0)
+    utilized_amount = Column(Numeric(12, 2), nullable=False, default=0)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+class FinancialRequest(Base):
+    __tablename__ = "financial_requests"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    requester_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    department_id = Column(String(36), ForeignKey("department_budgets.id", ondelete="SET NULL"), nullable=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=False)
+    amount = Column(Numeric(12, 2), nullable=False)
+    status = Column(String(50), nullable=False, default="pending") # pending, approved_by_finance, approved_by_correspondent, rejected
+    priority = Column(String(20), default="normal") # normal, high, urgent
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    
+    requester = relationship("User", foreign_keys=[requester_id])
+    department = relationship("DepartmentBudget")
+
+class Vendor(Base):
+    __tablename__ = "vendors"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(150), nullable=False)
+    category = Column(String(100), nullable=False) # e.g., 'IT Services', 'Food & Beverages', 'Stationery'
+    contact_email = Column(String(100), nullable=True)
+    contact_phone = Column(String(20), nullable=True)
+    active_contract = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+class Expense(Base):
+    __tablename__ = "expenses"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    department_id = Column(String(36), ForeignKey("department_budgets.id", ondelete="SET NULL"), nullable=True)
+    vendor_id = Column(String(36), ForeignKey("vendors.id", ondelete="SET NULL"), nullable=True)
+    request_id = Column(String(36), ForeignKey("financial_requests.id", ondelete="SET NULL"), nullable=True)
+    title = Column(String(200), nullable=False)
+    amount = Column(Numeric(12, 2), nullable=False)
+    expense_date = Column(Date, default=date.today)
+    processed_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    department = relationship("DepartmentBudget")
+    vendor = relationship("Vendor")
+    request = relationship("FinancialRequest")
+    processor = relationship("User", foreign_keys=[processed_by])
+
+class Scholarship(Base):
+    __tablename__ = "scholarships"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String(150), nullable=False) # e.g., 'Merit Scholarship', 'Sports Quota'
+    discount_amount = Column(Numeric(10, 2), nullable=False, default=0) # Flat deduction per fee structure calculation
+    is_active = Column(Boolean, default=True)
+    granted_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    
+    student = relationship("User", foreign_keys=[student_id])
+    granter = relationship("User", foreign_keys=[granted_by])
+
+# =====================================================================
+# Advanced Hostel & Warden Models (Phase 6)
+# =====================================================================
+
+class HostelAttendance(Base):
+    __tablename__ = "hostel_attendance"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    date = Column(Date, nullable=False, default=date.today)
+    status = Column(String(20), nullable=False) # Present, Absent, Leave
+    marked_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    student = relationship("User", foreign_keys=[student_id])
+
+class IncidentReport(Base):
+    __tablename__ = "incident_reports"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True) # Optional, if it's general
+    reported_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    severity = Column(String(20), default="Low") # Low, Medium, High, Critical
+    category = Column(String(50), nullable=False) # Discipline, Health, Maintenance, Security
+    description = Column(Text, nullable=False)
+    status = Column(String(50), default="Open") # Open, Under Investigation, Resolved
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    
+    student = relationship("User", foreign_keys=[student_id])
+    reporter = relationship("User", foreign_keys=[reported_by])
+
+class VisitorLog(Base):
+    __tablename__ = "visitor_logs"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    visitor_name = Column(String(100), nullable=False)
+    relation_to_student = Column(String(50), nullable=True)
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    purpose = Column(String(200), nullable=False)
+    check_in = Column(DateTime(timezone=True), default=datetime.utcnow)
+    check_out = Column(DateTime(timezone=True), nullable=True)
+    logged_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    
+    student = relationship("User", foreign_keys=[student_id])

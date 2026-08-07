@@ -6,7 +6,7 @@ from uuid import uuid4
 from datetime import datetime
 
 from app.db.database import get_db
-from app.db.models import User, UserRole, FeeStructure, FeeTransaction, Student
+from app.db.models import User, UserRole, FeeStructure, FeeTransaction, Student, Scholarship
 from app.api.v1.auth import get_current_user
 from pydantic import BaseModel
 
@@ -95,14 +95,24 @@ async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), 
             .where(FeeTransaction.student_id == student_id, FeeTransaction.fee_structure_id == fs.id)
         )
         transactions = transactions_result.scalars().all()
-        total_paid = sum(float(t.amount_paid) for t in transactions)
+        total_paid = sum(float(tx.amount_paid) for tx in transactions)
         
-        balance = float(fs.amount) - total_paid
-        
+        # Determine if this fee structure should receive the scholarship discount (apply to term1 only for simplicity)
+        discount = 0.0
+        if fs.fee_type == 'term1':
+            schol_res = await db.execute(select(Scholarship).where(Scholarship.student_id == student_id, Scholarship.is_active == True))
+            scholars = schol_res.scalars().all()
+            discount = sum(float(s.discount_amount) for s in scholars)
+            
+        final_amount = max(0, float(fs.amount) - discount)
+        balance = final_amount - total_paid
+
         dues.append({
             "fee_structure_id": fs.id,
             "fee_type": fs.fee_type,
             "total_amount": float(fs.amount),
+            "discount_applied": discount,
+            "final_amount": final_amount,
             "total_paid": total_paid,
             "balance": balance,
             "due_date": fs.due_date

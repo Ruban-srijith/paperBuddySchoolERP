@@ -195,6 +195,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'dashboard',
     'my_class',
     'class-fees',
+    'teacher-requests',
     'attendance',
     'timetable',
     'homework',
@@ -227,6 +228,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'calendar',
     'queries',
     'fees',
+    'student_hostel',
     'ocr'
   ],
   parent: [
@@ -235,6 +237,10 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   finance: [
     'dashboard',
+    'finance_approvals',
+    'budgets',
+    'vendors',
+    'scholarships',
     'fee-config',
     'fees',
     'expenses',
@@ -246,8 +252,11 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'hostel_rooms',
     'outpasses',
     'hostel_attendance',
-    'mess'
-  ]
+    'mess',
+    'warden-finance',
+    'warden_incidents',
+    'warden_visitors'
+  ],
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
