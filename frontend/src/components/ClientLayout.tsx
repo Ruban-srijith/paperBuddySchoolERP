@@ -10,7 +10,8 @@ import {
   CheckCircle2, RefreshCw, Heart, DollarSign, Award, TrendingUp,
   Clock, Activity, FileSpreadsheet, LayoutGrid, FileCheck,
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
-  Megaphone, Trophy, DoorOpen, UsersRound, Menu, X
+  Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
+  Receipt, Wallet, PieChart, Home, Utensils, Settings
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -30,6 +31,7 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   exams:                { href: '/exams',                label: 'Examination Center',        icon: FileCheck,       color: 'group-hover:text-rose-400' },
   calendar:             { href: '/calendar',             label: 'Academic Calendar',         icon: CalendarDays,    color: 'group-hover:text-indigo-400' },
   my_class:             { href: '/my-class',             label: 'My Class View',             icon: GraduationCap,   color: 'group-hover:text-cyan-400' },
+  'class-fees':         { href: '/my-class/fees',        label: 'Class Fees',                icon: CreditCard,      color: 'group-hover:text-cyan-400' },
   homework:             { href: '/homework',             label: 'Homework Tracker',          icon: ClipboardList,   color: 'group-hover:text-amber-400' },
   assignments:          { href: '/assignments',          label: 'Assignments',               icon: FileText,        color: 'group-hover:text-emerald-400' },
   doubts:               { href: '/doubts',               label: 'Doubts & Leave Approvals',  icon: HelpCircle,      color: 'group-hover:text-violet-400' },
@@ -39,6 +41,7 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   queries:              { href: '/queries',              label: 'Doubts & Leave Queries',    icon: HelpCircle,      color: 'group-hover:text-violet-400' },
   users:                { href: '/users',                label: 'User Management',           icon: Users,           color: 'group-hover:text-pink-400' },
   departments:          { href: '/departments',          label: 'Departments',               icon: Building2,       color: 'group-hover:text-teal-400' },
+  class_roster:         { href: '/class-roster',         label: 'Class Roster & Assign',     icon: UsersRound,      color: 'group-hover:text-fuchsia-400' },
   class_allotments:     { href: '/class-allotments',     label: 'Class Teachers Allotments', icon: Users,           color: 'group-hover:text-amber-400' },
   ocr:                  { href: '/ocr',                  label: 'Ensemble OCR Parser',       icon: FileSearch,      color: 'group-hover:text-cyan-400',   badge: 'AI' },
   timetable:            { href: '/timetable',            label: 'Timetable Grid',            icon: Calendar,        color: 'group-hover:text-indigo-400' },
@@ -51,6 +54,14 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   fees:                 { href: '/fees',                 label: 'Fee Payment Portal',        icon: CreditCard,      color: 'group-hover:text-emerald-400' },
   approvals:            { href: '/approvals',            label: 'Leave Approvals',           icon: CheckCircle2,    color: 'group-hover:text-amber-400' },
   parent_portal:        { href: '/parent',               label: 'Parent Portal',             icon: Heart,           color: 'group-hover:text-pink-400' },
+  expenses:             { href: '/finance/expenses',     label: 'Expenses & Procurement',    icon: Receipt,         color: 'group-hover:text-rose-400' },
+  payroll:              { href: '/finance/payroll',      label: 'Staff Payroll',             icon: Wallet,          color: 'group-hover:text-teal-400' },
+  reports:              { href: '/finance/reports',      label: 'Financial Reports',         icon: PieChart,        color: 'group-hover:text-blue-400' },
+  'fee-config':         { href: '/finance/fee-config',   label: 'Fee Configurator',          icon: Settings,        color: 'group-hover:text-amber-400' },
+  hostel_rooms:         { href: '/warden/rooms',         label: 'Room Allocation',           icon: Home,            color: 'group-hover:text-amber-400' },
+  outpasses:            { href: '/warden/outpasses',     label: 'Outpass System',            icon: LogOut,          color: 'group-hover:text-rose-400' },
+  hostel_attendance:    { href: '/warden/attendance',    label: 'Hostel Roll Call',          icon: Users,           color: 'group-hover:text-emerald-400' },
+  mess:                 { href: '/warden/mess',          label: 'Mess & Cafeteria',          icon: Utensils,        color: 'group-hover:text-orange-400' },
 };
 
 function AppShell({ children }: { children: React.ReactNode }) {
@@ -59,16 +70,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, logout, checkAuth } = useAuthStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
     checkAuth();
+    setHasChecked(true);
   }, [checkAuth]);
 
   useEffect(() => {
-    if (pathname !== '/login' && pathname !== '/' && !isAuthenticated) {
+    if (hasChecked && pathname !== '/login' && pathname !== '/' && !isAuthenticated) {
       router.push('/login');
     }
-  }, [pathname, isAuthenticated, router]);
+  }, [pathname, isAuthenticated, hasChecked, router]);
 
   // Don't show shell on login page or landing page
   if (pathname === '/login' || pathname === '/') {
@@ -76,12 +89,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   // If not authenticated and not on login, show brief loading while redirecting
-  if (!isAuthenticated || !user) {
+  if (!hasChecked || (!isAuthenticated || !user)) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#090d16' }}>
         <div className="text-center space-y-4">
           <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin mx-auto"></div>
-          <p className="text-gray-400 text-sm">Redirecting to login...</p>
+          <p className="text-gray-400 text-sm">Loading application...</p>
         </div>
       </div>
     );

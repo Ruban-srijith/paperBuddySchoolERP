@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, UserRole, ROLE_LABELS } from '@/store/authStore';
 
@@ -12,18 +12,20 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { isAuthenticated, user, checkAuth } = useAuthStore();
   const router = useRouter();
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
     checkAuth();
+    setHasChecked(true);
   }, [checkAuth]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (hasChecked && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, hasChecked, router]);
 
-  if (!isAuthenticated || !user) {
+  if (!hasChecked || !isAuthenticated || !user) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">

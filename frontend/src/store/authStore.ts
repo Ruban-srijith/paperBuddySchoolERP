@@ -14,7 +14,9 @@ export type UserRole =
   | 'teacher' 
   | 'mentor' 
   | 'student'
-  | 'parent';
+  | 'parent'
+  | 'finance'
+  | 'warden';
 
 export interface AuthUser {
   id: string;
@@ -36,6 +38,7 @@ interface AuthState {
   logout: () => void;
   getAuthHeaders: () => Record<string, string>;
   checkAuth: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 // Role display names for UI
@@ -51,6 +54,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   mentor: 'Mentor',
   student: 'Student',
   parent: 'Parent',
+  finance: 'Finance Admin',
+  warden: 'Hostel Warden'
 };
 
 // Role colors for badges
@@ -66,6 +71,8 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   mentor: 'from-violet-500 to-purple-500',
   student: 'from-sky-500 to-blue-500',
   parent: 'from-emerald-500 to-teal-500',
+  finance: 'from-green-500 to-emerald-500',
+  warden: 'from-fuchsia-500 to-pink-500',
 };
 
 // Navigation items per role
@@ -101,7 +108,9 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'emails',
     'users',
     'departments',
+    'class_roster',
     'class_allotments',
+    'classroom_allocation',
     'ocr'
   ],
   admin: [
@@ -118,6 +127,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'emails',
     'users',
     'departments',
+    'class_roster',
     'class_allotments',
     'ocr'
   ],
@@ -135,7 +145,9 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'emails',
     'users',
     'departments',
+    'class_roster',
     'class_allotments',
+    'classroom_allocation',
     'ocr'
   ],
   vice_principal: [
@@ -150,7 +162,9 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'substitutions',
     'attendance',
     'portion',
+    'users',
     'departments',
+    'class_roster',
     'class_allotments',
     'ocr'
   ],
@@ -180,6 +194,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   teacher: [
     'dashboard',
     'my_class',
+    'class-fees',
     'attendance',
     'timetable',
     'homework',
@@ -218,6 +233,21 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'parent_portal',
     'ocr'
   ],
+  finance: [
+    'dashboard',
+    'fee-config',
+    'fees',
+    'expenses',
+    'payroll',
+    'reports'
+  ],
+  warden: [
+    'dashboard',
+    'hostel_rooms',
+    'outpasses',
+    'hostel_attendance',
+    'mess'
+  ]
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -293,12 +323,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         try {
           const user = JSON.parse(userStr) as AuthUser;
           set({ token, user, isAuthenticated: true });
+          
+          // Background refresh to get latest profile (e.g. assigned_grade updates)
+          axios.get(`${API_BASE}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(res => {
+            const freshUser: AuthUser = {
+              id: res.data.id,
+              email: res.data.email,
+              full_name: res.data.full_name,
+              role: res.data.role,
+              department_id: res.data.department_id,
+              assigned_grade: res.data.assigned_grade,
+            };
+            localStorage.setItem('pb_user', JSON.stringify(freshUser));
+            set({ user: freshUser });
+          }).catch(() => {
+             // Silently fail, keep local state
+          });
         } catch {
           set({ token: null, user: null, isAuthenticated: false });
         }
       } else {
         set({ token: null, user: null, isAuthenticated: false });
       }
+    }
+  },
+  
+  refreshUser: async () => {
+    const token = get().token;
+    if (!token) return;
+    try {
+      const res = await axios.get(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const freshUser: AuthUser = {
+        id: res.data.id,
+        email: res.data.email,
+        full_name: res.data.full_name,
+        role: res.data.role,
+        department_id: res.data.department_id,
+        assigned_grade: res.data.assigned_grade,
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pb_user', JSON.stringify(freshUser));
+      }
+      set({ user: freshUser });
+    } catch (err) {
+      console.error("Failed to refresh user profile", err);
     }
   },
 }));

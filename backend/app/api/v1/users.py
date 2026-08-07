@@ -31,6 +31,10 @@ def _user_to_response(user: User) -> dict:
         "department_id": user.department_id,
         "department_name": user.department.name if user.department else None,
         "assigned_grade": user.assigned_grade,
+        "phone": user.phone,
+        "roll_number": user.roll_number,
+        "admission_number": user.admission_number,
+        "age": user.age,
         "is_active": user.is_active,
         "created_at": user.created_at,
     }
@@ -95,6 +99,10 @@ async def create_user(
         password_hash=hash_password(req.password),
         department_id=req.department_id,
         assigned_grade=req.assigned_grade,
+        phone=req.phone,
+        roll_number=req.roll_number,
+        admission_number=req.admission_number,
+        age=req.age,
     )
     db.add(new_user)
     await db.commit()
@@ -133,6 +141,14 @@ async def update_user(
         user.department_id = req.department_id
     if req.assigned_grade is not None:
         user.assigned_grade = req.assigned_grade
+    if req.phone is not None:
+        user.phone = req.phone
+    if req.roll_number is not None:
+        user.roll_number = req.roll_number
+    if req.admission_number is not None:
+        user.admission_number = req.admission_number
+    if req.age is not None:
+        user.age = req.age
     if req.is_active is not None:
         user.is_active = req.is_active
 

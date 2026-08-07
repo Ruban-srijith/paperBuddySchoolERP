@@ -130,3 +130,58 @@ async def get_department_subjects(
         }
         for s in subjects
     ]
+
+@router.put("/{dept_id}")
+async def update_department(
+    dept_id: str,
+    req: DepartmentUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
+):
+    """Update a department (e.g. set dean)."""
+    dept = await db.execute(select(Department).where(Department.id == dept_id))
+    dept_obj = dept.scalar_one_or_none()
+    if not dept_obj:
+        raise HTTPException(status_code=404, detail="Department not found")
+        
+    update_data = req.model_dump(exclude_unset=True)
+    if "name" in update_data:
+        dept_obj.name = update_data["name"]
+    if "code" in update_data:
+        dept_obj.code = update_data["code"]
+    if "dean_id" in update_data:
+        dept_obj.dean_id = update_data["dean_id"]
+
+    await db.commit()
+    return {"message": "Department updated successfully"}
+
+@router.delete("/{dept_id}/teachers/{teacher_id}")
+async def remove_teacher_from_department(
+    dept_id: str,
+    teacher_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL))
+):
+    teacher = await db.execute(select(User).where(User.id == teacher_id, User.department_id == dept_id))
+    teacher_obj = teacher.scalar_one_or_none()
+    if not teacher_obj:
+        raise HTTPException(status_code=404, detail="Teacher not found in this department")
+        
+    teacher_obj.department_id = None
+    await db.commit()
+    return {"message": "Teacher removed from department"}
+
+@router.delete("/{dept_id}")
+async def delete_department(
+    dept_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL))
+):
+    dept = await db.execute(select(Department).where(Department.id == dept_id))
+    dept_obj = dept.scalar_one_or_none()
+    if not dept_obj:
+        raise HTTPException(status_code=404, detail="Department not found")
+        
+    await db.delete(dept_obj)
+    await db.commit()
+    return {"message": "Department deleted"}

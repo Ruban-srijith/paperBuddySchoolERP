@@ -77,7 +77,7 @@ export default function TimetablePage() {
   const isTeacher = user && user.role === 'teacher';
   const isStudent = user && user.role === 'student';
 
-  const canEdit = isSubAdmin || user?.role === 'super_admin';
+  const canEdit = isSubAdmin || isSuperOrAdmin;
 
   const fetchClassSchedule = async (grade: string, section: string) => {
     setLoading(true);
@@ -112,23 +112,31 @@ export default function TimetablePage() {
   };
 
   useEffect(() => {
+    // Refresh user profile in background to get latest assigned_grade
+    useAuthStore.getState().refreshUser();
+    
+    // Only run this ONCE when user loads
     if (isTeacher && user) {
       setViewMode("by_teacher");
       setSelectedTeacher(user.id);
-      fetchTeacherSchedule(user.id);
+      if (user.assigned_grade) {
+        setSelectedGrade(user.assigned_grade);
+      }
     } else if (isStudent && user) {
       setViewMode("by_grade");
-      const stuGrade = user.assigned_grade || "10";
-      setSelectedGrade(stuGrade);
-      fetchClassSchedule(stuGrade, "A");
-    } else {
-      if (viewMode === "by_grade") {
-        fetchClassSchedule(selectedGrade, selectedSection);
-      } else {
-        fetchTeacherSchedule(selectedTeacher);
+      if (user.assigned_grade) {
+        setSelectedGrade(user.assigned_grade);
       }
     }
-  }, [viewMode, selectedGrade, selectedSection, selectedTeacher, user]);
+  }, [isTeacher, isStudent, user?.id, user?.assigned_grade]);
+
+  useEffect(() => {
+    if (viewMode === "by_grade") {
+      fetchClassSchedule(selectedGrade, selectedSection);
+    } else {
+      fetchTeacherSchedule(selectedTeacher);
+    }
+  }, [viewMode, selectedGrade, selectedSection, selectedTeacher]);
 
   const handleGenerateORTools = async () => {
     setGenerating(true);
@@ -252,7 +260,7 @@ export default function TimetablePage() {
         </div>
 
         {/* View Mode & Filter Controls */}
-        {!isStudent && !isTeacher && (
+        {!isStudent && (
           <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               {/* View Mode Switcher */}
@@ -277,7 +285,7 @@ export default function TimetablePage() {
                   }`}
                 >
                   <User className="w-3.5 h-3.5" />
-                  View by Faculty
+                  {isTeacher ? "My Teaching Schedule" : "View by Faculty"}
                 </button>
               </div>
 
@@ -318,41 +326,64 @@ export default function TimetablePage() {
                 </div>
 
                 {/* Grade Pills */}
-                <div className="flex flex-wrap gap-2">
-                  {GRADES.map(grade => (
-                    <button
-                      key={grade}
-                      onClick={() => setSelectedGrade(grade)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                        selectedGrade === grade
-                          ? "bg-indigo-600 text-white border border-indigo-400 shadow-md shadow-indigo-500/20"
-                          : "glass-panel text-gray-300 hover:border-indigo-500/40 hover:text-white"
-                      }`}
-                    >
-                      Grade {grade}
-                    </button>
-                  ))}
-                </div>
+                {isTeacher ? (
+                  <div className="flex flex-wrap gap-2">
+                    {user?.assigned_grade ? (
+                      <button className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white border border-indigo-400 shadow-md shadow-indigo-500/20">
+                        My Assigned Class (Grade {user.assigned_grade})
+                      </button>
+                    ) : (
+                      <div className="text-xs text-gray-500 italic p-2 bg-gray-900/50 rounded-lg border border-gray-800">
+                        You are not currently assigned as a Class Teacher.
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {GRADES.map(grade => (
+                      <button
+                        key={grade}
+                        onClick={() => setSelectedGrade(grade)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                          selectedGrade === grade
+                            ? "bg-indigo-600 text-white border border-indigo-400 shadow-md shadow-indigo-500/20"
+                            : "glass-panel text-gray-300 hover:border-indigo-500/40 hover:text-white"
+                        }`}
+                      >
+                        Grade {grade}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-2 pt-2 border-t border-gray-800/80">
                 <label className="text-[11px] font-bold uppercase text-gray-400 tracking-wider">Select Faculty Member</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  {teachers.map(t => (
-                    <button
-                      key={t.id}
-                      onClick={() => setSelectedTeacher(t.id)}
-                      className={`p-3 rounded-xl text-left transition-all ${
-                        selectedTeacher === t.id
-                          ? "bg-indigo-600/20 border border-indigo-500 text-white shadow-md shadow-indigo-500/10"
-                          : "glass-panel text-gray-400 hover:text-gray-200 border-gray-800"
-                      }`}
-                    >
-                      <div className="text-xs font-bold text-white">{t.name}</div>
-                      <div className="text-[10px] text-cyan-400 mt-0.5">{t.subject}</div>
+                {isTeacher ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <button className="p-3 rounded-xl text-left transition-all bg-indigo-600/20 border border-indigo-500 text-white shadow-md shadow-indigo-500/10">
+                      <div className="font-semibold text-sm">{user?.full_name}</div>
+                      <div className="text-[11px] mt-1 opacity-70">My Personal Schedule</div>
                     </button>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    {teachers.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => setSelectedTeacher(t.id)}
+                        className={`p-3 rounded-xl text-left transition-all ${
+                          selectedTeacher === t.id
+                            ? "bg-indigo-600/20 border border-indigo-500 text-white shadow-md shadow-indigo-500/10"
+                            : "glass-panel text-gray-400 hover:text-gray-200 border-gray-800"
+                        }`}
+                      >
+                        <div className="font-semibold text-sm">{t.name}</div>
+                        <div className="text-[11px] mt-1 opacity-70">{t.subject}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

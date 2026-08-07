@@ -12,16 +12,18 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const { login, isLoading, error, isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
     checkAuth();
+    setHasChecked(true);
   }, [checkAuth]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (hasChecked && isAuthenticated) {
       router.push('/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, hasChecked, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +40,8 @@ export default function LoginPage() {
     { label: 'Teacher', email: 'sarah.connor@school.edu' },
     { label: 'Student', email: 'kishor.k@school.edu' },
     { label: 'Mentor', email: 'mentor.10a@school.edu' },
+    { label: 'Finance', email: 'finance@school.edu' },
+    { label: 'Warden', email: 'warden@school.edu' },
   ];
 
   return (

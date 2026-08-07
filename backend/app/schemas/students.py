@@ -32,3 +32,7 @@ class BulkOnboardResponse(BaseModel):
     failed_count: int
     errors: List[str] = []
     students_created: List[dict] = []
+
+class StudentClassAssignment(BaseModel):
+    student_ids: List[str] = Field(..., description="List of student IDs to assign")
+    class_id: Optional[str] = Field(None, description="The class ID to assign them to. If None, unassigns them.")

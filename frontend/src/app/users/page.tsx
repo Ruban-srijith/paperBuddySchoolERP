@@ -37,7 +37,8 @@ function UsersPageContent() {
   // Create form state
   const [newUser, setNewUser] = useState({
     email: '', full_name: '', password: 'school@123',
-    role: 'student', department_id: '', assigned_grade: ''
+    role: 'student', department_id: '', assigned_grade: '',
+    phone: '', roll_number: '', admission_number: '', age: ''
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
@@ -80,9 +81,13 @@ function UsersPageContent() {
         ...newUser,
         department_id: newUser.department_id || null,
         assigned_grade: newUser.assigned_grade || null,
+        phone: newUser.phone || null,
+        roll_number: newUser.roll_number || null,
+        admission_number: newUser.admission_number || null,
+        age: newUser.age ? parseInt(newUser.age) : null,
       });
       setShowCreateModal(false);
-      setNewUser({ email: '', full_name: '', password: 'school@123', role: 'student', department_id: '', assigned_grade: '' });
+      setNewUser({ email: '', full_name: '', password: 'school@123', role: 'student', department_id: '', assigned_grade: '', phone: '', roll_number: '', admission_number: '', age: '' });
       fetchUsers();
     } catch (err: any) {
       setCreateError(err.response?.data?.detail || 'Failed to create user');
@@ -273,32 +278,77 @@ function UsersPageContent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Department</label>
-                  <select
-                    value={newUser.department_id} onChange={e => setNewUser({...newUser, department_id: e.target.value})}
-                    className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="">None</option>
-                    {departments.map(d => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Assigned Grade</label>
-                  <select
-                    value={newUser.assigned_grade} onChange={e => setNewUser({...newUser, assigned_grade: e.target.value})}
-                    className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white focus:outline-none focus:border-indigo-500"
-                  >
-                    <option value="">None</option>
-                    {ALL_GRADES.map(g => (
-                      <option key={g} value={g}>{g}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              {newUser.role === 'teacher' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Department</label>
+                      <select
+                        value={newUser.department_id} onChange={e => setNewUser({...newUser, department_id: e.target.value})}
+                        className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="">None</option>
+                        {departments.map(d => (
+                          <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Phone Number</label>
+                      <input
+                        value={newUser.phone} onChange={e => setNewUser({...newUser, phone: e.target.value})}
+                        placeholder="+1 234 567 8900"
+                        className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {newUser.role === 'student' && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Assigned Grade</label>
+                      <select
+                        value={newUser.assigned_grade} onChange={e => setNewUser({...newUser, assigned_grade: e.target.value})}
+                        className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="">None</option>
+                        {ALL_GRADES.map(g => (
+                          <option key={g} value={g}>{g}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Age</label>
+                      <input
+                        type="number" value={newUser.age} onChange={e => setNewUser({...newUser, age: e.target.value})}
+                        placeholder="e.g. 15"
+                        className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Roll Number</label>
+                      <input
+                        value={newUser.roll_number} onChange={e => setNewUser({...newUser, roll_number: e.target.value})}
+                        placeholder="e.g. 1045"
+                        className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Admission ID</label>
+                      <input
+                        value={newUser.admission_number} onChange={e => setNewUser({...newUser, admission_number: e.target.value})}
+                        placeholder="e.g. ADM-2024-001"
+                        className="w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
               {createError && (
                 <div className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs">{createError}</div>

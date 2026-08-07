@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   LayoutGrid, 
   MapPin, 
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
 
 interface RoomAllocation {
   id: string;
@@ -34,36 +35,94 @@ export default function ClassroomAllocationPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [editingRoom, setEditingRoom] = useState<RoomAllocation | null>(null);
 
-  const [rooms, setRooms] = useState<RoomAllocation[]>([
-    { id: "r1", room_number: "Room 101", building_block: "Block A (Primary)", room_type: "classroom", capacity: 35, assigned_class: "Grade 1-A", current_occupancy: 30, status: "occupied" },
-    { id: "r2", room_number: "Room 102", building_block: "Block A (Primary)", room_type: "classroom", capacity: 35, assigned_class: "Grade 1-B", current_occupancy: 30, status: "occupied" },
-    { id: "r3", room_number: "Room 201", building_block: "Block B (Middle)", room_type: "classroom", capacity: 40, assigned_class: "Grade 6-A", current_occupancy: 32, status: "occupied" },
-    { id: "r4", room_number: "Room 301", building_block: "Block C (Senior)", room_type: "classroom", capacity: 40, assigned_class: "Grade 10-A", current_occupancy: 30, status: "occupied" },
-    { id: "r5", room_number: "Room 302", building_block: "Block C (Senior)", room_type: "classroom", capacity: 40, assigned_class: "Grade 10-B", current_occupancy: 30, status: "occupied" },
-    { id: "r6", room_number: "Physics Lab 204", building_block: "Science Block", room_type: "lab", capacity: 36, assigned_class: "Grade 10-A (Practical)", current_occupancy: 30, status: "occupied" },
-    { id: "r7", room_number: "Chem Lab 2", building_block: "Science Block", room_type: "lab", capacity: 32, assigned_class: "Grade 12-A", current_occupancy: 28, status: "occupied" },
-    { id: "r8", room_number: "CS Lab 1", building_block: "Tech Wing", room_type: "lab", capacity: 40, assigned_class: "Grade 11-A", current_occupancy: 32, status: "occupied" },
-    { id: "r9", room_number: "Auditorium Main", building_block: "Central Complex", room_type: "auditorium", capacity: 500, assigned_class: "Morning Assembly", current_occupancy: 450, status: "occupied" },
-    { id: "r10", room_number: "Room 401 (Seminar)", building_block: "Block C (Senior)", room_type: "classroom", capacity: 45, assigned_class: "Free Slot", current_occupancy: 0, status: "available" },
-  ]);
+  const [rooms, setRooms] = useState<RoomAllocation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAddingSpace, setIsAddingSpace] = useState(false);
+  const [newSpace, setNewSpace] = useState<Partial<RoomAllocation>>({
+    room_number: "",
+    building_block: "",
+    room_type: "classroom",
+    capacity: 40,
+    status: "available",
+    current_occupancy: 0,
+    assigned_class: ""
+  });
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/classrooms');
+      setRooms(res.data);
+    } catch (err) {
+      toast.error("Failed to fetch classrooms");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRoom) return;
-    setRooms(prev => prev.map(r => r.id === editingRoom.id ? editingRoom : r));
-    toast.success(`Allocated ${editingRoom.room_number} to ${editingRoom.assigned_class}`, "Allocation Saved");
-    setEditingRoom(null);
+    try {
+      const res = await api.put(`/classrooms/${editingRoom.id}`, {
+        assigned_class: editingRoom.assigned_class,
+        current_occupancy: editingRoom.current_occupancy,
+        status: editingRoom.status
+      });
+      setRooms(prev => prev.map(r => r.id === editingRoom.id ? res.data : r));
+      toast.success(`Allocated ${editingRoom.room_number} to ${editingRoom.assigned_class}`);
+      setEditingRoom(null);
+    } catch (err: any) {
+      const detail = err.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : "Failed to update allocation";
+      toast.error(msg);
+    }
+  };
+
+  const handleAddSpace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await api.post('/classrooms', {
+        name: newSpace.room_number,
+        building_block: newSpace.building_block,
+        room_type: newSpace.room_type,
+        capacity: newSpace.capacity,
+        status: newSpace.status,
+        current_occupancy: newSpace.current_occupancy,
+        assigned_class: newSpace.assigned_class
+      });
+      setRooms(prev => [...prev, res.data]);
+      toast.success("New space added successfully");
+      setIsAddingSpace(false);
+      setNewSpace({
+        room_number: "",
+        building_block: "",
+        room_type: "classroom",
+        capacity: 40,
+        status: "available",
+        current_occupancy: 0,
+        assigned_class: ""
+      });
+    } catch (err: any) {
+      const detail = err.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : (Array.isArray(detail) ? JSON.stringify(detail) : "Failed to add space");
+      toast.error(msg);
+    }
   };
 
   const filteredRooms = rooms.filter(r => {
-    const matchesSearch = r.room_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.assigned_class.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (r.room_number || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (r.assigned_class || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || r.room_type === typeFilter;
     return matchesSearch && matchesType;
   });
 
   return (
-    <ProtectedRoute allowedRoles={["vice_principal", "dean", "dept_head", "super_admin", "admin", "principal"]}>
+    <ProtectedRoute allowedRoles={["vice_principal", "dean", "dept_head", "super_admin", "correspondent", "admin", "principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="space-y-1">
@@ -107,9 +166,17 @@ export default function ClassroomAllocationPage() {
             </select>
           </div>
 
-          <span className="text-xs text-gray-400 font-mono">
-            {rooms.filter(r => r.status === 'occupied').length} of {rooms.length} Spaces Allocated
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAddingSpace(true)}
+              className="px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-md shadow-purple-600/30 hover:bg-purple-500 transition-colors"
+            >
+              + Add Space
+            </button>
+            <span className="text-xs text-gray-400 font-mono hidden sm:block">
+              {rooms.filter(r => r.status === 'occupied').length} of {rooms.length} Spaces Allocated
+            </span>
+          </div>
         </div>
 
         {/* Rooms Grid */}
@@ -215,6 +282,83 @@ export default function ClassroomAllocationPage() {
                     className="px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-md shadow-purple-600/30 hover:bg-purple-500"
                   >
                     Save Allocation
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Add Space Modal */}
+        {isAddingSpace && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                <h3 className="text-base font-bold text-white">Add New Space</h3>
+                <button onClick={() => setIsAddingSpace(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddSpace} className="space-y-3 text-xs">
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Room Number / Name</label>
+                  <input
+                    type="text"
+                    value={newSpace.room_number}
+                    onChange={e => setNewSpace({ ...newSpace, room_number: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    placeholder="e.g. Room 101"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-300 font-semibold block mb-1">Building Block</label>
+                  <input
+                    type="text"
+                    value={newSpace.building_block}
+                    onChange={e => setNewSpace({ ...newSpace, building_block: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    placeholder="e.g. Block A"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-gray-300 font-semibold block mb-1">Room Type</label>
+                    <select
+                      value={newSpace.room_type}
+                      onChange={e => setNewSpace({ ...newSpace, room_type: e.target.value as any })}
+                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    >
+                      <option value="classroom">Classroom</option>
+                      <option value="lab">Lab</option>
+                      <option value="auditorium">Auditorium</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-gray-300 font-semibold block mb-1">Capacity</label>
+                    <input
+                      type="number"
+                      value={newSpace.capacity}
+                      onChange={e => setNewSpace({ ...newSpace, capacity: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingSpace(false)}
+                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-md shadow-purple-600/30 hover:bg-purple-500"
+                  >
+                    Add Space
                   </button>
                 </div>
               </form>

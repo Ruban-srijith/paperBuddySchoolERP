@@ -71,11 +71,17 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserProfileResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Return the current authenticated user's profile."""
     dept_name = None
-    if current_user.department:
-        dept_name = current_user.department.name
+    if current_user.department_id:
+        dept_res = await db.execute(select(Department).where(Department.id == current_user.department_id))
+        dept = dept_res.scalar_one_or_none()
+        if dept:
+            dept_name = dept.name
 
     return UserProfileResponse(
         id=current_user.id,

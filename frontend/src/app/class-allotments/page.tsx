@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Users, GraduationCap, UserCheck, X, Check, Search, Plus, Loader2 } from 'lucide-react';
+import { Users, Search, GraduationCap, X, ChevronRight, UserPlus, Filter, Check, Plus, Loader2, UserCheck } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/authStore';
 import api from '@/lib/api';
+import SearchableSelect from '@/components/SearchableSelect';
 import { useToast } from '@/components/Toast';
 
 interface DeptItem {
@@ -29,7 +30,7 @@ interface ClassItem {
 
 export default function ClassAllotmentsPage() {
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "admin", "principal", "vice_principal"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "admin", "principal", "vice_principal"]}>
       <ClassAllotmentsContent />
     </ProtectedRoute>
   );
@@ -37,7 +38,7 @@ export default function ClassAllotmentsPage() {
 
 function ClassAllotmentsContent() {
   const user = useAuthStore(state => state.user);
-  const isVicePrincipal = user?.role === 'vice_principal';
+  const canManage = ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal'].includes(user?.role as string);
   const { toast } = useToast();
 
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -136,6 +137,16 @@ function ClassAllotmentsContent() {
     );
   }
 
+  const handleRemoveAllotment = async (classId: string) => {
+    try {
+      await api.delete(`/classes/${classId}/assign`);
+      toast.success("Class teacher removed successfully");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to remove teacher");
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -149,7 +160,7 @@ function ClassAllotmentsContent() {
           </h1>
           <p className="text-sm text-gray-400">Assign faculty members as official Class Teachers for specific grades and sections.</p>
         </div>
-        {isVicePrincipal && (
+        {canManage && (
           <button 
             onClick={() => setShowAddClassModal(true)}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-lg shadow-amber-500/20 transition-all whitespace-nowrap flex-shrink-0 w-full sm:w-auto"
@@ -194,17 +205,27 @@ function ClassAllotmentsContent() {
                 </div>
               </div>
               
-              {isVicePrincipal && (
-                <button 
-                  onClick={() => handleAssignClick(cls.id)}
-                  className={`mt-6 w-full py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 ${
-                    cls.class_teacher_id 
-                    ? 'bg-gray-800/60 hover:bg-gray-700/80 text-gray-300' 
-                    : 'bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30'
-                  }`}
-                >
-                  {cls.class_teacher_id ? 'Change Allotment' : 'Assign Class Teacher'}
-                </button>
+              {canManage && (
+                <div className="mt-6 flex flex-col sm:flex-row gap-2">
+                  <button 
+                    onClick={() => handleAssignClick(cls.id)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 ${
+                      cls.class_teacher_id 
+                      ? 'bg-gray-800/60 hover:bg-gray-700/80 text-gray-300' 
+                      : 'bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30'
+                    }`}
+                  >
+                    {cls.class_teacher_id ? 'Change' : 'Assign Class Teacher'}
+                  </button>
+                  {cls.class_teacher_id && (
+                    <button
+                      onClick={() => handleRemoveAllotment(cls.id)}
+                      className="flex-1 py-2 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           );
@@ -245,17 +266,13 @@ function ClassAllotmentsContent() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Step 2: Select Teacher</label>
-                <select 
+                <SearchableSelect
+                  options={filteredTeachers.map(t => ({ value: t.id, label: t.name }))}
                   value={selectedTeacherId}
-                  onChange={(e) => setSelectedTeacherId(e.target.value)}
+                  onChange={setSelectedTeacherId}
+                  placeholder="-- Search & Choose Faculty --"
                   disabled={!selectedDeptId}
-                  className="w-full px-4 py-2.5 rounded-xl bg-gray-900/80 border border-gray-700 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">-- Choose Faculty --</option>
-                  {filteredTeachers.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div className="pt-4 flex gap-3">

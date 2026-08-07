@@ -9,12 +9,20 @@ class UserCreateRequest(BaseModel):
     role: str
     department_id: Optional[str] = None
     assigned_grade: Optional[str] = None
+    phone: Optional[str] = None
+    roll_number: Optional[str] = None
+    admission_number: Optional[str] = None
+    age: Optional[int] = None
 
 class UserUpdateRequest(BaseModel):
     full_name: Optional[str] = None
     role: Optional[str] = None
     department_id: Optional[str] = None
     assigned_grade: Optional[str] = None
+    phone: Optional[str] = None
+    roll_number: Optional[str] = None
+    admission_number: Optional[str] = None
+    age: Optional[int] = None
     is_active: Optional[bool] = None
 
 class UserListResponse(BaseModel):
@@ -25,6 +33,10 @@ class UserListResponse(BaseModel):
     department_id: Optional[str] = None
     department_name: Optional[str] = None
     assigned_grade: Optional[str] = None
+    phone: Optional[str] = None
+    roll_number: Optional[str] = None
+    admission_number: Optional[str] = None
+    age: Optional[int] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
 

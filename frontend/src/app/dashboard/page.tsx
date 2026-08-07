@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { 
   FileSearch, Calendar, CheckSquare, BookOpen, FlaskConical, 
@@ -47,6 +48,7 @@ interface ClassDetailModalData {
 }
 
 function DashboardContent() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const { toast } = useToast();
   const [stats, setStats] = useState({
@@ -120,12 +122,25 @@ function DashboardContent() {
   const roleLabel = ROLE_LABELS[user.role];
   const roleColor = ROLE_COLORS[user.role];
   const navItems = ROLE_NAV_ITEMS[user.role] || [];
+  
   const isSuperAdmin = ['super_admin', 'correspondent'].includes(user.role);
   const isAdmin = ['admin', 'principal'].includes(user.role);
   const isVicePrincipal = ['vice_principal', 'dean', 'dept_head'].includes(user.role);
   const isTeacher = user.role === 'teacher';
   const isStudent = user.role === 'student';
   const isManagement = isSuperAdmin || isAdmin || isVicePrincipal;
+  const isFinance = user.role === 'finance';
+  const isWarden = user.role === 'warden';
+
+  if (isFinance && typeof window !== 'undefined') {
+    router.push('/finance');
+    return null;
+  }
+
+  if (isWarden && typeof window !== 'undefined') {
+    router.push('/warden');
+    return null;
+  }
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -244,26 +259,26 @@ function DashboardContent() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
           <div className="glass-panel border border-gray-700 max-w-4xl w-full max-h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
             {/* Modal Header */}
-            <div className="p-6 border-b border-gray-800 flex items-center justify-between bg-gray-900/80">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-lg">
+            <div className="p-6 border-b border-gray-800 flex items-start justify-between bg-gray-900/80">
+              <div className="flex items-start space-x-3 flex-1 min-w-0">
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-lg flex-shrink-0">
                   {classDetail.grade}
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xl font-bold text-white flex flex-wrap items-center gap-2">
                     <span>Grade {classDetail.grade} Class Detail</span>
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 whitespace-nowrap">
                       Section {classDetail.section}
                     </span>
                   </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-400 mt-1 truncate">
                     Class Teacher: <span className="text-gray-200 font-semibold">{classDetail.class_teacher}</span> ({classDetail.class_teacher_email})
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedGrade(null)}
-                className="w-8 h-8 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                className="w-8 h-8 rounded-lg bg-gray-800/60 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors flex-shrink-0 ml-4"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -286,7 +301,7 @@ function DashboardContent() {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 min-h-0">
               {/* Today's Schedule */}
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
@@ -356,8 +371,8 @@ function DashboardContent() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-gray-800 bg-gray-900/80 flex items-center justify-between">
-              <div className="flex gap-2">
+            <div className="p-4 border-t border-gray-800 bg-gray-900 flex items-center justify-between flex-shrink-0">
+              <div className="flex gap-2 flex-wrap">
                 <Link
                   href="/timetable"
                   className="px-4 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 text-xs font-semibold hover:bg-indigo-600/30 transition-colors flex items-center gap-1.5"
@@ -375,7 +390,7 @@ function DashboardContent() {
               </div>
               <button
                 onClick={() => setSelectedGrade(null)}
-                className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium hover:bg-gray-700 transition-colors"
+                className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium hover:bg-gray-700 transition-colors flex-shrink-0 ml-2"
               >
                 Close
               </button>
