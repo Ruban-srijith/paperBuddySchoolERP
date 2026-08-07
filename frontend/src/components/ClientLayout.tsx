@@ -58,7 +58,7 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   parent_portal:        { href: '/parent',               label: 'Parent Portal',             icon: Heart,           color: 'group-hover:text-pink-400' },
   expenses:             { href: '/finance/expenses',     label: 'Expenses & Procurement',    icon: Receipt,         color: 'group-hover:text-rose-400' },
   payroll:              { href: '/finance/payroll',      label: 'Staff Payroll',             icon: Wallet,          color: 'group-hover:text-teal-400' },
-  reports:              { href: '/finance/reports',      label: 'Financial Reports',         icon: PieChart,        color: 'group-hover:text-blue-400' },
+  finance_reports:      { href: '/finance/reports',      label: 'Financial Reports',         icon: PieChart,        color: 'group-hover:text-blue-400' },
   finance_approvals:    { href: '/finance/approvals',    label: 'Approval Center',           icon: CheckCircle2,    color: 'group-hover:text-emerald-400' },
   budgets:              { href: '/finance/budgets',      label: 'Department Budgets',        icon: PieChart,        color: 'group-hover:text-indigo-400' },
   vendors:              { href: '/finance/vendors',      label: 'Vendor Management',         icon: Building2,       color: 'group-hover:text-amber-400' },
