@@ -117,12 +117,12 @@ export default function AttendancePage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
                 {isManagement ? "Institutional Attendance Matrix" : isTeacher ? "Teacher Marking Portal" : "Personal Attendance"}
               </span>
-              <span className="text-xs text-gray-400">• Real-time Sync</span>
+              <span className="text-xs text-gray-600">• Real-time Sync</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Attendance & Daily Work Logs
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               {isManagement
                 ? "Per-grade summary matrix across LKG to 12th Standard and staff duty attendance."
                 : isTeacher
@@ -136,13 +136,13 @@ export default function AttendancePage() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3.5 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white text-xs font-mono"
+              className="px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs font-mono"
             />
             <button
               onClick={() => toast.info("Exporting attendance summary report", "Export Started")}
-              className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl glass-panel text-gray-300 hover:text-white text-xs font-medium border border-gray-700 hover:border-gray-600 transition-colors"
+              className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
             >
-              <Download className="w-4 h-4 text-gray-400" />
+              <Download className="w-4 h-4 text-gray-600" />
               <span>Export</span>
             </button>
           </div>
@@ -155,49 +155,49 @@ export default function AttendancePage() {
           <div className="space-y-6">
             {/* Top Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Overall Student Attendance</div>
-                <div className="text-2xl font-bold text-emerald-400">{overallPct}%</div>
-                <div className="text-[11px] text-gray-400">{overallPresent} of {overallStrength} students present today</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Overall Student Attendance</div>
+                <div className="text-2xl font-bold text-emerald-600">{overallPct}%</div>
+                <div className="text-[11px] text-gray-600">{overallPresent} of {overallStrength} students present today</div>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Staff & Faculty Present</div>
-                <div className="text-2xl font-bold text-cyan-400">65 / 68</div>
-                <div className="text-[11px] text-gray-400">95.6% faculty on duty • 3 on approved leave</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Staff & Faculty Present</div>
+                <div className="text-2xl font-bold text-cyan-600">65 / 68</div>
+                <div className="text-[11px] text-gray-600">95.6% faculty on duty • 3 on approved leave</div>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Total Classes Active</div>
-                <div className="text-2xl font-bold text-indigo-400">28 Classes</div>
-                <div className="text-[11px] text-gray-400">14 Grades × 2 Sections (Sec A & B)</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Total Classes Active</div>
+                <div className="text-2xl font-bold text-brand-blue">28 Classes</div>
+                <div className="text-[11px] text-gray-600">14 Grades × 2 Sections (Sec A & B)</div>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Low Attendance Alerts</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Low Attendance Alerts</div>
                 <div className="text-2xl font-bold text-amber-400">0 Classes</div>
-                <div className="text-[11px] text-emerald-400 font-medium">All classes above 90% threshold</div>
+                <div className="text-[11px] text-emerald-600 font-medium">All classes above 90% threshold</div>
               </div>
             </div>
 
             {/* Per-Grade Attendance Summary Matrix Table */}
-            <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-4">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-base font-bold text-brand-black flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-600" />
                     <span>Per-Grade Attendance Breakdown ({selectedDate})</span>
                   </h3>
-                  <p className="text-xs text-gray-400">View-only institutional oversight for Correspondent, Principal, and Vice-Principal</p>
+                  <p className="text-xs text-gray-600">View-only institutional oversight for Correspondent, Principal, and Vice-Principal</p>
                 </div>
                 <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 whitespace-nowrap flex-shrink-0">
                   LKG through 12th Standard
                 </span>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-gray-800">
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-900/90 text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+                  <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
                     <tr>
                       <th className="p-3.5">Grade Level</th>
                       <th className="p-3.5">Category</th>
@@ -208,24 +208,24 @@ export default function AttendancePage() {
                       <th className="p-3.5 text-right">Attendance %</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800/60">
+                  <tbody className="divide-y divide-gray-200">
                     {gradeMatrixData.map((row) => (
-                      <tr key={row.grade} className="hover:bg-gray-900/40 transition-colors">
-                        <td className="p-3.5 font-bold text-white flex items-center gap-2">
+                      <tr key={row.grade} className="hover:bg-gray-50/40 transition-colors">
+                        <td className="p-3.5 font-bold text-brand-black flex items-center gap-2">
                           <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs">
                             {row.grade}
                           </div>
                           <span>Grade {row.grade}</span>
                         </td>
-                        <td className="p-3.5 text-gray-400">
+                        <td className="p-3.5 text-gray-600">
                           {['LKG', 'UKG'].includes(row.grade) ? 'Pre-Primary'
                             : parseInt(row.grade) <= 5 ? 'Primary'
                             : parseInt(row.grade) <= 8 ? 'Middle School'
                             : parseInt(row.grade) <= 10 ? 'Secondary'
                             : 'Sr. Secondary'}
                         </td>
-                        <td className="p-3.5 text-center font-mono text-gray-300">{row.strength}</td>
-                        <td className="p-3.5 text-center font-mono text-emerald-400 font-bold">{row.present}</td>
+                        <td className="p-3.5 text-center font-mono text-gray-700">{row.strength}</td>
+                        <td className="p-3.5 text-center font-mono text-emerald-600 font-bold">{row.present}</td>
                         <td className="p-3.5 text-center font-mono text-rose-400">{row.absent}</td>
                         <td className="p-3.5 text-center font-mono text-amber-400">{row.late}</td>
                         <td className="p-3.5 text-right font-mono">
@@ -244,34 +244,34 @@ export default function AttendancePage() {
             </div>
 
             {/* Staff Attendance Breakdown Section */}
-            <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-cyan-400" />
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
+              <h3 className="text-base font-bold text-brand-black flex items-center gap-2">
+                <Users className="w-4 h-4 text-cyan-600" />
                 <span>Staff & Faculty Duty Attendance</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-800/40 space-y-1">
-                  <div className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                  <div className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5">
                     <UserCheck className="w-4 h-4" /> Present on Campus
                   </div>
-                  <div className="text-xl font-bold text-white">65 Faculty Members</div>
-                  <div className="text-[11px] text-gray-400">All periods covered • Zero unassigned slots</div>
+                  <div className="text-xl font-bold text-brand-black">65 Faculty Members</div>
+                  <div className="text-[11px] text-gray-600">All periods covered • Zero unassigned slots</div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-800/40 space-y-1">
                   <div className="text-xs text-amber-400 font-semibold flex items-center gap-1.5">
                     <Clock className="w-4 h-4" /> Approved Duty Leave
                   </div>
-                  <div className="text-xl font-bold text-white">3 Faculty Members</div>
-                  <div className="text-[11px] text-gray-400">Substitutes successfully allocated</div>
+                  <div className="text-xl font-bold text-brand-black">3 Faculty Members</div>
+                  <div className="text-[11px] text-gray-600">Substitutes successfully allocated</div>
                 </div>
 
                 <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-800/40 space-y-1">
-                  <div className="text-xs text-indigo-400 font-semibold flex items-center gap-1.5">
+                  <div className="text-xs text-brand-blue font-semibold flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" /> Syllabus Work Logs
                   </div>
-                  <div className="text-xl font-bold text-white">62 / 65 Submitted</div>
-                  <div className="text-[11px] text-gray-400">95.4% submission compliance today</div>
+                  <div className="text-xl font-bold text-brand-black">62 / 65 Submitted</div>
+                  <div className="text-[11px] text-gray-600">95.4% submission compliance today</div>
                 </div>
               </div>
             </div>
@@ -283,26 +283,26 @@ export default function AttendancePage() {
         ═══════════════════════════════════════════════════════ */}
         {isTeacher && (
           <div className="space-y-6">
-            <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-4">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-base font-bold text-brand-black flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-emerald-600" />
                     <span>Mark Daily Attendance: Grade 10-A</span>
                   </h3>
-                  <p className="text-xs text-gray-400">Tap status buttons to toggle student attendance for today</p>
+                  <p className="text-xs text-gray-600">Tap status buttons to toggle student attendance for today</p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setDrawerOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 text-white font-medium text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 text-brand-black font-medium text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
                     Submit Daily Work Log
                   </button>
                   <button
                     onClick={handleSaveAttendance}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs shadow-md shadow-emerald-600/30 hover:bg-emerald-500 transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 text-brand-black font-semibold text-xs shadow-md shadow-emerald-600/30 hover:bg-emerald-500 transition-all flex items-center gap-1.5"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Save Attendance
@@ -311,28 +311,28 @@ export default function AttendancePage() {
               </div>
 
               {/* Students Marking Table */}
-              <div className="overflow-x-auto rounded-xl border border-gray-800">
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-900/90 text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+                  <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
                     <tr>
                       <th className="p-3.5">Roll No</th>
                       <th className="p-3.5">Student Name</th>
                       <th className="p-3.5 text-center">Status Selection</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800/60">
+                  <tbody className="divide-y divide-gray-200">
                     {students.map((stu) => (
-                      <tr key={stu.student_id} className="hover:bg-gray-900/40 transition-colors">
-                        <td className="p-3.5 font-mono text-gray-400">{stu.roll}</td>
-                        <td className="p-3.5 font-bold text-white">{stu.name}</td>
+                      <tr key={stu.student_id} className="hover:bg-gray-50/40 transition-colors">
+                        <td className="p-3.5 font-mono text-gray-600">{stu.roll}</td>
+                        <td className="p-3.5 font-bold text-brand-black">{stu.name}</td>
                         <td className="p-3.5">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => toggleStatus(stu.student_id, "present")}
                               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                                 stu.status === "present"
-                                  ? "bg-emerald-600 text-white shadow-sm"
-                                  : "bg-gray-900 text-gray-400 hover:text-gray-200"
+                                  ? "bg-emerald-600 text-brand-black shadow-sm"
+                                  : "bg-gray-50 text-gray-600 hover:text-gray-800"
                               }`}
                             >
                               Present
@@ -341,8 +341,8 @@ export default function AttendancePage() {
                               onClick={() => toggleStatus(stu.student_id, "late")}
                               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                                 stu.status === "late"
-                                  ? "bg-amber-600 text-white shadow-sm"
-                                  : "bg-gray-900 text-gray-400 hover:text-gray-200"
+                                  ? "bg-amber-600 text-brand-black shadow-sm"
+                                  : "bg-gray-50 text-gray-600 hover:text-gray-800"
                               }`}
                             >
                               Late
@@ -351,8 +351,8 @@ export default function AttendancePage() {
                               onClick={() => toggleStatus(stu.student_id, "absent")}
                               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                                 stu.status === "absent"
-                                  ? "bg-rose-600 text-white shadow-sm"
-                                  : "bg-gray-900 text-gray-400 hover:text-gray-200"
+                                  ? "bg-rose-600 text-brand-black shadow-sm"
+                                  : "bg-gray-50 text-gray-600 hover:text-gray-800"
                               }`}
                             >
                               Absent
@@ -369,36 +369,36 @@ export default function AttendancePage() {
             {/* Work Log Drawer */}
             {drawerOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-                <div className="glass-panel border border-gray-700 max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-                  <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                    <h3 className="text-lg font-bold text-brand-black flex items-center gap-2">
                       <BookOpen className="w-5 h-5 text-amber-400" />
                       <span>Submit Daily Teaching Work Log</span>
                     </h3>
-                    <button onClick={() => setDrawerOpen(false)} className="text-gray-400 hover:text-white">
+                    <button onClick={() => setDrawerOpen(false)} className="text-gray-600 hover:text-brand-black">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
                   <form onSubmit={handleSubmitWorkLog} className="space-y-4 text-xs">
                     <div>
-                      <label className="text-gray-300 font-semibold block mb-1">Subject & Topic Covered</label>
+                      <label className="text-gray-700 font-semibold block mb-1">Subject & Topic Covered</label>
                       <input
                         type="text"
                         value={workLog.topic}
                         onChange={e => setWorkLog({ ...workLog, topic: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                        className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="text-gray-300 font-semibold block mb-1">Summary / Numerical Exercises Covered</label>
+                      <label className="text-gray-700 font-semibold block mb-1">Summary / Numerical Exercises Covered</label>
                       <textarea
                         rows={4}
                         value={workLog.summary}
                         onChange={e => setWorkLog({ ...workLog, summary: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                        className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                         required
                       />
                     </div>
@@ -408,17 +408,17 @@ export default function AttendancePage() {
                       Submitting this work log will auto-update the Syllabus Portion Tracker for this topic.
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                    <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                       <button
                         type="button"
                         onClick={() => setDrawerOpen(false)}
-                        className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700"
+                        className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-amber-600 text-white font-semibold shadow-md shadow-amber-600/30 hover:bg-amber-500"
+                        className="px-4 py-2 rounded-xl bg-amber-600 text-brand-black font-semibold shadow-md shadow-amber-600/30 hover:bg-amber-500"
                       >
                         Submit Work Log
                       </button>
@@ -436,25 +436,25 @@ export default function AttendancePage() {
         {isStudent && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Total Attendance Rate</div>
-                <div className="text-3xl font-bold text-emerald-400">96.4%</div>
-                <div className="text-[11px] text-gray-400">82 of 85 sessions attended</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Total Attendance Rate</div>
+                <div className="text-3xl font-bold text-emerald-600">96.4%</div>
+                <div className="text-[11px] text-gray-600">82 of 85 sessions attended</div>
               </div>
-              <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Late Arrivals</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Late Arrivals</div>
                 <div className="text-3xl font-bold text-amber-400">2 Days</div>
-                <div className="text-[11px] text-gray-400">Marked within permissible limit</div>
+                <div className="text-[11px] text-gray-600">Marked within permissible limit</div>
               </div>
-              <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Approved Leaves</div>
-                <div className="text-3xl font-bold text-cyan-400">1 Day</div>
-                <div className="text-[11px] text-gray-400">Science Olympiad duty leave</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Approved Leaves</div>
+                <div className="text-3xl font-bold text-cyan-600">1 Day</div>
+                <div className="text-[11px] text-gray-600">Science Olympiad duty leave</div>
               </div>
             </div>
 
-            <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-4">
-              <h3 className="text-base font-bold text-white">Subject-wise Attendance Breakdown</h3>
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
+              <h3 className="text-base font-bold text-brand-black">Subject-wise Attendance Breakdown</h3>
               <div className="space-y-3">
                 {[
                   { subject: "Mathematics", present: 24, total: 24, pct: 100 },
@@ -462,12 +462,12 @@ export default function AttendancePage() {
                   { subject: "Chemistry", present: 20, total: 20, pct: 100 },
                   { subject: "Computer Science", present: 16, total: 17, pct: 94.1 },
                 ].map((sub) => (
-                  <div key={sub.subject} className="p-3.5 rounded-xl bg-gray-900/60 border border-gray-800 flex items-center justify-between">
+                  <div key={sub.subject} className="p-3.5 rounded-xl bg-white border border-gray-200 flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-white">{sub.subject}</div>
-                      <div className="text-xs text-gray-400">{sub.present} of {sub.total} periods attended</div>
+                      <div className="text-sm font-semibold text-brand-black">{sub.subject}</div>
+                      <div className="text-xs text-gray-600">{sub.present} of {sub.total} periods attended</div>
                     </div>
-                    <div className="text-sm font-bold text-emerald-400 font-mono">{sub.pct}%</div>
+                    <div className="text-sm font-bold text-emerald-600 font-mono">{sub.pct}%</div>
                   </div>
                 ))}
               </div>

@@ -92,35 +92,35 @@ export default function LeaveApplyPage() {
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
               Faculty Self-Service Portal
             </span>
-            <span className="text-xs text-gray-400">• Leave Requisitions</span>
+            <span className="text-xs text-gray-600">• Leave Requisitions</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+          <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
             Apply for Faculty Leave & Duty Off
           </h1>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-600">
             Submit casual, medical, or duty leave requests with substitute teacher class coverage arrangements.
           </p>
         </div>
 
         {/* Leave Balance Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Casual Leave (CL)</div>
-            <div className="text-2xl font-bold text-emerald-400">8 / 12 Days</div>
-            <div className="text-[11px] text-gray-400">Available balance</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Casual Leave (CL)</div>
+            <div className="text-2xl font-bold text-emerald-600">8 / 12 Days</div>
+            <div className="text-[11px] text-gray-600">Available balance</div>
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Medical Leave (ML)</div>
-            <div className="text-2xl font-bold text-cyan-400">9 / 10 Days</div>
-            <div className="text-[11px] text-gray-400">Available balance</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Medical Leave (ML)</div>
+            <div className="text-2xl font-bold text-cyan-600">9 / 10 Days</div>
+            <div className="text-[11px] text-gray-600">Available balance</div>
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Duty Leave (DL)</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Duty Leave (DL)</div>
             <div className="text-2xl font-bold text-purple-400">5 / 5 Days</div>
-            <div className="text-[11px] text-gray-400">Available balance</div>
+            <div className="text-[11px] text-gray-600">Available balance</div>
           </div>
-          <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Pending Clearances</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Pending Clearances</div>
             <div className="text-2xl font-bold text-amber-400">1 Request</div>
             <div className="text-[11px] text-amber-300">With Principal</div>
           </div>
@@ -128,19 +128,19 @@ export default function LeaveApplyPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Application Form */}
-          <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4 lg:col-span-1">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-indigo-400" />
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4 lg:col-span-1">
+            <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-brand-blue" />
               <span>New Leave Request</span>
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="text-gray-300 font-semibold block mb-1">Leave Category</label>
+                <label className="text-gray-700 font-semibold block mb-1">Leave Category</label>
                 <select
                   value={form.leave_type}
                   onChange={e => setForm({ ...form, leave_type: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                 >
                   <option value="Casual Leave">Casual Leave (CL)</option>
                   <option value="Medical Leave">Medical Leave (ML)</option>
@@ -151,33 +151,33 @@ export default function LeaveApplyPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">From Date</label>
+                  <label className="text-gray-700 font-semibold block mb-1">From Date</label>
                   <input
                     type="date"
                     value={form.start_date}
                     onChange={e => setForm({ ...form, start_date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">To Date</label>
+                  <label className="text-gray-700 font-semibold block mb-1">To Date</label>
                   <input
                     type="date"
                     value={form.end_date}
                     onChange={e => setForm({ ...form, end_date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-gray-300 font-semibold block mb-1">Substitute Faculty Assigned</label>
+                <label className="text-gray-700 font-semibold block mb-1">Substitute Faculty Assigned</label>
                 <select
                   value={form.substitute_teacher}
                   onChange={e => setForm({ ...form, substitute_teacher: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                 >
                   <option value="Prof. Alan Turing">Prof. Alan Turing</option>
                   <option value="Dr. Marie Curie">Dr. Marie Curie</option>
@@ -187,20 +187,20 @@ export default function LeaveApplyPage() {
               </div>
 
               <div>
-                <label className="text-gray-300 font-semibold block mb-1">Detailed Reason</label>
+                <label className="text-gray-700 font-semibold block mb-1">Detailed Reason</label>
                 <textarea
                   rows={3}
                   value={form.reason}
                   placeholder="Provide context and notes for substitute teacher..."
                   onChange={e => setForm({ ...form, reason: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                   required
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 hover:opacity-95 transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-brand-black font-semibold text-xs shadow-lg shadow-indigo-600/30 hover:opacity-95 transition-all flex items-center justify-center gap-1.5"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Submit Leave Request</span>
@@ -209,9 +209,9 @@ export default function LeaveApplyPage() {
           </div>
 
           {/* History Feed */}
-          <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4 lg:col-span-2">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5 text-cyan-400" />
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4 lg:col-span-2">
+            <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
+              <Clock className="w-5 h-5 text-cyan-600" />
               <span>Leave Application History</span>
             </h2>
 
@@ -227,8 +227,8 @@ export default function LeaveApplyPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-xs">{l.leave_type}</span>
-                      <span className="text-[11px] text-gray-400 font-mono">({l.days} Days)</span>
+                      <span className="font-bold text-brand-black text-xs">{l.leave_type}</span>
+                      <span className="text-[11px] text-gray-600 font-mono">({l.days} Days)</span>
                     </div>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                       l.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300'
@@ -239,16 +239,16 @@ export default function LeaveApplyPage() {
                     </span>
                   </div>
 
-                  <div className="text-xs text-gray-300">
-                    <span className="text-gray-400">Duration: </span>
+                  <div className="text-xs text-gray-700">
+                    <span className="text-gray-600">Duration: </span>
                     <span className="font-mono text-cyan-300 font-semibold">{l.start_date} to {l.end_date}</span>
                   </div>
 
-                  <p className="text-xs text-gray-400 bg-gray-950/50 p-2.5 rounded-lg border border-gray-800">
+                  <p className="text-xs text-gray-600 bg-gray-950/50 p-2.5 rounded-lg border border-gray-200">
                     "{l.reason}"
                   </p>
 
-                  <div className="flex justify-between text-[11px] text-gray-400 pt-1">
+                  <div className="flex justify-between text-[11px] text-gray-600 pt-1">
                     <span>Substitute: <span className="text-indigo-300">{l.substitute_teacher}</span></span>
                     <span className="font-mono">Applied: {l.applied_on}</span>
                   </div>

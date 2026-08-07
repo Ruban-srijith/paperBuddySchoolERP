@@ -115,28 +115,28 @@ function OCRVerificationContent() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-6 rounded-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl">
         <div className="space-y-1">
           <div className="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 text-xs border border-cyan-500/30">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Feature 1: Ensemble OCR & LLM Consensus</span>
           </div>
-          <h1 className="text-2xl font-bold text-white">Multi-Model Scanned Admission Form Verification</h1>
-          <p className="text-xs text-gray-400">
+          <h1 className="text-2xl font-bold text-brand-black">Multi-Model Scanned Admission Form Verification</h1>
+          <p className="text-xs text-gray-600">
             Parallel Vision Models (Gemini, Llama-Vision, Qwen) + LLM Judge consensus strictly persisted to PostgreSQL `students` table.
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
-          <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-surface-card hover:bg-gray-800 border border-gray-700 text-xs font-medium text-gray-200 transition-all">
-            <FileUp className="w-4 h-4 text-cyan-400" />
+          <label className="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-surface-card hover:bg-gray-100 border border-gray-200 text-xs font-medium text-gray-800 transition-all">
+            <FileUp className="w-4 h-4 text-cyan-600" />
             <span>{file ? file.name : "Choose Form Image/PDF"}</span>
             <input type="file" accept="image/*,.pdf" onChange={handleFileChange} className="hidden" />
           </label>
           <button
             onClick={handleProcessOCR}
             disabled={loading}
-            className="inline-flex items-center space-x-2 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-50"
+            className="inline-flex items-center space-x-2 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-brand-black font-medium text-xs shadow-lg shadow-cyan-500/25 transition-all disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -155,27 +155,27 @@ function OCRVerificationContent() {
 
       {/* Model Consensus Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="glass-panel p-4 rounded-xl flex items-center space-x-3 border-l-4 border-indigo-500">
-          <Cpu className="w-8 h-8 text-indigo-400 p-1.5 bg-indigo-500/10 rounded-lg" />
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-xl flex items-center space-x-3 border-l-4 border-indigo-500">
+          <Cpu className="w-8 h-8 text-brand-blue p-1.5 bg-indigo-500/10 rounded-lg" />
           <div>
-            <p className="text-xs font-semibold text-gray-200">Gemini 1.5 Flash</p>
-            <p className="text-[11px] text-emerald-400 font-mono">98.0% Confidence</p>
+            <p className="text-xs font-semibold text-gray-800">Gemini 1.5 Flash</p>
+            <p className="text-[11px] text-emerald-600 font-mono">98.0% Confidence</p>
           </div>
         </div>
 
-        <div className="glass-panel p-4 rounded-xl flex items-center space-x-3 border-l-4 border-cyan-500">
-          <Layers className="w-8 h-8 text-cyan-400 p-1.5 bg-cyan-500/10 rounded-lg" />
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-xl flex items-center space-x-3 border-l-4 border-cyan-500">
+          <Layers className="w-8 h-8 text-cyan-600 p-1.5 bg-cyan-500/10 rounded-lg" />
           <div>
-            <p className="text-xs font-semibold text-gray-200">Llama-3.2 Vision</p>
-            <p className="text-[11px] text-emerald-400 font-mono">94.0% Confidence</p>
+            <p className="text-xs font-semibold text-gray-800">Llama-3.2 Vision</p>
+            <p className="text-[11px] text-emerald-600 font-mono">94.0% Confidence</p>
           </div>
         </div>
 
-        <div className="glass-panel p-4 rounded-xl flex items-center space-x-3 border-l-4 border-purple-500">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-xl flex items-center space-x-3 border-l-4 border-purple-500">
           <ShieldCheck className="w-8 h-8 text-purple-400 p-1.5 bg-purple-500/10 rounded-lg" />
           <div>
-            <p className="text-xs font-semibold text-gray-200">Qwen2-VL</p>
-            <p className="text-[11px] text-emerald-400 font-mono">96.0% Confidence</p>
+            <p className="text-xs font-semibold text-gray-800">Qwen2-VL</p>
+            <p className="text-[11px] text-emerald-600 font-mono">96.0% Confidence</p>
           </div>
         </div>
       </div>
@@ -183,38 +183,38 @@ function OCRVerificationContent() {
       {/* Side-by-Side Split View Container */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Panel: Scanned Document Viewer */}
-        <div className="glass-panel p-5 rounded-2xl space-y-4 border border-gray-800">
-          <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-            <h2 className="text-sm font-bold text-gray-200 flex items-center space-x-2">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl space-y-4 border border-gray-200">
+          <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+            <h2 className="text-sm font-bold text-gray-800 flex items-center space-x-2">
               <span>Original Scanned Document Preview</span>
             </h2>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">
+            <span className="text-[10px] px-2 py-0.5 rounded bg-gray-100 text-gray-600 font-mono">
               Input Document
             </span>
           </div>
 
-          <div className="relative min-h-[420px] rounded-xl bg-gray-950/80 border border-gray-800/80 flex items-center justify-center p-4 overflow-hidden group">
+          <div className="relative min-h-[420px] rounded-xl bg-gray-950/80 border border-gray-200/80 flex items-center justify-center p-4 overflow-hidden group">
             {imagePreview ? (
               <img src={imagePreview} alt="Scanned Form" className="max-h-[450px] object-contain rounded" />
             ) : (
               <div className="text-center space-y-3 p-8">
-                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-brand-blue mx-auto">
                   <FileUp className="w-8 h-8" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-300">Admission Form Sample #ADM-2026-042</p>
+                  <p className="text-sm font-medium text-gray-700">Admission Form Sample #ADM-2026-042</p>
                   <p className="text-xs text-gray-500">Standardized School Registration Document Form</p>
                 </div>
                 {/* SVG Visual Representation of Form Document */}
-                <div className="w-64 h-48 bg-gray-900 border border-gray-800 rounded-lg p-3 mx-auto text-left text-[9px] text-gray-400 space-y-2 opacity-80">
+                <div className="w-64 h-48 bg-gray-50 border border-gray-200 rounded-lg p-3 mx-auto text-left text-[9px] text-gray-600 space-y-2 opacity-80">
                   <div className="h-3 w-32 bg-indigo-500/30 rounded"></div>
                   <div className="grid grid-cols-2 gap-2 pt-1">
-                    <div className="h-2.5 bg-gray-800 rounded"></div>
-                    <div className="h-2.5 bg-gray-800 rounded"></div>
-                    <div className="h-2.5 bg-gray-800 rounded"></div>
-                    <div className="h-2.5 bg-gray-800 rounded"></div>
+                    <div className="h-2.5 bg-gray-100 rounded"></div>
+                    <div className="h-2.5 bg-gray-100 rounded"></div>
+                    <div className="h-2.5 bg-gray-100 rounded"></div>
+                    <div className="h-2.5 bg-gray-100 rounded"></div>
                   </div>
-                  <div className="h-10 bg-gray-850 border border-gray-800 rounded p-1">
+                  <div className="h-10 bg-gray-850 border border-gray-200 rounded p-1">
                     [Photo & Signature Stamp]
                   </div>
                 </div>
@@ -224,13 +224,13 @@ function OCRVerificationContent() {
         </div>
 
         {/* Right Panel: Auto-filled Verified Fields */}
-        <div className="glass-panel p-5 rounded-2xl space-y-4 border border-gray-800">
-          <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-            <h2 className="text-sm font-bold text-gray-200 flex items-center space-x-2">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl space-y-4 border border-gray-200">
+          <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+            <h2 className="text-sm font-bold text-gray-800 flex items-center space-x-2">
               <span>Verified Extraction (LLM Consensus)</span>
             </h2>
             {result && (
-              <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
+              <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 flex items-center space-x-1">
                 <Database className="w-3 h-3" />
                 <span>Saved to DB `students`</span>
               </span>
@@ -239,106 +239,106 @@ function OCRVerificationContent() {
 
           {result?.judge_consensus_notes && (
             <div className="p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-cyan-300 flex items-start space-x-2">
-              <Sparkles className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+              <Sparkles className="w-4 h-4 text-cyan-600 shrink-0 mt-0.5" />
               <span>{result.judge_consensus_notes}</span>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Full Name</label>
+              <label className="text-[11px] font-medium text-gray-600">Full Name</label>
               <input
                 type="text"
                 value={studentForm.full_name}
                 onChange={(e) => setStudentForm({ ...studentForm, full_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Admission Number</label>
+              <label className="text-[11px] font-medium text-gray-600">Admission Number</label>
               <input
                 type="text"
                 value={studentForm.admission_number}
                 onChange={(e) => setStudentForm({ ...studentForm, admission_number: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500 font-mono"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Roll Number</label>
+              <label className="text-[11px] font-medium text-gray-600">Roll Number</label>
               <input
                 type="text"
                 value={studentForm.roll_number}
                 onChange={(e) => setStudentForm({ ...studentForm, roll_number: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Date of Birth</label>
+              <label className="text-[11px] font-medium text-gray-600">Date of Birth</label>
               <input
                 type="text"
                 value={studentForm.date_of_birth}
                 onChange={(e) => setStudentForm({ ...studentForm, date_of_birth: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Father's Name</label>
+              <label className="text-[11px] font-medium text-gray-600">Father's Name</label>
               <input
                 type="text"
                 value={studentForm.father_name}
                 onChange={(e) => setStudentForm({ ...studentForm, father_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Mother's Name</label>
+              <label className="text-[11px] font-medium text-gray-600">Mother's Name</label>
               <input
                 type="text"
                 value={studentForm.mother_name}
                 onChange={(e) => setStudentForm({ ...studentForm, mother_name: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Guardian Phone</label>
+              <label className="text-[11px] font-medium text-gray-600">Guardian Phone</label>
               <input
                 type="text"
                 value={studentForm.guardian_phone}
                 onChange={(e) => setStudentForm({ ...studentForm, guardian_phone: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500 font-mono"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500 font-mono"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Blood Group</label>
+              <label className="text-[11px] font-medium text-gray-600">Blood Group</label>
               <input
                 type="text"
                 value={studentForm.blood_group}
                 onChange={(e) => setStudentForm({ ...studentForm, blood_group: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div className="sm:col-span-2 space-y-1">
-              <label className="text-[11px] font-medium text-gray-400">Address</label>
+              <label className="text-[11px] font-medium text-gray-600">Address</label>
               <textarea
                 rows={2}
                 value={studentForm.address}
                 onChange={(e) => setStudentForm({ ...studentForm, address: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-gray-200 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:border-cyan-500"
               />
             </div>
           </div>
 
           <button
             onClick={() => alert("Student profile updated in database!")}
-            className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition-all flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20"
+            className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-brand-black font-medium text-xs transition-all flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Confirm & Update Student Record</span>

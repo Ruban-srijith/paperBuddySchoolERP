@@ -142,12 +142,12 @@ export default function PendingApprovalsPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
                 Principal Operations Hub
               </span>
-              <span className="text-xs text-gray-400">• Real-Time Decision Queue</span>
+              <span className="text-xs text-gray-600">• Real-Time Decision Queue</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Consolidated Pending Approvals Hub
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               One-stop operational clearance for faculty leave requests, classroom events, period substitutions, and student requisitions.
             </p>
           </div>
@@ -156,7 +156,7 @@ export default function PendingApprovalsPage() {
             {pendingItems.length > 0 && (
               <button
                 onClick={handleApproveAll}
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/25 hover:opacity-95 transition-all"
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-brand-black font-semibold text-xs shadow-lg shadow-emerald-600/25 hover:opacity-95 transition-all"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Approve All ({pendingItems.length})</span>
@@ -166,14 +166,14 @@ export default function PendingApprovalsPage() {
         </div>
 
         {/* Filter Pills */}
-        <div className="glass-panel p-4 rounded-2xl border border-gray-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilterType("all")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 filterType === "all"
                   ? "bg-amber-500 text-gray-950 font-bold shadow-md shadow-amber-500/20"
-                  : "glass-panel text-gray-400 hover:text-white"
+                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
               All Requests ({items.length})
@@ -182,8 +182,8 @@ export default function PendingApprovalsPage() {
               onClick={() => setFilterType("leave")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 filterType === "leave"
-                  ? "bg-indigo-600 text-white font-bold"
-                  : "glass-panel text-gray-400 hover:text-white"
+                  ? "bg-brand-blue text-brand-black font-bold"
+                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
               Faculty Leaves
@@ -192,8 +192,8 @@ export default function PendingApprovalsPage() {
               onClick={() => setFilterType("event")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 filterType === "event"
-                  ? "bg-purple-600 text-white font-bold"
-                  : "glass-panel text-gray-400 hover:text-white"
+                  ? "bg-purple-600 text-brand-black font-bold"
+                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
               School Events
@@ -202,8 +202,8 @@ export default function PendingApprovalsPage() {
               onClick={() => setFilterType("substitution")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 filterType === "substitution"
-                  ? "bg-cyan-600 text-white font-bold"
-                  : "glass-panel text-gray-400 hover:text-white"
+                  ? "bg-cyan-600 text-brand-black font-bold"
+                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
               Substitutions & Swaps
@@ -220,9 +220,9 @@ export default function PendingApprovalsPage() {
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className={`glass-panel p-6 rounded-2xl border transition-all space-y-3 ${
+              className={`bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border transition-all space-y-3 ${
                 item.status === 'pending'
-                  ? 'border-amber-500/40 bg-gray-900/50 hover:border-amber-500/60'
+                  ? 'border-amber-500/40 bg-gray-50/50 hover:border-amber-500/60'
                   : item.status === 'approved'
                   ? 'border-emerald-500/30 bg-emerald-950/10'
                   : 'border-rose-500/30 bg-rose-950/10'
@@ -239,14 +239,14 @@ export default function PendingApprovalsPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-gray-800 text-gray-300">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-gray-100 text-gray-700">
                         {item.type}
                       </span>
-                      <span className="text-xs text-gray-400 font-mono">{item.date_or_period}</span>
+                      <span className="text-xs text-gray-600 font-mono">{item.date_or_period}</span>
                     </div>
-                    <h3 className="text-base font-bold text-white mt-0.5">{item.title}</h3>
-                    <p className="text-xs text-gray-400">
-                      Requested by <span className="text-gray-200 font-semibold">{item.requester_name}</span> ({item.requester_role})
+                    <h3 className="text-base font-bold text-brand-black mt-0.5">{item.title}</h3>
+                    <p className="text-xs text-gray-600">
+                      Requested by <span className="text-gray-800 font-semibold">{item.requester_name}</span> ({item.requester_role})
                     </p>
                   </div>
                 </div>
@@ -256,7 +256,7 @@ export default function PendingApprovalsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleApprove(item)}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-brand-black text-xs font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5"
                     >
                       <Check className="w-3.5 h-3.5" />
                       Approve
@@ -280,7 +280,7 @@ export default function PendingApprovalsPage() {
                 )}
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-950/40 border border-gray-800 text-xs text-gray-300 leading-relaxed">
+              <div className="p-3 rounded-xl bg-gray-950/40 border border-gray-200 text-xs text-gray-700 leading-relaxed">
                 {item.details}
               </div>
             </div>

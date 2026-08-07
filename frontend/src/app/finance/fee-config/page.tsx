@@ -77,18 +77,18 @@ export default function FeeConfigPortal() {
     <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'finance']}>
       <div className="space-y-6 max-w-5xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
             <Settings className="w-8 h-8 text-amber-400" />
             Master Fee Configurator
           </h1>
-          <p className="text-gray-400 mt-2">Define base tuition, bus, and hostel fees for each grade level.</p>
+          <p className="text-gray-600 mt-2">Define base tuition, bus, and hostel fees for each grade level.</p>
         </header>
 
         <div className="grid md:grid-cols-4 gap-6">
           {/* Grade Selector Sidebar */}
           <div className="md:col-span-1 space-y-2">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 px-2">Select Grade</h3>
-            <div className="glass-panel p-2 rounded-2xl border border-gray-800 max-h-[600px] overflow-y-auto custom-scrollbar">
+            <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider mb-4 px-2">Select Grade</h3>
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-2 rounded-2xl border border-gray-200 max-h-[600px] overflow-y-auto custom-scrollbar">
               {ALL_GRADES.map(grade => (
                 <button
                   key={grade}
@@ -96,7 +96,7 @@ export default function FeeConfigPortal() {
                   className={`w-full text-left px-4 py-3 rounded-xl transition-colors font-medium ${
                     selectedGrade === grade 
                       ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-brand-black'
                   }`}
                 >
                   Grade {grade}
@@ -107,74 +107,74 @@ export default function FeeConfigPortal() {
 
           {/* Configuration Form */}
           <div className="md:col-span-3">
-            <div className="glass-panel p-8 rounded-2xl border border-gray-800">
-              <h2 className="text-xl font-bold text-white mb-6 border-b border-gray-800 pb-4">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8 rounded-2xl border border-gray-200">
+              <h2 className="text-xl font-bold text-brand-black mb-6 border-b border-gray-200 pb-4">
                 Fee Structure for Grade {selectedGrade}
               </h2>
               
               {loading ? (
-                <div className="py-12 text-center text-gray-400">Loading current fees...</div>
+                <div className="py-12 text-center text-gray-600">Loading current fees...</div>
               ) : (
                 <form onSubmit={handleSave} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">Term 1 Fee (₹)</label>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Term 1 Fee (₹)</label>
                       <input 
                         type="number" 
                         value={fees.term1} 
                         onChange={e => setFees({...fees, term1: e.target.value})}
-                        className="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
+                        className="w-full bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
                         required 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">Term 2 Fee (₹)</label>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Term 2 Fee (₹)</label>
                       <input 
                         type="number" 
                         value={fees.term2} 
                         onChange={e => setFees({...fees, term2: e.target.value})}
-                        className="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
+                        className="w-full bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
                         required 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">Bus/Transport Fee (₹)</label>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Bus/Transport Fee (₹)</label>
                       <input 
                         type="number" 
                         value={fees.bus} 
                         onChange={e => setFees({...fees, bus: e.target.value})}
-                        className="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
+                        className="w-full bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
                         required 
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">Hostel Fee (₹)</label>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Hostel Fee (₹)</label>
                       <input 
                         type="number" 
                         value={fees.hostel} 
                         onChange={e => setFees({...fees, hostel: e.target.value})}
-                        className="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
+                        className="w-full bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
                         required 
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">General Due Date</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">General Due Date</label>
                     <input 
                       type="date" 
                       value={fees.due_date} 
                       onChange={e => setFees({...fees, due_date: e.target.value})}
-                      className="w-full md:w-1/2 bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 [color-scheme:dark]" 
+                      className="w-full md:w-1/2 bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 [color-scheme:dark]" 
                       required 
                     />
                   </div>
 
-                  <div className="pt-6 border-t border-gray-800 flex justify-end">
+                  <div className="pt-6 border-t border-gray-200 flex justify-end">
                     <button 
                       type="submit" 
                       disabled={saving}
-                      className="bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
+                      className="bg-amber-600 hover:bg-amber-700 text-brand-black px-8 py-3 rounded-xl font-medium transition-colors flex items-center gap-2"
                     >
                       {saving ? 'Saving...' : (
                         <>

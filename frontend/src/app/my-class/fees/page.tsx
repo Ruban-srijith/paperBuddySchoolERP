@@ -57,25 +57,25 @@ export default function MyClassFeesPortal() {
     <ProtectedRoute allowedRoles={['teacher', 'super_admin', 'correspondent', 'admin', 'principal']}>
       <div className="space-y-6 max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <UsersRound className="w-8 h-8 text-cyan-400" />
+          <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
+            <UsersRound className="w-8 h-8 text-cyan-600" />
             Class Fee Management
           </h1>
-          <p className="text-gray-400 mt-2">Manage auxiliary services (Bus & Hostel) and view fee status for your assigned class.</p>
+          <p className="text-gray-600 mt-2">Manage auxiliary services (Bus & Hostel) and view fee status for your assigned class.</p>
         </header>
 
         <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-xl flex items-start gap-3">
-          <Info className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+          <Info className="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-cyan-200/80">
             <strong>Note:</strong> Toggling the Bus or Hostel switch will automatically recalculate the student's dues in the Finance portal. 
             Ensure these toggles are accurate for the current term!
           </div>
         </div>
 
-        <div className="glass-panel rounded-2xl border border-gray-800 overflow-hidden">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm rounded-2xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-400">
-              <thead className="bg-gray-900/80 text-gray-300 uppercase font-medium border-b border-gray-800">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="bg-gray-100 text-gray-700 uppercase font-medium border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4">Student Name</th>
                   <th className="px-6 py-4">Admission #</th>
@@ -97,9 +97,9 @@ export default function MyClassFeesPortal() {
                   </tr>
                 ) : (
                   students.map((s, idx) => (
-                    <tr key={idx} className="hover:bg-gray-800/30 transition-colors">
+                    <tr key={idx} className="hover:bg-gray-100/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-bold text-white">{s.full_name}</div>
+                        <div className="font-bold text-brand-black">{s.full_name}</div>
                       </td>
                       <td className="px-6 py-4 font-mono text-xs">{s.admission_number}</td>
                       <td className="px-6 py-4 text-center">
@@ -108,7 +108,7 @@ export default function MyClassFeesPortal() {
                           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
                             s.is_bus_user 
                               ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
-                              : 'bg-gray-800 text-gray-500 border border-gray-700 hover:text-white'
+                              : 'bg-gray-100 text-gray-500 border border-gray-200 hover:text-brand-black'
                           }`}
                         >
                           <Bus className="w-3.5 h-3.5" />
@@ -121,7 +121,7 @@ export default function MyClassFeesPortal() {
                           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
                             s.is_hostel_user 
                               ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' 
-                              : 'bg-gray-800 text-gray-500 border border-gray-700 hover:text-white'
+                              : 'bg-gray-100 text-gray-500 border border-gray-200 hover:text-brand-black'
                           }`}
                         >
                           <Home className="w-3.5 h-3.5" />
@@ -135,7 +135,7 @@ export default function MyClassFeesPortal() {
                             <span className="text-[10px] text-gray-500 uppercase">Pending</span>
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/20">
+                          <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/20">
                             Clear
                           </span>
                         )}

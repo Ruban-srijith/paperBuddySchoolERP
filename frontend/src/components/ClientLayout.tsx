@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { 
   FileSearch, Calendar, CheckSquare, BookOpen, FlaskConical, 
   Mail, LayoutDashboard, GraduationCap, Sparkles, Users,
@@ -108,10 +109,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
   // If not authenticated and not on login, show brief loading while redirecting
   if (!hasChecked || (!isAuthenticated || !user)) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#090d16' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#EEF2F6' }}>
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin mx-auto"></div>
-          <p className="text-gray-400 text-sm">Loading application...</p>
+          <div className="w-12 h-12 rounded-full border-4 border-brand-blue/30 border-t-brand-blue animate-spin mx-auto"></div>
+          <p className="text-gray-500 text-sm">Loading application...</p>
         </div>
       </div>
     );
@@ -127,71 +128,79 @@ function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#090d16', color: '#f3f4f6' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#EEF2F6', color: '#131313' }}>
       {/* Top Navbar */}
-      <header className="h-16 glass-panel border-b border-gray-800/60 sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between">
+      <header className="h-16 bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setShowMobileMenu(true)}
-            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors"
+            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-brand-black transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <Link href="/" className="flex items-center space-x-2 md:space-x-3">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 flex-shrink-0">
-              <GraduationCap className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Link href="/" className="flex items-center space-x-2 md:space-x-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center flex-shrink-0">
+              <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col justify-center whitespace-nowrap">
-              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight gradient-text">PaperBuddy</span>
-              <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 w-fit">
+              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue">PaperBuddy</span>
+              <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue font-medium w-fit">
                 v2.5 Multi-Role
               </span>
             </div>
-          </Link>
+            </Link>
+          </motion.div>
         </div>
 
         <div className="flex items-center space-x-2 md:space-x-4">
-          <div className="hidden lg:flex items-center space-x-2 text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-full border border-emerald-500/30 whitespace-nowrap">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <div className="hidden lg:flex items-center space-x-2 text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 whitespace-nowrap font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
             <span>FastAPI & Live Engine Active</span>
           </div>
 
           {/* User Profile Dropdown */}
           <div className="relative">
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-3 pl-4 border-l border-gray-800 hover:bg-gray-800/30 rounded-lg px-3 py-1.5 transition-colors"
+              className="flex items-center space-x-3 pl-4 border-l border-gray-200 hover:bg-gray-50 rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
             >
-              <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${roleColor} flex items-center justify-center text-white font-semibold text-xs shadow-lg`}>
-                {user.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'}
+              <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${roleColor} flex items-center justify-center text-white font-semibold text-xs shadow-md overflow-hidden`}>
+                {user.profile_picture ? (
+                  <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  user.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'
+                )}
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-xs font-semibold text-gray-200">{user.full_name}</p>
+                <p className="text-xs font-semibold text-brand-black">{user.full_name}</p>
                 <div className="flex items-center gap-1">
-                  <Shield className="w-2.5 h-2.5 text-indigo-400" />
-                  <p className="text-[10px] text-gray-400">{roleLabel}</p>
+                  <Shield className="w-2.5 h-2.5 text-brand-blue" />
+                  <p className="text-[10px] text-gray-500 font-medium">{roleLabel}</p>
                   {user.assigned_grade && (
-                    <span className="text-[10px] text-cyan-400 ml-1">• Grade {user.assigned_grade}</span>
+                    <span className="text-[10px] text-brand-blue ml-1 font-medium">• Grade {user.assigned_grade}</span>
                   )}
                 </div>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
-            </button>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+            </motion.button>
 
             {/* Dropdown Menu */}
             {showUserMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
-                <div className="absolute right-0 top-full mt-2 w-64 bg-[#090d16] bg-opacity-95 backdrop-blur-2xl rounded-xl border border-gray-700/60 shadow-2xl z-50 overflow-hidden">
-                  <div className="p-4 border-b border-gray-800/60">
-                    <p className="font-semibold text-sm text-white">{user.full_name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{user.email}</p>
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-[24px] border border-gray-100 shadow-xl z-50 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100">
+                    <p className="font-semibold text-sm text-brand-black">{user.full_name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
                     <div className="mt-2 flex items-center gap-2">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r ${roleColor} text-white font-medium`}>
                         {roleLabel}
                       </span>
                       {user.assigned_grade && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue font-medium">
                           Grade {user.assigned_grade}
                         </span>
                       )}
@@ -201,14 +210,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     <Link 
                       href="/profile"
                       onClick={() => setShowUserMenu(false)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-800/50 hover:text-white transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:text-brand-black transition-colors"
                     >
                       <UserCircle className="w-4 h-4" />
                       My Profile
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign Out
@@ -231,15 +240,15 @@ function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Left Sidebar — Dynamic by Role */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-64 glass-panel border-r border-gray-800/60 p-4 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:max-h-[calc(100vh-4rem)] ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:max-h-[calc(100vh-4rem)] ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="space-y-6">
             <div className="flex items-center justify-between px-3">
-              <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+              <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                 {roleLabel} Menu
               </div>
               <button 
                 onClick={() => setShowMobileMenu(false)}
-                className="lg:hidden p-1 rounded-md text-gray-400 hover:text-white hover:bg-gray-800/50"
+                className="lg:hidden p-1 rounded-md text-gray-400 hover:text-brand-black hover:bg-gray-100"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -251,37 +260,38 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 const isActive = pathname === config.href;
                 const Icon = config.icon;
                 return (
-                  <Link
-                    key={key}
-                    href={config.href}
+                  <motion.div key={key} whileHover={{ x: 6 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+                    <Link
+                      href={config.href}
                     onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all group
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-full text-sm font-medium transition-all group
                       ${isActive 
-                        ? 'text-white bg-indigo-600/20 border border-indigo-500/30 shadow-sm' 
-                        : 'text-gray-300 hover:text-white hover:bg-indigo-600/15'
+                        ? 'text-white bg-brand-blue shadow-md' 
+                        : 'text-gray-500 hover:text-brand-blue hover:bg-brand-blue/5'
                       }`}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-400' : `text-gray-400 ${config.color}`}`} />
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : `text-gray-400 group-hover:text-brand-blue`}`} />
                     <span>{config.label}</span>
                     {config.badge && (
-                      <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">
+                      <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-white text-brand-blue font-bold shadow-sm">
                         {config.badge}
                       </span>
                     )}
-                  </Link>
+                    </Link>
+                  </motion.div>
                 );
               })}
             </nav>
           </div>
 
           {/* Role Info Card */}
-          <div className="p-3 mt-6 glass-panel-glow rounded-xl text-xs space-y-2">
-            <div className="flex items-center space-x-2 text-indigo-300 font-semibold">
-              <Shield className="w-4 h-4 text-indigo-400" />
+          <div className="p-4 mt-6 bg-gray-50 rounded-[24px] border border-gray-100 text-xs space-y-2">
+            <div className="flex items-center space-x-2 text-brand-blue font-semibold">
+              <Shield className="w-4 h-4 text-brand-blue" />
               <span>Multi-Role RBAC</span>
             </div>
-            <p className="text-[11px] text-gray-400 leading-relaxed">
-              Logged in as <span className="text-indigo-300 font-medium">{roleLabel}</span>.
+            <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
+              Logged in as <span className="text-brand-blue font-bold">{roleLabel}</span>.
               {user.assigned_grade ? ` Grade ${user.assigned_grade} scope.` : ' Operational scope active.'}
             </p>
           </div>
@@ -305,8 +315,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   if (!mounted) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#090d16' }}>
-        <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#EEF2F6' }}>
+        <div className="w-12 h-12 rounded-full border-4 border-brand-blue/30 border-t-brand-blue animate-spin"></div>
       </div>
     );
   }

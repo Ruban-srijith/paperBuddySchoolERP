@@ -167,12 +167,12 @@ export default function SalaryApprovalsPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
                 Correspondent Portal
               </span>
-              <span className="text-xs text-gray-400">• Institutional Governance</span>
+              <span className="text-xs text-gray-600">• Institutional Governance</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Monthly Salary Approvals & Payroll
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               Superadmin financial clearance for teaching faculty and administrative staff for {selectedMonth}.
             </p>
           </div>
@@ -181,7 +181,7 @@ export default function SalaryApprovalsPage() {
             {pendingCount > 0 && (
               <button
                 onClick={handleApproveAll}
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/30 hover:opacity-95 transition-all"
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-brand-black font-semibold text-xs shadow-lg shadow-emerald-600/30 hover:opacity-95 transition-all"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Clear All ({pendingCount}) Pending</span>
@@ -189,9 +189,9 @@ export default function SalaryApprovalsPage() {
             )}
             <button
               onClick={() => toast.info("Exporting certified payroll ledger to CSV", "Export Started")}
-              className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl glass-panel text-gray-300 hover:text-white text-xs font-medium border border-gray-700 hover:border-gray-600 transition-colors"
+              className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
             >
-              <Download className="w-4 h-4 text-gray-400" />
+              <Download className="w-4 h-4 text-gray-600" />
               <span>Export</span>
             </button>
           </div>
@@ -199,27 +199,27 @@ export default function SalaryApprovalsPage() {
 
         {/* Metrics Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Total Monthly Payroll Budget</div>
-            <div className="text-2xl font-bold text-white">₹{(totalApprovedAmount + totalPendingAmount).toLocaleString()}</div>
-            <div className="text-[11px] text-gray-400">{records.length} Staff records generated</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Total Monthly Payroll Budget</div>
+            <div className="text-2xl font-bold text-brand-black">₹{(totalApprovedAmount + totalPendingAmount).toLocaleString()}</div>
+            <div className="text-[11px] text-gray-600">{records.length} Staff records generated</div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Approved & Cleared</div>
-            <div className="text-2xl font-bold text-emerald-400">₹{totalApprovedAmount.toLocaleString()}</div>
-            <div className="text-[11px] text-emerald-400 font-medium">Ready for direct bank disbursement</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Approved & Cleared</div>
+            <div className="text-2xl font-bold text-emerald-600">₹{totalApprovedAmount.toLocaleString()}</div>
+            <div className="text-[11px] text-emerald-600 font-medium">Ready for direct bank disbursement</div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Awaiting Correspondent Clearance</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Awaiting Correspondent Clearance</div>
             <div className="text-2xl font-bold text-amber-400">{pendingCount} Records</div>
             <div className="text-[11px] text-amber-300 font-mono">₹{totalPendingAmount.toLocaleString()} pending</div>
           </div>
         </div>
 
         {/* Salary Records Table */}
-        <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:flex-none">
@@ -229,14 +229,14 @@ export default function SalaryApprovalsPage() {
                   placeholder="Search faculty or department..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 rounded-xl bg-gray-900 border border-gray-700 text-white text-xs w-full sm:w-56"
+                  className="pl-8 pr-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs w-full sm:w-56"
                 />
               </div>
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl bg-gray-900 border border-gray-700 text-white text-xs w-full sm:w-auto"
+                className="px-2.5 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs w-full sm:w-auto"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending Clearance</option>
@@ -245,37 +245,37 @@ export default function SalaryApprovalsPage() {
               </select>
             </div>
 
-            <span className="text-xs text-gray-400 font-mono">
+            <span className="text-xs text-gray-600 font-mono">
               Pay Period: {selectedMonth}
             </span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-800">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-900/90 text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+              <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
                 <tr>
                   <th className="p-3.5">Staff Name & Role</th>
                   <th className="p-3.5">Department</th>
                   <th className="p-3.5 text-right">Basic Pay (₹)</th>
                   <th className="p-3.5 text-right">Allowances</th>
                   <th className="p-3.5 text-right">Deductions</th>
-                  <th className="p-3.5 text-right font-bold text-white">Net Pay (₹)</th>
+                  <th className="p-3.5 text-right font-bold text-brand-black">Net Pay (₹)</th>
                   <th className="p-3.5 text-center">Status</th>
                   <th className="p-3.5 text-center">Clearance Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60">
+              <tbody className="divide-y divide-gray-200">
                 {filteredRecords.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-900/40 transition-colors">
+                  <tr key={r.id} className="hover:bg-gray-50/40 transition-colors">
                     <td className="p-3.5">
-                      <div className="font-bold text-white">{r.staff_name}</div>
-                      <div className="text-[11px] text-gray-400">{r.staff_role}</div>
+                      <div className="font-bold text-brand-black">{r.staff_name}</div>
+                      <div className="text-[11px] text-gray-600">{r.staff_role}</div>
                     </td>
-                    <td className="p-3.5 text-gray-300">{r.department}</td>
-                    <td className="p-3.5 text-right font-mono text-gray-300">₹{(r.basic_salary || 0).toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-mono text-emerald-400">+₹{(r.allowances || 0).toLocaleString()}</td>
+                    <td className="p-3.5 text-gray-700">{r.department}</td>
+                    <td className="p-3.5 text-right font-mono text-gray-700">₹{(r.basic_salary || 0).toLocaleString()}</td>
+                    <td className="p-3.5 text-right font-mono text-emerald-600">+₹{(r.allowances || 0).toLocaleString()}</td>
                     <td className="p-3.5 text-right font-mono text-rose-400">-₹{(r.deductions || 0).toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-mono font-bold text-white text-sm">
+                    <td className="p-3.5 text-right font-mono font-bold text-brand-black text-sm">
                       ₹{(r.net_salary || 0).toLocaleString()}
                     </td>
                     <td className="p-3.5 text-center">
@@ -294,13 +294,13 @@ export default function SalaryApprovalsPage() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleApprove(r.id, r.staff_name)}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-all shadow-sm flex items-center gap-1"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-brand-black text-[11px] font-bold transition-all shadow-sm flex items-center gap-1"
                           >
                             <Check className="w-3 h-3" /> Approve
                           </button>
                           <button
                             onClick={() => handleReject(r.id, r.staff_name)}
-                            className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold transition-all shadow-sm flex items-center gap-1"
+                            className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-brand-black text-[11px] font-bold transition-all shadow-sm flex items-center gap-1"
                           >
                             <X className="w-3 h-3" /> Reject
                           </button>

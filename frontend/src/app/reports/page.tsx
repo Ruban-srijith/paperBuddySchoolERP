@@ -44,19 +44,19 @@ export default function OperationalReportsPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-semibold border border-teal-500/30">
                 Principal Executive Reports
               </span>
-              <span className="text-xs text-gray-400">• Institutional Audits</span>
+              <span className="text-xs text-gray-600">• Institutional Audits</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               School Operational Reports & Analytics
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               Daily operational logs, monthly financial collections audits, syllabus tracking, and CBSE compliance reports.
             </p>
           </div>
 
           <button
             onClick={handleGenerateNew}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-500 text-white font-semibold text-xs shadow-lg shadow-teal-600/25 hover:opacity-95 transition-all"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-500 text-brand-black font-semibold text-xs shadow-lg shadow-teal-600/25 hover:opacity-95 transition-all"
           >
             <Sparkles className="w-4 h-4" />
             <span>Generate Real-time Snapshot</span>
@@ -64,12 +64,12 @@ export default function OperationalReportsPage() {
         </div>
 
         {/* Report Types Filter */}
-        <div className="glass-panel p-4 rounded-2xl border border-gray-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setReportType("daily")}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                reportType === "daily" ? "bg-teal-600 text-white shadow-md" : "glass-panel text-gray-400 hover:text-white"
+                reportType === "daily" ? "bg-teal-600 text-brand-black shadow-md" : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
               Daily Reports
@@ -77,7 +77,7 @@ export default function OperationalReportsPage() {
             <button
               onClick={() => setReportType("monthly")}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                reportType === "monthly" ? "bg-teal-600 text-white shadow-md" : "glass-panel text-gray-400 hover:text-white"
+                reportType === "monthly" ? "bg-teal-600 text-brand-black shadow-md" : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
               Monthly Audits
@@ -85,14 +85,14 @@ export default function OperationalReportsPage() {
             <button
               onClick={() => setReportType("annual")}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                reportType === "annual" ? "bg-teal-600 text-white shadow-md" : "glass-panel text-gray-400 hover:text-white"
+                reportType === "annual" ? "bg-teal-600 text-brand-black shadow-md" : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
               Annual Comprehensive
             </button>
           </div>
 
-          <span className="text-xs text-gray-400 font-mono">
+          <span className="text-xs text-gray-600 font-mono">
             {filteredReports.length} Reports Available
           </span>
         </div>
@@ -100,25 +100,25 @@ export default function OperationalReportsPage() {
         {/* Reports Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredReports.map(rep => (
-            <div key={rep.id} className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4 hover:border-teal-500/40 transition-all flex flex-col justify-between">
+            <div key={rep.id} className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4 hover:border-teal-500/40 transition-all flex flex-col justify-between">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-teal-500/20 text-teal-300 border border-teal-500/30">
                     {rep.type}
                   </span>
-                  <span className="text-xs text-gray-400 font-mono">{rep.date}</span>
+                  <span className="text-xs text-gray-600 font-mono">{rep.date}</span>
                 </div>
-                <h3 className="text-base font-bold text-white">{rep.title}</h3>
-                <div className="text-xs text-gray-400 flex items-center gap-3">
+                <h3 className="text-base font-bold text-brand-black">{rep.title}</h3>
+                <div className="text-xs text-gray-600 flex items-center gap-3">
                   <span>File Size: {rep.size}</span>
                   <span>Format: <span className="font-mono text-cyan-300 font-bold">{rep.format}</span></span>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-gray-800 flex justify-end gap-2">
+              <div className="pt-3 border-t border-gray-200 flex justify-end gap-2">
                 <button
                   onClick={() => toast.info(`Downloading ${rep.title}`, "Download Started")}
-                  className="px-3.5 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium transition-colors inline-flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-700 text-gray-800 text-xs font-medium transition-colors inline-flex items-center gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5 text-teal-400" />
                   <span>Download {rep.format}</span>

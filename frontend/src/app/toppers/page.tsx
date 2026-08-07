@@ -77,19 +77,19 @@ export default function ClassToppersPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-300 font-semibold border border-yellow-500/30">
                 Academic Excellence Honors
               </span>
-              <span className="text-xs text-gray-400">• Institutional Hall of Fame</span>
+              <span className="text-xs text-gray-600">• Institutional Hall of Fame</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Class Toppers & Merit Honors List
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               Top rank students across LKG through 12th Standard based on cumulative GPA, term examination results, and consistent attendance.
             </p>
           </div>
 
           <button
             onClick={() => toast.info("Exporting certified Toppers Roll of Honor PDF", "Exporting")}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-yellow-600 to-amber-500 text-white font-semibold text-xs shadow-lg shadow-yellow-500/25 hover:opacity-95 transition-all"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-yellow-600 to-amber-500 text-brand-black font-semibold text-xs shadow-lg shadow-yellow-500/25 hover:opacity-95 transition-all"
           >
             <Download className="w-4 h-4" />
             <span>Export Honors Roll (PDF)</span>
@@ -97,15 +97,15 @@ export default function ClassToppersPage() {
         </div>
 
         {/* Grade Filter Bar */}
-        <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-2">
-          <label className="text-[11px] font-bold uppercase text-gray-400 tracking-wider">Filter by Grade Tier</label>
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-2">
+          <label className="text-[11px] font-bold uppercase text-gray-600 tracking-wider">Filter by Grade Tier</label>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedGradeFilter("all")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 selectedGradeFilter === "all"
                   ? "bg-yellow-500 text-gray-950 font-bold shadow-md shadow-yellow-500/20"
-                  : "glass-panel text-gray-300 hover:text-white"
+                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black"
               }`}
             >
               All Grades (LKG–12th)
@@ -117,7 +117,7 @@ export default function ClassToppersPage() {
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   selectedGradeFilter === g
                     ? "bg-yellow-500 text-gray-950 font-bold shadow-md shadow-yellow-500/20"
-                    : "glass-panel text-gray-300 hover:text-white"
+                    : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black"
                 }`}
               >
                 Grade {g}
@@ -131,44 +131,44 @@ export default function ClassToppersPage() {
           {filteredToppers.map((t, idx) => (
             <div
               key={`${t.grade}-${t.rank}-${idx}`}
-              className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4 hover:border-yellow-500/50 hover:bg-gray-900/40 transition-all relative overflow-hidden group"
+              className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4 hover:border-yellow-500/50 hover:bg-gray-50/40 transition-all relative overflow-hidden group"
             >
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-base shadow-md ${
                     t.rank === 1 ? 'bg-gradient-to-tr from-yellow-500 to-amber-300 text-gray-950'
                     : t.rank === 2 ? 'bg-gradient-to-tr from-slate-300 to-gray-400 text-gray-950'
-                    : 'bg-gradient-to-tr from-amber-700 to-yellow-800 text-white'
+                    : 'bg-gradient-to-tr from-amber-700 to-yellow-800 text-brand-black'
                   }`}>
                     {t.rank === 1 ? '🥇' : t.rank === 2 ? '🥈' : '🥉'}
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white group-hover:text-yellow-400 transition-colors">
+                    <h3 className="text-base font-bold text-brand-black group-hover:text-yellow-400 transition-colors">
                       {t.student_name}
                     </h3>
-                    <p className="text-xs text-gray-400">Grade {t.grade} • Section {t.section}</p>
+                    <p className="text-xs text-gray-600">Grade {t.grade} • Section {t.section}</p>
                   </div>
                 </div>
 
                 <div className="text-right">
                   <div className="text-lg font-bold text-yellow-400 font-mono">{(t.gpa || 0).toFixed(2)}</div>
-                  <div className="text-[10px] text-gray-400 font-semibold uppercase">GPA Rating</div>
+                  <div className="text-[10px] text-gray-600 font-semibold uppercase">GPA Rating</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-center text-xs">
-                <div className="p-2.5 rounded-xl bg-gray-900/80 border border-gray-800">
-                  <div className="text-[10px] text-gray-400">Exam Aggregate</div>
-                  <div className="text-base font-bold text-emerald-400 font-mono mt-0.5">{t.percentage}%</div>
+                <div className="p-2.5 rounded-xl bg-gray-100 border border-gray-200">
+                  <div className="text-[10px] text-gray-600">Exam Aggregate</div>
+                  <div className="text-base font-bold text-emerald-600 font-mono mt-0.5">{t.percentage}%</div>
                 </div>
-                <div className="p-2.5 rounded-xl bg-gray-900/80 border border-gray-800">
-                  <div className="text-[10px] text-gray-400">Attendance</div>
-                  <div className="text-base font-bold text-cyan-400 font-mono mt-0.5">{t.attendance_pct}%</div>
+                <div className="p-2.5 rounded-xl bg-gray-100 border border-gray-200">
+                  <div className="text-[10px] text-gray-600">Attendance</div>
+                  <div className="text-base font-bold text-cyan-600 font-mono mt-0.5">{t.attendance_pct}%</div>
                 </div>
               </div>
 
               <div className="space-y-1.5 text-xs">
-                <div className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">Top Subject Mastery</div>
+                <div className="text-[10px] font-bold uppercase text-gray-600 tracking-wider">Top Subject Mastery</div>
                 <div className="flex flex-wrap gap-1.5">
                   {t.top_subjects.map(s => (
                     <span key={s} className="px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 text-[10px] font-semibold">

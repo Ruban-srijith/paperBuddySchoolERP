@@ -77,19 +77,19 @@ function SubstitutionsContent() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-brand-black flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0">
-              <RefreshCw className="w-5 h-5 text-cyan-400" />
+              <RefreshCw className="w-5 h-5 text-cyan-600" />
             </div>
             Vice Principal Teacher Substitution Control Center
           </h1>
-          <p className="text-sm text-gray-400">Reallocate absent teacher timetable slots dynamically without scheduling conflicts</p>
+          <p className="text-sm text-gray-600">Reallocate absent teacher timetable slots dynamically without scheduling conflicts</p>
         </div>
 
         <button
           onClick={handleAutoAssign}
           disabled={autoAssigning}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 text-white text-sm font-medium shadow-lg shadow-cyan-500/25 hover:opacity-90 transition-all disabled:opacity-50 w-full md:w-auto shrink-0"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 text-brand-black text-sm font-medium shadow-lg shadow-cyan-500/25 hover:opacity-90 transition-all disabled:opacity-50 w-full md:w-auto shrink-0"
         >
           <Zap className="w-4 h-4 text-amber-300 shrink-0" />
           <span className="whitespace-nowrap">{autoAssigning ? "Querying Free Teachers..." : "Auto-Assign Substitute"}</span>
@@ -98,36 +98,36 @@ function SubstitutionsContent() {
 
       {msg && (
         <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-cyan-600 flex-shrink-0" />
           <span>{msg}</span>
         </div>
       )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="glass-panel p-5 rounded-2xl border-l-4 border-cyan-500 space-y-2">
-          <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Teacher Absences Today</div>
-          <div className="text-2xl font-bold text-white">1 Teacher</div>
-          <div className="text-xs text-cyan-400 font-medium">Dr. Sarah Connor (Physics)</div>
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border-l-4 border-cyan-500 space-y-2">
+          <div className="text-xs text-gray-600 font-semibold uppercase tracking-wider">Teacher Absences Today</div>
+          <div className="text-2xl font-bold text-brand-black">1 Teacher</div>
+          <div className="text-xs text-cyan-600 font-medium">Dr. Sarah Connor (Physics)</div>
         </div>
 
-        <div className="glass-panel p-5 rounded-2xl border-l-4 border-indigo-500 space-y-2">
-          <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Reallocated Slots</div>
-          <div className="text-2xl font-bold text-white">{substitutions.length} Assigned</div>
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border-l-4 border-indigo-500 space-y-2">
+          <div className="text-xs text-gray-600 font-semibold uppercase tracking-wider">Reallocated Slots</div>
+          <div className="text-2xl font-bold text-brand-black">{substitutions.length} Assigned</div>
           <div className="text-xs text-indigo-300 font-medium">Zero Class Conflict</div>
         </div>
 
-        <div className="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 space-y-2">
-          <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Available Free Faculty</div>
-          <div className="text-2xl font-bold text-white">2 Teachers Free</div>
-          <div className="text-xs text-emerald-400 font-medium">Prof. Alan Turing, Dr. Marie Curie</div>
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border-l-4 border-emerald-500 space-y-2">
+          <div className="text-xs text-gray-600 font-semibold uppercase tracking-wider">Available Free Faculty</div>
+          <div className="text-2xl font-bold text-brand-black">2 Teachers Free</div>
+          <div className="text-xs text-emerald-600 font-medium">Prof. Alan Turing, Dr. Marie Curie</div>
         </div>
       </div>
 
       {/* Substitutions Table */}
-      <div className="glass-panel p-6 rounded-2xl space-y-4">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-cyan-400" />
+      <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl space-y-4">
+        <h2 className="text-lg font-bold text-brand-black flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-cyan-600" />
           Assigned Substitutions Log
         </h2>
 
@@ -141,7 +141,7 @@ function SubstitutionsContent() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800/60 text-xs font-semibold text-gray-400 uppercase tracking-wider text-left">
+                <tr className="border-b border-gray-200/60 text-xs font-semibold text-gray-600 uppercase tracking-wider text-left">
                   <th className="py-3 px-4">Class & Subject</th>
                   <th className="py-3 px-4">Time Slot</th>
                   <th className="py-3 px-4">Absent Teacher</th>
@@ -151,14 +151,14 @@ function SubstitutionsContent() {
               </thead>
               <tbody className="divide-y divide-gray-800/40">
                 {substitutions.map((s) => (
-                  <tr key={s.id} className="hover:bg-gray-800/20 transition-colors">
+                  <tr key={s.id} className="hover:bg-gray-100/20 transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-medium text-white">{s.subject_name}</div>
-                      <div className="text-xs text-cyan-400">Class {s.class_name}</div>
+                      <div className="font-medium text-brand-black">{s.subject_name}</div>
+                      <div className="text-xs text-cyan-600">Class {s.class_name}</div>
                     </td>
-                    <td className="py-3.5 px-4 text-xs text-gray-300">
+                    <td className="py-3.5 px-4 text-xs text-gray-700">
                       <div>{s.day_of_week}</div>
-                      <div className="font-mono text-[10px] text-gray-400">{s.time_slot}</div>
+                      <div className="font-mono text-[10px] text-gray-600">{s.time_slot}</div>
                     </td>
                     <td className="py-3.5 px-4 text-xs text-red-300 flex items-center gap-1.5 pt-4">
                       <UserX className="w-3.5 h-3.5 text-red-400" />
@@ -166,12 +166,12 @@ function SubstitutionsContent() {
                     </td>
                     <td className="py-3.5 px-4 text-xs text-emerald-300 font-medium">
                       <div className="flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
                         <span>{s.substitute_teacher_name}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                      <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/30">
                         <CheckCircle2 className="w-3 h-3" />
                         <span className="capitalize">{s.status}</span>
                       </span>

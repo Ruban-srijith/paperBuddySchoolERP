@@ -166,12 +166,12 @@ export default function EmailsPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold border border-rose-500/30">
                 Email Dispatch Gateway
               </span>
-              <span className="text-xs text-gray-400">• SHA-256 Deduplication</span>
+              <span className="text-xs text-gray-600">• SHA-256 Deduplication</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Email Notifications & Intimations
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               Async email dispatch service for attendance alerts, lab reports, fee receipts, and school circulars.
             </p>
           </div>
@@ -181,7 +181,7 @@ export default function EmailsPage() {
               fetchLogs();
               toast.info("Refreshed latest email delivery logs", "Sync Complete");
             }}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl glass-panel text-gray-300 hover:text-white text-xs font-medium border border-gray-700 hover:border-gray-600 transition-colors"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh Logs</span>
@@ -190,49 +190,49 @@ export default function EmailsPage() {
 
         {/* System Health / Deduplication Status Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-            <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+            <div className="flex items-center justify-between text-xs text-gray-600">
               <span>Total Dispatched</span>
-              <Send className="w-4 h-4 text-emerald-400" />
+              <Send className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="text-2xl font-bold text-white">{logs.length} Emails</div>
-            <div className="text-[11px] text-emerald-400 font-medium">100% Delivery Success Rate</div>
+            <div className="text-2xl font-bold text-brand-black">{logs.length} Emails</div>
+            <div className="text-[11px] text-emerald-600 font-medium">100% Delivery Success Rate</div>
           </div>
 
-          <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-            <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+            <div className="flex items-center justify-between text-xs text-gray-600">
               <span>Deduplication Engine</span>
-              <ShieldCheck className="w-4 h-4 text-cyan-400" />
+              <ShieldCheck className="w-4 h-4 text-cyan-600" />
             </div>
-            <div className="text-2xl font-bold text-cyan-400">Active Lock</div>
-            <div className="text-[11px] text-gray-400">Prevents multiple emails within 24h window</div>
+            <div className="text-2xl font-bold text-cyan-600">Active Lock</div>
+            <div className="text-[11px] text-gray-600">Prevents multiple emails within 24h window</div>
           </div>
 
-          <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-            <div className="flex items-center justify-between text-xs text-gray-400">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+            <div className="flex items-center justify-between text-xs text-gray-600">
               <span>Avg Latency</span>
-              <Clock className="w-4 h-4 text-indigo-400" />
+              <Clock className="w-4 h-4 text-brand-blue" />
             </div>
-            <div className="text-2xl font-bold text-indigo-400">&lt; 120 ms</div>
-            <div className="text-[11px] text-gray-400">Non-blocking background worker queue</div>
+            <div className="text-2xl font-bold text-brand-blue">&lt; 120 ms</div>
+            <div className="text-[11px] text-gray-600">Non-blocking background worker queue</div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Dispatch Intimation Form */}
-          <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-5 lg:col-span-1">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-5 lg:col-span-1">
             <div className="flex items-center space-x-2">
-              <SendHorizontal className="w-5 h-5 text-indigo-400" />
-              <h2 className="text-base font-bold text-white">Send Intimation</h2>
+              <SendHorizontal className="w-5 h-5 text-brand-blue" />
+              <h2 className="text-base font-bold text-brand-black">Send Intimation</h2>
             </div>
 
             <form onSubmit={handleSendEmail} className="space-y-4 text-xs">
               <div>
-                <label className="text-gray-300 font-semibold block mb-1">Event Type</label>
+                <label className="text-gray-700 font-semibold block mb-1">Event Type</label>
                 <select
                   value={form.event_type}
                   onChange={(e) => setForm({ ...form, event_type: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                 >
                   <option value="daily_attendance">Daily Attendance Alert</option>
                   <option value="lab_submission">Lab Assignment Notice</option>
@@ -243,44 +243,44 @@ export default function EmailsPage() {
               </div>
 
               <div>
-                <label className="text-gray-300 font-semibold block mb-1">Recipient Email</label>
+                <label className="text-gray-700 font-semibold block mb-1">Recipient Email</label>
                 <input
                   type="email"
                   value={form.recipient_email}
                   onChange={(e) => setForm({ ...form, recipient_email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-gray-300 font-semibold block mb-1">Subject Line</label>
+                <label className="text-gray-700 font-semibold block mb-1">Subject Line</label>
                 <input
                   type="text"
                   value={form.subject}
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-gray-300 font-semibold block mb-1">Message Content</label>
+                <label className="text-gray-700 font-semibold block mb-1">Message Content</label>
                 <textarea
                   rows={4}
                   value={form.body_summary}
                   onChange={(e) => setForm({ ...form, body_summary: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                   required
                 />
               </div>
 
               <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold">
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-600" />
                   <span>Deduplication Hash:</span>
                 </div>
-                <div className="font-mono text-[10px] break-all text-gray-300">
+                <div className="font-mono text-[10px] break-all text-gray-700">
                   {form.event_type}:{form.related_id.slice(0, 8)}:{form.recipient_email}
                 </div>
               </div>
@@ -288,7 +288,7 @@ export default function EmailsPage() {
               <button
                 type="submit"
                 disabled={sending}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-indigo-600 text-white font-semibold text-xs shadow-lg shadow-rose-600/25 hover:opacity-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-indigo-600 text-brand-black font-semibold text-xs shadow-lg shadow-rose-600/25 hover:opacity-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 <span>{sending ? "Dispatching..." : "Dispatch Intimation Email"}</span>
@@ -297,11 +297,11 @@ export default function EmailsPage() {
           </div>
 
           {/* Delivery Log Table */}
-          <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4 lg:col-span-2">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4 lg:col-span-2">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center space-x-2">
-                <Inbox className="w-5 h-5 text-cyan-400" />
-                <h2 className="text-base font-bold text-white">Dispatched Logs</h2>
+                <Inbox className="w-5 h-5 text-cyan-600" />
+                <h2 className="text-base font-bold text-brand-black">Dispatched Logs</h2>
               </div>
 
               <div className="flex items-center gap-2">
@@ -312,14 +312,14 @@ export default function EmailsPage() {
                     placeholder="Search logs..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 rounded-xl bg-gray-900 border border-gray-700 text-white text-xs w-44"
+                    className="pl-8 pr-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs w-44"
                   />
                 </div>
 
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl bg-gray-900 border border-gray-700 text-white text-xs"
+                  className="px-2.5 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs"
                 >
                   <option value="all">All Status</option>
                   <option value="sent">Sent</option>
@@ -329,9 +329,9 @@ export default function EmailsPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-gray-800">
+            <div className="overflow-x-auto rounded-xl border border-gray-200">
               <table className="w-full text-left text-xs">
-                <thead className="bg-gray-900/90 text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+                <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
                   <tr>
                     <th className="p-3">Recipient</th>
                     <th className="p-3">Event Type</th>
@@ -340,10 +340,10 @@ export default function EmailsPage() {
                     <th className="p-3 text-right">Timestamp</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800/60">
+                <tbody className="divide-y divide-gray-200">
                   {filteredLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-900/40 transition-colors">
-                      <td className="p-3 font-mono text-gray-300 font-medium">
+                    <tr key={log.id} className="hover:bg-gray-50/40 transition-colors">
+                      <td className="p-3 font-mono text-gray-700 font-medium">
                         {log.recipient_email}
                       </td>
                       <td className="p-3">
@@ -352,8 +352,8 @@ export default function EmailsPage() {
                         </span>
                       </td>
                       <td className="p-3 max-w-xs">
-                        <div className="font-semibold text-white truncate">{log.subject}</div>
-                        <div className="text-[11px] text-gray-400 truncate">{log.body_summary}</div>
+                        <div className="font-semibold text-brand-black truncate">{log.subject}</div>
+                        <div className="text-[11px] text-gray-600 truncate">{log.body_summary}</div>
                       </td>
                       <td className="p-3">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
@@ -365,7 +365,7 @@ export default function EmailsPage() {
                           {log.status.toUpperCase()}
                         </span>
                       </td>
-                      <td className="p-3 text-right font-mono text-[11px] text-gray-400">
+                      <td className="p-3 text-right font-mono text-[11px] text-gray-600">
                         {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </td>
                     </tr>

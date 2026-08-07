@@ -90,12 +90,12 @@ export default function AcademicDoubtsPage() {
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30">
               Faculty Academic Support
             </span>
-            <span className="text-xs text-gray-400">• Student Doubts & Clarifications</span>
+            <span className="text-xs text-gray-600">• Student Doubts & Clarifications</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+          <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
             Student Academic Doubts & Queries
           </h1>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-600">
             Address student conceptual questions, post explanations, and maintain subject doubt archives.
           </p>
         </div>
@@ -105,8 +105,8 @@ export default function AcademicDoubtsPage() {
           {doubts.map(d => (
             <div
               key={d.id}
-              className={`glass-panel p-6 rounded-2xl border transition-all space-y-4 flex flex-col justify-between ${
-                d.status === 'open' ? 'border-cyan-500/40 bg-gray-900/50' : 'border-gray-800'
+              className={`bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border transition-all space-y-4 flex flex-col justify-between ${
+                d.status === 'open' ? 'border-cyan-500/40 bg-gray-50/50' : 'border-gray-200'
               }`}
             >
               <div className="space-y-3">
@@ -122,20 +122,20 @@ export default function AcademicDoubtsPage() {
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-400">Asked by <span className="text-white font-semibold">{d.student_name}</span> ({d.asked_at})</p>
-                  <h3 className="text-sm font-bold text-white mt-1 leading-snug">{d.question}</h3>
+                  <p className="text-xs text-gray-600">Asked by <span className="text-brand-black font-semibold">{d.student_name}</span> ({d.asked_at})</p>
+                  <h3 className="text-sm font-bold text-brand-black mt-1 leading-snug">{d.question}</h3>
                 </div>
 
                 {d.answer && (
                   <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-200 leading-relaxed">
-                    <div className="text-[10px] font-bold uppercase text-emerald-400 mb-1">Your Explanation ({d.answered_at}):</div>
+                    <div className="text-[10px] font-bold uppercase text-emerald-600 mb-1">Your Explanation ({d.answered_at}):</div>
                     {d.answer}
                   </div>
                 )}
               </div>
 
               {d.status === 'open' && (
-                <div className="pt-3 border-t border-gray-800">
+                <div className="pt-3 border-t border-gray-200">
                   <button
                     onClick={() => {
                       setActiveDoubt(d);
@@ -155,8 +155,8 @@ export default function AcademicDoubtsPage() {
         {/* Answer Modal */}
         {activeDoubt && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="glass-panel border border-gray-700 max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <h3 className="text-base font-bold text-white">Answer {activeDoubt.student_name}'s Query</h3>
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <h3 className="text-base font-bold text-brand-black">Answer {activeDoubt.student_name}'s Query</h3>
               <p className="text-xs text-cyan-300 italic">"{activeDoubt.question}"</p>
 
               <form onSubmit={handleSendReply} className="space-y-3 text-xs">
@@ -165,15 +165,15 @@ export default function AcademicDoubtsPage() {
                   placeholder="Type conceptual explanation and reference key equations..."
                   value={replyText}
                   onChange={e => setReplyText(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                   required
                 />
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setActiveDoubt(null)}
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
                   </button>

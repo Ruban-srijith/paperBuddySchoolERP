@@ -171,12 +171,12 @@ export default function LabsPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">
                 {isManagement ? "Specialized Laboratory Operations" : isTeacher ? "Lab Faculty Portal" : "Student Lab Submissions"}
               </span>
-              <span className="text-xs text-gray-400">• Practical Evaluation</span>
+              <span className="text-xs text-gray-600">• Practical Evaluation</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Practical Science & CS Laboratory Hub
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               {isManagement
                 ? "Specialized laboratory facilities, safety compliance certifications, and practical curriculum progress."
                 : isTeacher
@@ -189,7 +189,7 @@ export default function LabsPage() {
           {isTeacher && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium text-xs shadow-lg shadow-purple-600/25 hover:opacity-95 transition-all"
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-brand-black font-medium text-xs shadow-lg shadow-purple-600/25 hover:opacity-95 transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Create Lab Assignment</span>
@@ -203,34 +203,34 @@ export default function LabsPage() {
         {isManagement && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Physics Laboratory</div>
-                <div className="text-xl font-bold text-white">Room 204 (Cap: 36)</div>
-                <div className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Physics Laboratory</div>
+                <div className="text-xl font-bold text-brand-black">Room 204 (Cap: 36)</div>
+                <div className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" /> 100% Calibrated • Safe
                 </div>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Chemistry Laboratory</div>
-                <div className="text-xl font-bold text-white">Chem Lab 2 (Cap: 32)</div>
-                <div className="text-[11px] text-cyan-400 font-medium flex items-center gap-1">
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Chemistry Laboratory</div>
+                <div className="text-xl font-bold text-brand-black">Chem Lab 2 (Cap: 32)</div>
+                <div className="text-[11px] text-cyan-600 font-medium flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" /> Fume Hoods Active
                 </div>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Computer Science Lab 1</div>
-                <div className="text-xl font-bold text-white">CS Lab 1 (Cap: 40)</div>
-                <div className="text-[11px] text-indigo-400 font-medium flex items-center gap-1">
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Computer Science Lab 1</div>
+                <div className="text-xl font-bold text-brand-black">CS Lab 1 (Cap: 40)</div>
+                <div className="text-[11px] text-brand-blue font-medium flex items-center gap-1">
                   <Cpu className="w-3.5 h-3.5" /> High-Speed LAN & Python 3.12
                 </div>
               </div>
 
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800 space-y-1">
-                <div className="text-xs text-gray-400">Biology Laboratory</div>
-                <div className="text-xl font-bold text-white">Bio Block 3 (Cap: 30)</div>
-                <div className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
+                <div className="text-xs text-gray-600">Biology Laboratory</div>
+                <div className="text-xl font-bold text-brand-black">Bio Block 3 (Cap: 30)</div>
+                <div className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" /> Compound Microscopes OK
                 </div>
               </div>
@@ -248,7 +248,7 @@ export default function LabsPage() {
             return (
               <div
                 key={lab.id}
-                className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-4 hover:border-purple-500/40 transition-all flex flex-col justify-between"
+                className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4 hover:border-purple-500/40 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
@@ -270,26 +270,26 @@ export default function LabsPage() {
                     )}
                   </div>
 
-                  <h3 className="text-base font-bold text-white">{lab.title}</h3>
-                  <p className="text-xs text-gray-400 leading-relaxed">{lab.description}</p>
+                  <h3 className="text-base font-bold text-brand-black">{lab.title}</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed">{lab.description}</p>
                 </div>
 
-                <div className="space-y-3 pt-3 border-t border-gray-800">
-                  <div className="flex items-center justify-between text-xs text-gray-400">
+                <div className="space-y-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-xs text-gray-600">
                     <span className="flex items-center gap-1 font-mono text-[11px]">
                       <Calendar className="w-3.5 h-3.5 text-purple-400" />
                       Due: {new Date(lab.due_date).toLocaleDateString()}
                     </span>
                     {isManagement && lab.total_submissions !== undefined && (
-                      <span className="text-cyan-400 font-semibold">
+                      <span className="text-cyan-600 font-semibold">
                         {lab.total_submissions} / {lab.total_students} Done
                       </span>
                     )}
                   </div>
 
                   {lab.feedback && (
-                    <div className="p-2.5 rounded-xl bg-gray-900/80 border border-gray-800 text-[11px] text-gray-300">
-                      <span className="text-emerald-400 font-semibold">Faculty Feedback:</span> {lab.feedback}
+                    <div className="p-2.5 rounded-xl bg-gray-100 border border-gray-200 text-[11px] text-gray-700">
+                      <span className="text-emerald-600 font-semibold">Faculty Feedback:</span> {lab.feedback}
                     </div>
                   )}
 
@@ -299,8 +299,8 @@ export default function LabsPage() {
                       onClick={() => setSelectedLab(lab)}
                       className={`w-full py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
                         lab.status === 'not_submitted'
-                          ? "bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-600/30"
-                          : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                          ? "bg-purple-600 hover:bg-purple-500 text-brand-black shadow-md shadow-purple-600/30"
+                          : "bg-gray-100 hover:bg-gray-700 text-gray-700"
                       }`}
                     >
                       <Upload className="w-3.5 h-3.5" />
@@ -314,7 +314,7 @@ export default function LabsPage() {
                         setGradingLab(lab);
                         setGradeInput({ score: lab.grade_score || 90, feedback: lab.feedback || "Good experiment methodology." });
                       }}
-                      className="w-full py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+                      className="w-full py-2 rounded-xl bg-brand-blue/20 hover:bg-brand-blue/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
                     >
                       <Award className="w-3.5 h-3.5" />
                       <span>Evaluate & Grade Submissions</span>
@@ -329,38 +329,38 @@ export default function LabsPage() {
         {/* Student Submission Modal */}
         {selectedLab && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <h3 className="text-base font-bold text-white">Upload Submission: {selectedLab.title}</h3>
-                <button onClick={() => setSelectedLab(null)} className="text-gray-400 hover:text-white">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                <h3 className="text-base font-bold text-brand-black">Upload Submission: {selectedLab.title}</h3>
+                <button onClick={() => setSelectedLab(null)} className="text-gray-600 hover:text-brand-black">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleUploadSubmission} className="space-y-4 text-xs">
-                <div className="border-2 border-dashed border-gray-700 rounded-2xl p-6 text-center space-y-2 hover:border-purple-500/50 transition-colors">
+                <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center space-y-2 hover:border-purple-500/50 transition-colors">
                   <FileUp className="w-8 h-8 text-purple-400 mx-auto" />
-                  <div className="text-gray-300 font-semibold">Select PDF Lab Report</div>
+                  <div className="text-gray-700 font-semibold">Select PDF Lab Report</div>
                   <p className="text-[11px] text-gray-500">Max size 25MB • Formats: .pdf, .docx, .zip</p>
                   <input
                     type="file"
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-purple-600 file:text-white file:text-xs hover:file:bg-purple-500"
+                    className="w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-purple-600 file:text-brand-black file:text-xs hover:file:bg-purple-500"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setSelectedLab(null)}
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={uploading}
-                    className="px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-md shadow-purple-600/30 hover:bg-purple-500 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                    className="px-4 py-2 rounded-xl bg-purple-600 text-brand-black font-semibold text-xs shadow-md shadow-purple-600/30 hover:bg-purple-500 transition-all flex items-center gap-1.5 disabled:opacity-50"
                   >
                     {uploading ? "Uploading..." : "Submit Practical"}
                   </button>
@@ -373,49 +373,49 @@ export default function LabsPage() {
         {/* Teacher Grading Modal */}
         {gradingLab && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <h3 className="text-base font-bold text-white">Grade Lab: {gradingLab.title}</h3>
-                <button onClick={() => setGradingLab(null)} className="text-gray-400 hover:text-white">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                <h3 className="text-base font-bold text-brand-black">Grade Lab: {gradingLab.title}</h3>
+                <button onClick={() => setGradingLab(null)} className="text-gray-600 hover:text-brand-black">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSaveGrade} className="space-y-4 text-xs">
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Score (Out of 100)</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Score (Out of 100)</label>
                   <input
                     type="number"
                     max={100}
                     min={0}
                     value={gradeInput.score}
                     onChange={(e) => setGradeInput({ ...gradeInput, score: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Instructor Remarks</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Instructor Remarks</label>
                   <textarea
                     rows={3}
                     value={gradeInput.feedback}
                     onChange={(e) => setGradeInput({ ...gradeInput, feedback: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setGradingLab(null)}
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs shadow-md shadow-indigo-600/30 hover:bg-indigo-500"
+                    className="px-4 py-2 rounded-xl bg-brand-blue text-brand-black font-semibold text-xs shadow-md shadow-indigo-600/30 hover:bg-indigo-500"
                   >
                     Save Grade
                   </button>
@@ -428,33 +428,33 @@ export default function LabsPage() {
         {/* Create Lab Assignment Modal (Teacher) */}
         {showCreateModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <h3 className="text-base font-bold text-white">Create New Lab Assignment</h3>
-                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-white">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                <h3 className="text-base font-bold text-brand-black">Create New Lab Assignment</h3>
+                <button onClick={() => setShowCreateModal(false)} className="text-gray-600 hover:text-brand-black">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleCreateLab} className="space-y-3 text-xs">
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Lab Experiment Title</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Lab Experiment Title</label>
                   <input
                     type="text"
                     value={newLabForm.title}
                     onChange={e => setNewLabForm({ ...newLabForm, title: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Subject</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Subject</label>
                     <select
                       value={newLabForm.subject}
                       onChange={e => setNewLabForm({ ...newLabForm, subject: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     >
                       <option value="Physics">Physics</option>
                       <option value="Chemistry">Chemistry</option>
@@ -463,38 +463,38 @@ export default function LabsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Target Grade</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Target Grade</label>
                     <input
                       type="text"
                       value={newLabForm.grade}
                       onChange={e => setNewLabForm({ ...newLabForm, grade: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Experiment Specifications</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Experiment Specifications</label>
                   <textarea
                     rows={3}
                     value={newLabForm.description}
                     onChange={e => setNewLabForm({ ...newLabForm, description: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     required
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-purple-600 text-white font-semibold text-xs shadow-md shadow-purple-600/30 hover:bg-purple-500"
+                    className="px-4 py-2 rounded-xl bg-purple-600 text-brand-black font-semibold text-xs shadow-md shadow-purple-600/30 hover:bg-purple-500"
                   >
                     Publish Lab
                   </button>

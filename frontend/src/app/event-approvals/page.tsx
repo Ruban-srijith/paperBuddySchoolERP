@@ -126,12 +126,12 @@ export default function EventApprovalsPage() {
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
               Correspondent Clearance
             </span>
-            <span className="text-xs text-gray-400">• High-Budget Events & Inter-School Galas</span>
+            <span className="text-xs text-gray-600">• High-Budget Events & Inter-School Galas</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+          <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
             Major School Event Sanctions
           </h1>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-600">
             Review proposed inter-school competitions, sports meets, cultural fests, budget requests, and campus clearances.
           </p>
         </div>
@@ -141,9 +141,9 @@ export default function EventApprovalsPage() {
           {events.map((ev) => (
             <div
               key={ev.id}
-              className={`glass-panel p-6 rounded-2xl border transition-all space-y-4 ${
+              className={`bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border transition-all space-y-4 ${
                 ev.status === 'pending'
-                  ? 'border-amber-500/40 bg-gray-900/50 hover:border-amber-500/60'
+                  ? 'border-amber-500/40 bg-gray-50/50 hover:border-amber-500/60'
                   : ev.status === 'approved'
                   ? 'border-emerald-500/30 bg-emerald-950/10'
                   : 'border-rose-500/30 bg-rose-950/10'
@@ -165,8 +165,8 @@ export default function EventApprovalsPage() {
                       {ev.status.toUpperCase()}
                     </span>
                   </div>
-                  <h2 className="text-lg font-bold text-white">{ev.title}</h2>
-                  <p className="text-xs text-gray-400">Proposed by: <span className="text-gray-200 font-semibold">{ev.proposed_by_name}</span></p>
+                  <h2 className="text-lg font-bold text-brand-black">{ev.title}</h2>
+                  <p className="text-xs text-gray-600">Proposed by: <span className="text-gray-800 font-semibold">{ev.proposed_by_name}</span></p>
                 </div>
 
                 {/* Status / Actions */}
@@ -174,7 +174,7 @@ export default function EventApprovalsPage() {
                   <div className="flex items-center gap-2 self-start">
                     <button
                       onClick={() => handleApprove(ev.id, ev.title)}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-xs shadow-md shadow-emerald-600/30 hover:opacity-95 transition-all flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-brand-black font-semibold text-xs shadow-md shadow-emerald-600/30 hover:opacity-95 transition-all flex items-center gap-1.5"
                     >
                       <Check className="w-3.5 h-3.5" />
                       Sanction & Approve
@@ -189,48 +189,48 @@ export default function EventApprovalsPage() {
                   </div>
                 ) : (
                   <div className="text-right">
-                    <span className="text-xs text-gray-400 font-mono">
+                    <span className="text-xs text-gray-600 font-mono">
                       {ev.approved_at ? `Approved on ${new Date(ev.approved_at).toLocaleDateString()}` : "Declined"}
                     </span>
                   </div>
                 )}
               </div>
 
-              <p className="text-xs text-gray-300 leading-relaxed bg-gray-950/40 p-3.5 rounded-xl border border-gray-800">
+              <p className="text-xs text-gray-700 leading-relaxed bg-gray-950/40 p-3.5 rounded-xl border border-gray-200">
                 {ev.description}
               </p>
 
               {/* Event Metadata Bar */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-gray-900/70 border border-gray-800 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-brand-blue flex-shrink-0" />
                   <div>
-                    <div className="text-[10px] text-gray-400">Event Date</div>
-                    <div className="font-semibold text-white mt-0.5">{new Date(ev.event_date).toLocaleDateString()}</div>
+                    <div className="text-[10px] text-gray-600">Event Date</div>
+                    <div className="font-semibold text-brand-black mt-0.5">{new Date(ev.event_date).toLocaleDateString()}</div>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-900/70 border border-gray-800 flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <div>
-                    <div className="text-[10px] text-gray-400">Budget Requested</div>
-                    <div className="font-semibold text-emerald-400 mt-0.5 font-mono">₹{(ev.budget_estimate || 0).toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-600">Budget Requested</div>
+                    <div className="font-semibold text-emerald-600 mt-0.5 font-mono">₹{(ev.budget_estimate || 0).toLocaleString()}</div>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-900/70 border border-gray-800 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-cyan-600 flex-shrink-0" />
                   <div>
-                    <div className="text-[10px] text-gray-400">Capacity / Headcount</div>
-                    <div className="font-semibold text-white mt-0.5">{ev.expected_participants} Students</div>
+                    <div className="text-[10px] text-gray-600">Capacity / Headcount</div>
+                    <div className="font-semibold text-brand-black mt-0.5">{ev.expected_participants} Students</div>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-900/70 border border-gray-800 flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
                   <div>
-                    <div className="text-[10px] text-gray-400">Campus Venue</div>
-                    <div className="font-semibold text-white mt-0.5 truncate">{ev.venue}</div>
+                    <div className="text-[10px] text-gray-600">Campus Venue</div>
+                    <div className="font-semibold text-brand-black mt-0.5 truncate">{ev.venue}</div>
                   </div>
                 </div>
               </div>

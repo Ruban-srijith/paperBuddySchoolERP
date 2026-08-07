@@ -15,6 +15,7 @@ class TokenResponse(BaseModel):
     role: str
     department_id: Optional[str] = None
     assigned_grade: Optional[str] = None
+    profile_picture: Optional[str] = None
 
 class RegisterRequest(BaseModel):
     email: str = Field(..., example="new.teacher@school.edu")
@@ -32,6 +33,7 @@ class UserProfileResponse(BaseModel):
     department_id: Optional[str] = None
     department_name: Optional[str] = None
     assigned_grade: Optional[str] = None
+    profile_picture: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
 

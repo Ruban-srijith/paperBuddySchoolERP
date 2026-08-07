@@ -23,6 +23,7 @@ class UserUpdateRequest(BaseModel):
     roll_number: Optional[str] = None
     admission_number: Optional[str] = None
     age: Optional[int] = None
+    profile_picture: Optional[str] = None
     is_active: Optional[bool] = None
 
 class UserListResponse(BaseModel):
@@ -37,6 +38,7 @@ class UserListResponse(BaseModel):
     roll_number: Optional[str] = None
     admission_number: Optional[str] = None
     age: Optional[int] = None
+    profile_picture: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
 

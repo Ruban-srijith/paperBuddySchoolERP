@@ -86,13 +86,13 @@ function ParentContent() {
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+        <h1 className="text-2xl font-bold text-brand-black flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
             <Heart className="w-5 h-5 text-pink-400" />
           </div>
           Parent Portal & Child Overview
         </h1>
-        <p className="text-sm text-gray-400">Track your child's attendance rate, portion completion, fee status, and real-time school bus location</p>
+        <p className="text-sm text-gray-600">Track your child's attendance rate, portion completion, fee status, and real-time school bus location</p>
       </div>
 
       {/* Child Selector Tabs */}
@@ -105,10 +105,10 @@ function ParentContent() {
               className={`px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
                 selectedChild?.student_id === c.student_id
                   ? "bg-pink-500/20 text-pink-300 border border-pink-500/40 shadow-lg shadow-pink-500/10"
-                  : "glass-panel text-gray-400 hover:text-white"
+                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
               }`}
             >
-              <div className="w-6 h-6 rounded-full bg-pink-500/30 flex items-center justify-center text-[10px] text-white font-bold">
+              <div className="w-6 h-6 rounded-full bg-pink-500/30 flex items-center justify-center text-[10px] text-brand-black font-bold">
                 {c.student_name[0]}
               </div>
               <span>{c.student_name} (Grade {c.grade}-{c.section})</span>
@@ -128,17 +128,17 @@ function ParentContent() {
             {/* Progress Metrics Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Attendance Rate */}
-              <div className="glass-panel p-5 rounded-2xl border-l-4 border-emerald-500 space-y-2">
-                <div className="text-xs text-gray-400 font-semibold uppercase flex items-center gap-1.5">
-                  <CheckSquare className="w-4 h-4 text-emerald-400" /> Attendance Rate
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border-l-4 border-emerald-500 space-y-2">
+                <div className="text-xs text-gray-600 font-semibold uppercase flex items-center gap-1.5">
+                  <CheckSquare className="w-4 h-4 text-emerald-600" /> Attendance Rate
                 </div>
-                <div className="text-3xl font-bold text-emerald-400">{overview.attendance_rate}%</div>
+                <div className="text-3xl font-bold text-emerald-600">{overview.attendance_rate}%</div>
                 <div className="text-[11px] text-emerald-300/80 font-medium">Regular School Attendance</div>
               </div>
 
               {/* Portion Progress */}
-              <div className="glass-panel p-5 rounded-2xl border-l-4 border-amber-500 space-y-2">
-                <div className="text-xs text-gray-400 font-semibold uppercase flex items-center gap-1.5">
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border-l-4 border-amber-500 space-y-2">
+                <div className="text-xs text-gray-600 font-semibold uppercase flex items-center gap-1.5">
                   <BookOpen className="w-4 h-4 text-amber-400" /> Portion Done
                 </div>
                 <div className="text-3xl font-bold text-amber-400">{overview.portion_progress}%</div>
@@ -146,11 +146,11 @@ function ParentContent() {
               </div>
 
               {/* Fee Receipts */}
-              <div className="glass-panel p-5 rounded-2xl border-l-4 border-indigo-500 space-y-2">
-                <div className="text-xs text-gray-400 font-semibold uppercase flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-indigo-400" /> Fee Receipts
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border-l-4 border-indigo-500 space-y-2">
+                <div className="text-xs text-gray-600 font-semibold uppercase flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-brand-blue" /> Fee Receipts
                 </div>
-                <div className="text-3xl font-bold text-white">{overview.fees_paid_count} Paid</div>
+                <div className="text-3xl font-bold text-brand-black">{overview.fees_paid_count} Paid</div>
                 <div className="text-[11px] text-indigo-300 font-medium">
                   {overview.pending_fees_count === 0 ? "All Dues Cleared" : `${overview.pending_fees_count} Pending`}
                 </div>
@@ -158,17 +158,17 @@ function ParentContent() {
             </div>
 
             {/* Teacher Notes & Feedback */}
-            <div className="glass-panel p-6 rounded-2xl space-y-4">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl space-y-4">
+              <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-pink-400" />
                 Teacher & Mentor Activity Feedback
               </h2>
-              <div className="p-4 rounded-xl bg-gray-900/60 border border-gray-800/60 text-xs space-y-2">
-                <div className="flex items-center justify-between text-gray-400">
+              <div className="p-4 rounded-xl bg-white border border-gray-200/60 text-xs space-y-2">
+                <div className="flex items-center justify-between text-gray-600">
                   <span className="font-semibold text-pink-300 uppercase tracking-wider text-[10px]">Academic Progress Note</span>
                   <span>July 2026</span>
                 </div>
-                <p className="text-gray-300 leading-relaxed">
+                <p className="text-gray-700 leading-relaxed">
                   {selectedChild?.student_name} is performing consistently well in Physics and CS binary search tree practicals. Attendance remains above target threshold.
                 </p>
               </div>
@@ -176,8 +176,8 @@ function ParentContent() {
           </div>
 
           {/* School Bus Tracking Widget */}
-          <div className="glass-panel-glow p-6 rounded-2xl space-y-5">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm-glow p-6 rounded-2xl space-y-5">
+            <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
               <Bus className="w-5 h-5 text-pink-400" />
               School Bus Live Tracking
             </h2>
@@ -185,37 +185,37 @@ function ParentContent() {
             {bus && (
               <div className="space-y-4 text-xs">
                 <div className="p-3.5 rounded-xl bg-pink-500/10 border border-pink-500/30 text-pink-300 space-y-1">
-                  <div className="font-bold text-sm text-white flex items-center gap-2">
+                  <div className="font-bold text-sm text-brand-black flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-pink-400" />
                     {bus.route_name}
                   </div>
-                  <div className="text-[11px] text-gray-300">{bus.current_location}</div>
+                  <div className="text-[11px] text-gray-700">{bus.current_location}</div>
                 </div>
 
-                <div className="space-y-2 border-t border-gray-800/60 pt-3">
-                  <div className="flex justify-between py-1 border-b border-gray-800/40">
-                    <span className="text-gray-400">Bus Number:</span>
-                    <span className="font-mono text-white font-semibold">{bus.bus_number}</span>
+                <div className="space-y-2 border-t border-gray-200/60 pt-3">
+                  <div className="flex justify-between py-1 border-b border-gray-200/40">
+                    <span className="text-gray-600">Bus Number:</span>
+                    <span className="font-mono text-brand-black font-semibold">{bus.bus_number}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-gray-800/40">
-                    <span className="text-gray-400">Driver Name:</span>
-                    <span className="text-white font-medium">{bus.driver_name}</span>
+                  <div className="flex justify-between py-1 border-b border-gray-200/40">
+                    <span className="text-gray-600">Driver Name:</span>
+                    <span className="text-brand-black font-medium">{bus.driver_name}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-gray-800/40">
-                    <span className="text-gray-400">Driver Phone:</span>
+                  <div className="flex justify-between py-1 border-b border-gray-200/40">
+                    <span className="text-gray-600">Driver Phone:</span>
                     <span className="text-pink-300 font-mono flex items-center gap-1">
                       <Phone className="w-3 h-3" /> {bus.driver_phone}
                     </span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-gray-800/40">
-                    <span className="text-gray-400">Status:</span>
+                  <div className="flex justify-between py-1 border-b border-gray-200/40">
+                    <span className="text-gray-600">Status:</span>
                     <span className="uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold text-[10px]">
                       {bus.status.replace("_", " ")}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-900/60 border border-gray-800/60 text-[10px] text-gray-400 text-center">
+                <div className="p-3 rounded-xl bg-white border border-gray-200/60 text-[10px] text-gray-600 text-center">
                   Live GPS tracking synced with driver mobile broadcast.
                 </div>
               </div>

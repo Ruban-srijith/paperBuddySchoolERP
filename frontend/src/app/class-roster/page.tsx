@@ -146,20 +146,20 @@ function ClassRosterContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-brand-black flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/30 flex items-center justify-center flex-shrink-0">
               <UsersRound className="w-5 h-5 text-fuchsia-400" />
             </div>
             Class Roster & Assignments
           </h1>
-          <p className="text-sm text-gray-400">Manage class teachers and assign students to specific sections.</p>
+          <p className="text-sm text-gray-600">Manage class teachers and assign students to specific sections.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Panel: Class Selection */}
-        <div className="glass-panel p-4 rounded-2xl border border-gray-800 lg:col-span-1 h-[600px] flex flex-col">
-          <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider text-gray-400">Select Section</h3>
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 lg:col-span-1 h-[600px] flex flex-col">
+          <h3 className="text-sm font-bold text-brand-black mb-4 uppercase tracking-wider text-gray-600">Select Section</h3>
           <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
             {classes.map(cls => (
               <button
@@ -168,7 +168,7 @@ function ClassRosterContent() {
                 className={`w-full text-left p-3 rounded-xl border transition-all ${
                   selectedClassId === cls.id
                     ? 'bg-fuchsia-600/20 border-fuchsia-500/50 text-fuchsia-200'
-                    : 'bg-gray-900/50 border-gray-800 hover:border-gray-700 text-gray-400 hover:bg-gray-800/50'
+                    : 'bg-gray-50/50 border-gray-200 hover:border-gray-200 text-gray-600 hover:bg-gray-100/50'
                 }`}
               >
                 <div className="font-semibold text-sm">Grade {cls.grade} - {cls.section}</div>
@@ -183,17 +183,17 @@ function ClassRosterContent() {
         {/* Right Panel: Class Roster */}
         <div className="lg:col-span-3">
           {selectedClassId && selectedClass ? (
-            <div className="glass-panel rounded-2xl border border-gray-800 h-[600px] flex flex-col overflow-hidden">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm rounded-2xl border border-gray-200 h-[600px] flex flex-col overflow-hidden">
               {/* Roster Header */}
-              <div className="p-5 border-b border-gray-800 bg-gray-900/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="p-5 border-b border-gray-200 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-white">Grade {selectedClass.grade} <span className="text-fuchsia-400">{selectedClass.section}</span></h2>
+                  <h2 className="text-xl font-bold text-brand-black">Grade {selectedClass.grade} <span className="text-fuchsia-400">{selectedClass.section}</span></h2>
                   <div className="flex items-center gap-2 mt-1">
-                    <Shield className="w-4 h-4 text-emerald-400" />
-                    <span className="text-sm text-gray-300">Class Teacher: <span className="font-semibold text-white">{selectedClass.teacher_name || 'Not Assigned'}</span></span>
+                    <Shield className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm text-gray-700">Class Teacher: <span className="font-semibold text-brand-black">{selectedClass.teacher_name || 'Not Assigned'}</span></span>
                     <button 
                       onClick={() => setShowTeacherModal(true)}
-                      className="ml-3 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-1 rounded-md transition-colors"
+                      className="ml-3 text-xs bg-gray-100 hover:bg-gray-700 text-gray-700 px-2 py-1 rounded-md transition-colors"
                     >
                       {selectedClass.class_teacher_id ? 'Change' : 'Assign'}
                     </button>
@@ -202,7 +202,7 @@ function ClassRosterContent() {
                 
                 <button
                   onClick={() => setShowAddStudentsModal(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-lg shadow-fuchsia-500/20 transition-all"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-brand-black text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-lg shadow-fuchsia-500/20 transition-all"
                 >
                   <UserPlus className="w-4 h-4" /> Add Students
                 </button>
@@ -211,7 +211,7 @@ function ClassRosterContent() {
               {/* Students List */}
               <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Enrolled Students ({classStudents.length})</h3>
+                  <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Enrolled Students ({classStudents.length})</h3>
                 </div>
                 
                 {classStudents.length === 0 ? (
@@ -222,19 +222,19 @@ function ClassRosterContent() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {classStudents.map(student => (
-                      <div key={student.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-900/50 border border-gray-800 hover:border-gray-700 transition-colors">
+                      <div key={student.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50/50 border border-gray-200 hover:border-gray-200 transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-fuchsia-500/20 flex items-center justify-center text-fuchsia-400 font-semibold text-xs">
                             {student.full_name.charAt(0)}
                           </div>
                           <div>
-                            <div className="text-sm font-semibold text-gray-200">{student.full_name}</div>
+                            <div className="text-sm font-semibold text-gray-800">{student.full_name}</div>
                             <div className="text-[10px] text-gray-500">ADM: {student.admission_number}</div>
                           </div>
                         </div>
                         <button 
                           onClick={() => handleRemoveStudent(student.id)}
-                          className="text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                          className="text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                           title="Remove from class"
                         >
                           <X className="w-4 h-4" />
@@ -246,7 +246,7 @@ function ClassRosterContent() {
               </div>
             </div>
           ) : (
-            <div className="glass-panel p-4 rounded-2xl border border-gray-800 h-[600px] flex items-center justify-center text-gray-500">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 h-[600px] flex items-center justify-center text-gray-500">
               <div className="text-center">
                 <ListOrdered className="w-12 h-12 mx-auto mb-3 opacity-20" />
                 <p>Select a section from the left panel to manage its roster.</p>
@@ -259,13 +259,13 @@ function ClassRosterContent() {
       {/* Add Students Modal */}
       {showAddStudentsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="glass-panel w-full max-w-2xl h-[70vh] flex flex-col rounded-3xl shadow-2xl relative border border-gray-700 animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm w-full max-w-2xl h-[70vh] flex flex-col rounded-3xl shadow-2xl relative border border-gray-200 animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">Assign Students</h3>
-                <p className="text-xs text-gray-400">Select unassigned students to add to {selectedClass?.grade}-{selectedClass?.section}.</p>
+                <h3 className="text-xl font-bold text-brand-black mb-1">Assign Students</h3>
+                <p className="text-xs text-gray-600">Select unassigned students to add to {selectedClass?.grade}-{selectedClass?.section}.</p>
               </div>
-              <button onClick={() => setShowAddStudentsModal(false)} className="p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+              <button onClick={() => setShowAddStudentsModal(false)} className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-brand-black transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -289,14 +289,14 @@ function ClassRosterContent() {
                         setSelectedStudentIds(newSet);
                       }}
                       className={`flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all ${
-                        isSelected ? 'bg-fuchsia-600/20 border-fuchsia-500/50' : 'bg-gray-900/40 border-gray-800 hover:bg-gray-800/60'
+                        isSelected ? 'bg-fuchsia-600/20 border-fuchsia-500/50' : 'bg-gray-50/40 border-gray-200 hover:bg-gray-100/60'
                       }`}
                     >
                       <div className={`w-5 h-5 rounded flex items-center justify-center border ${isSelected ? 'bg-fuchsia-500 border-fuchsia-400' : 'border-gray-600'}`}>
-                        {isSelected && <Check className="w-3 h-3 text-white" />}
+                        {isSelected && <Check className="w-3 h-3 text-brand-black" />}
                       </div>
                       <div>
-                        <div className={`text-sm font-semibold ${isSelected ? 'text-fuchsia-200' : 'text-gray-300'}`}>{student.full_name}</div>
+                        <div className={`text-sm font-semibold ${isSelected ? 'text-fuchsia-200' : 'text-gray-700'}`}>{student.full_name}</div>
                         <div className="text-[10px] text-gray-500">ADM: {student.admission_number}</div>
                       </div>
                     </div>
@@ -305,12 +305,12 @@ function ClassRosterContent() {
               )}
             </div>
             
-            <div className="p-6 border-t border-gray-800 bg-gray-900/50 flex justify-between items-center rounded-b-3xl">
-              <span className="text-sm text-gray-400">{selectedStudentIds.size} students selected</span>
+            <div className="p-6 border-t border-gray-200 bg-gray-50/50 flex justify-between items-center rounded-b-3xl">
+              <span className="text-sm text-gray-600">{selectedStudentIds.size} students selected</span>
               <button 
                 onClick={handleBulkAssignStudents}
                 disabled={selectedStudentIds.size === 0}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white text-sm font-semibold shadow-lg shadow-fuchsia-500/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:shadow-none"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-brand-black text-sm font-semibold shadow-lg shadow-fuchsia-500/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:shadow-none"
               >
                 Assign to Class
               </button>
@@ -322,24 +322,24 @@ function ClassRosterContent() {
       {/* Assign Teacher Modal */}
       {showTeacherModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="glass-panel w-full max-w-md p-6 rounded-3xl shadow-2xl relative border border-gray-700 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm w-full max-w-md p-6 rounded-3xl shadow-2xl relative border border-gray-200 animate-in zoom-in-95 duration-200">
             <button 
               onClick={() => setShowTeacherModal(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-brand-black transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
             
-            <h3 className="text-xl font-bold text-white mb-1">Select Class Teacher</h3>
-            <p className="text-xs text-gray-400 mb-6">Assign a faculty member as the primary teacher.</p>
+            <h3 className="text-xl font-bold text-brand-black mb-1">Select Class Teacher</h3>
+            <p className="text-xs text-gray-600 mb-6">Assign a faculty member as the primary teacher.</p>
             
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Faculty Member</label>
+                <label className="text-[11px] font-bold text-gray-600 uppercase tracking-wider pl-1">Faculty Member</label>
                 <select
                   value={selectedTeacherId}
                   onChange={e => setSelectedTeacherId(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-900/80 border border-gray-700 text-white outline-none focus:border-fuchsia-500 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-200 text-brand-black outline-none focus:border-fuchsia-500 transition-colors"
                 >
                   <option value="">-- Select Teacher --</option>
                   {teachers.map(t => (
@@ -351,7 +351,7 @@ function ClassRosterContent() {
               <button
                 onClick={handleAssignTeacher}
                 disabled={!selectedTeacherId}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white font-bold shadow-lg shadow-fuchsia-500/25 hover:opacity-90 transition-all disabled:opacity-50 mt-4"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-brand-black font-bold shadow-lg shadow-fuchsia-500/25 hover:opacity-90 transition-all disabled:opacity-50 mt-4"
               >
                 Assign Teacher
               </button>

@@ -12,36 +12,36 @@ export default function FinanceDashboard() {
         {/* Header & AI Insights Panel */}
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-white tracking-tight">Finance Command Center</h1>
-            <p className="text-gray-400 mt-2">Enterprise financial health, budgeting, and automated approvals.</p>
+            <h1 className="text-3xl font-bold text-brand-black tracking-tight">Finance Command Center</h1>
+            <p className="text-gray-600 mt-2">Enterprise financial health, budgeting, and automated approvals.</p>
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800">
-                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Revenue</div>
-                <div className="text-2xl font-bold text-emerald-400">₹42.5M</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200">
+                <div className="text-gray-600 text-xs font-medium uppercase tracking-wider mb-1">Total Revenue</div>
+                <div className="text-2xl font-bold text-emerald-600">₹42.5M</div>
                 <div className="text-[10px] text-emerald-500 flex items-center mt-1"><TrendingUp className="w-3 h-3 mr-1" /> +12% from last month</div>
               </div>
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800">
-                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Expenses</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200">
+                <div className="text-gray-600 text-xs font-medium uppercase tracking-wider mb-1">Expenses</div>
                 <div className="text-2xl font-bold text-rose-400">₹18.2M</div>
                 <div className="text-[10px] text-rose-500 flex items-center mt-1"><TrendingDown className="w-3 h-3 mr-1" /> -3% from last month</div>
               </div>
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800">
-                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Pending Dues</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200">
+                <div className="text-gray-600 text-xs font-medium uppercase tracking-wider mb-1">Pending Dues</div>
                 <div className="text-2xl font-bold text-amber-400">₹3.1M</div>
                 <div className="text-[10px] text-gray-500 mt-1">From 412 Defaulters</div>
               </div>
-              <div className="glass-panel p-4 rounded-2xl border border-gray-800">
-                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Available Funds</div>
-                <div className="text-2xl font-bold text-white">₹24.3M</div>
+              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200">
+                <div className="text-gray-600 text-xs font-medium uppercase tracking-wider mb-1">Available Funds</div>
+                <div className="text-2xl font-bold text-brand-black">₹24.3M</div>
                 <div className="text-[10px] text-gray-500 mt-1">Across all accounts</div>
               </div>
             </div>
           </div>
           
-          <div className="lg:w-80 glass-panel p-6 rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-indigo-900/20 to-transparent relative overflow-hidden group">
+          <div className="lg:w-80 bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-indigo-900/20 to-transparent relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <BrainCircuit className="w-24 h-24 text-indigo-400" />
+              <BrainCircuit className="w-24 h-24 text-brand-blue" />
             </div>
             <div className="relative z-10">
               <h3 className="text-lg font-bold text-indigo-300 flex items-center gap-2 mb-4">
@@ -49,11 +49,11 @@ export default function FinanceDashboard() {
                 Copilot Insights
               </h3>
               <div className="space-y-4">
-                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800/50 text-sm">
+                <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-200/50 text-sm">
                   <span className="text-rose-400 font-semibold">Risk Alert:</span> The Infrastructure budget is 85% utilized. Recommend freezing non-essential repairs.
                 </div>
-                <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800/50 text-sm">
-                  <span className="text-emerald-400 font-semibold">Forecast:</span> Expected fee collection next week is ₹4.2M based on historical payment patterns.
+                <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-200/50 text-sm">
+                  <span className="text-emerald-600 font-semibold">Forecast:</span> Expected fee collection next week is ₹4.2M based on historical payment patterns.
                 </div>
               </div>
             </div>
@@ -61,59 +61,59 @@ export default function FinanceDashboard() {
         </div>
 
         {/* Core Modules Grid */}
-        <h2 className="text-xl font-bold text-white mt-12 mb-6">Financial Operations</h2>
+        <h2 className="text-xl font-bold text-brand-black mt-12 mb-6">Financial Operations</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
-          <Link href="/finance/approvals" className="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-indigo-500/50 transition-all group">
-            <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4 text-indigo-400 group-hover:scale-110 transition-transform">
+          <Link href="/finance/approvals" className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 hover:border-indigo-500/50 transition-all group">
+            <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mb-4 text-brand-blue group-hover:scale-110 transition-transform">
               <FileCheck className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Approval Center</h3>
-            <p className="text-sm text-gray-400 mb-4">Review and approve budget requests from Teachers, Wardens, and Principals.</p>
-            <div className="text-indigo-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
+            <h3 className="text-lg font-bold text-brand-black mb-2">Approval Center</h3>
+            <p className="text-sm text-gray-600 mb-4">Review and approve budget requests from Teachers, Wardens, and Principals.</p>
+            <div className="text-brand-blue text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
               View Pending (12) <ArrowRight className="w-4 h-4 ml-1" />
             </div>
           </Link>
 
-          <Link href="/finance/budgets" className="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-emerald-500/50 transition-all group">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-400 group-hover:scale-110 transition-transform">
+          <Link href="/finance/budgets" className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 hover:border-emerald-500/50 transition-all group">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-600 group-hover:scale-110 transition-transform">
               <PieChart className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Department Budgets</h3>
-            <p className="text-sm text-gray-400 mb-4">Track allocated vs utilized funds for Academics, Events, and Infrastructure.</p>
-            <div className="text-emerald-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
+            <h3 className="text-lg font-bold text-brand-black mb-2">Department Budgets</h3>
+            <p className="text-sm text-gray-600 mb-4">Track allocated vs utilized funds for Academics, Events, and Infrastructure.</p>
+            <div className="text-emerald-600 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
               Manage Budgets <ArrowRight className="w-4 h-4 ml-1" />
             </div>
           </Link>
 
-          <Link href="/finance/vendors" className="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-amber-500/50 transition-all group">
+          <Link href="/finance/vendors" className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 hover:border-amber-500/50 transition-all group">
             <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-4 text-amber-400 group-hover:scale-110 transition-transform">
               <Building2 className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Vendor & Contracts</h3>
-            <p className="text-sm text-gray-400 mb-4">Manage active vendor contracts, track past expenses, and process new invoices.</p>
+            <h3 className="text-lg font-bold text-brand-black mb-2">Vendor & Contracts</h3>
+            <p className="text-sm text-gray-600 mb-4">Manage active vendor contracts, track past expenses, and process new invoices.</p>
             <div className="text-amber-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
               View Vendors <ArrowRight className="w-4 h-4 ml-1" />
             </div>
           </Link>
 
-          <Link href="/finance/scholarships" className="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-violet-500/50 transition-all group">
+          <Link href="/finance/scholarships" className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 hover:border-violet-500/50 transition-all group">
             <div className="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center mb-4 text-violet-400 group-hover:scale-110 transition-transform">
               <GraduationCap className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Financial Aid</h3>
-            <p className="text-sm text-gray-400 mb-4">Manage student scholarships, fee waivers, and dynamic discount rules.</p>
+            <h3 className="text-lg font-bold text-brand-black mb-2">Financial Aid</h3>
+            <p className="text-sm text-gray-600 mb-4">Manage student scholarships, fee waivers, and dynamic discount rules.</p>
             <div className="text-violet-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
               Manage Aid <ArrowRight className="w-4 h-4 ml-1" />
             </div>
           </Link>
 
-          <Link href="/finance/fee-config" className="glass-panel p-6 rounded-2xl border border-gray-800 hover:border-blue-500/50 transition-all group">
+          <Link href="/finance/fee-config" className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all group">
             <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 text-blue-400 group-hover:scale-110 transition-transform">
               <ShieldCheck className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Fee Configurator</h3>
-            <p className="text-sm text-gray-400 mb-4">Set master fee structures for every grade, including term, bus, and hostel fees.</p>
+            <h3 className="text-lg font-bold text-brand-black mb-2">Fee Configurator</h3>
+            <p className="text-sm text-gray-600 mb-4">Set master fee structures for every grade, including term, bus, and hostel fees.</p>
             <div className="text-blue-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
               Configure <ArrowRight className="w-4 h-4 ml-1" />
             </div>

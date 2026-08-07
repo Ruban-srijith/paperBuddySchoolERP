@@ -40,17 +40,17 @@ export default function ApprovalsPortal() {
     <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'finance']}>
       <div className="space-y-6 max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+          <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
+            <CheckCircle2 className="w-8 h-8 text-emerald-600" />
             Approval Center
           </h1>
-          <p className="text-gray-400 mt-2">Review and approve budget and funding requests from all departments.</p>
+          <p className="text-gray-600 mt-2">Review and approve budget and funding requests from all departments.</p>
         </header>
 
-        <div className="glass-panel p-6 rounded-2xl border border-gray-800">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-400">
-              <thead className="bg-gray-900/80 text-gray-300 uppercase font-medium border-b border-gray-800">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="bg-gray-100 text-gray-700 uppercase font-medium border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4">Requester</th>
                   <th className="px-6 py-4">Details</th>
@@ -67,17 +67,17 @@ export default function ApprovalsPortal() {
                   <tr><td colSpan={6} className="text-center py-8">No requests found.</td></tr>
                 ) : (
                   requests.map((r, i) => (
-                    <tr key={i} className="hover:bg-gray-800/30 transition-colors">
-                      <td className="px-6 py-4 font-bold text-white">{r.requester_name}</td>
+                    <tr key={i} className="hover:bg-gray-100/30 transition-colors">
+                      <td className="px-6 py-4 font-bold text-brand-black">{r.requester_name}</td>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-white">{r.title}</div>
+                        <div className="font-bold text-brand-black">{r.title}</div>
                         <div className="text-xs text-gray-500 mt-1">{r.description}</div>
                       </td>
                       <td className="px-6 py-4">{r.department_name}</td>
                       <td className="px-6 py-4 font-bold text-amber-400">₹{parseFloat(r.amount).toLocaleString()}</td>
                       <td className="px-6 py-4 text-center">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                          r.status.includes('approved') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                          r.status.includes('approved') ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 
                           r.status === 'rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
                           'bg-amber-500/10 text-amber-400 border-amber-500/20'
                         }`}>
@@ -87,7 +87,7 @@ export default function ApprovalsPortal() {
                       <td className="px-6 py-4 text-right space-x-2">
                         {r.status === 'pending' && (
                           <>
-                            <button onClick={() => handleApprove(r.id, 'approved_by_finance')} className="text-emerald-400 hover:text-emerald-300"><CheckCircle2 className="w-5 h-5 inline" /></button>
+                            <button onClick={() => handleApprove(r.id, 'approved_by_finance')} className="text-emerald-600 hover:text-emerald-300"><CheckCircle2 className="w-5 h-5 inline" /></button>
                             <button onClick={() => handleApprove(r.id, 'rejected')} className="text-rose-400 hover:text-rose-300"><XCircle className="w-5 h-5 inline" /></button>
                           </>
                         )}

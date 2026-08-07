@@ -35,6 +35,7 @@ def _user_to_response(user: User) -> dict:
         "roll_number": user.roll_number,
         "admission_number": user.admission_number,
         "age": user.age,
+        "profile_picture": getattr(user, 'profile_picture', None),
         "is_active": user.is_active,
         "created_at": user.created_at,
     }
@@ -149,6 +150,8 @@ async def update_user(
         user.admission_number = req.admission_number
     if req.age is not None:
         user.age = req.age
+    if req.profile_picture is not None:
+        user.profile_picture = req.profile_picture
     if req.is_active is not None:
         user.is_active = req.is_active
 

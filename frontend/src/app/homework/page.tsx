@@ -93,12 +93,12 @@ export default function HomeworkPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
                 Academic Curriculum
               </span>
-              <span className="text-xs text-gray-400">• Daily Homework & Tasks</span>
+              <span className="text-xs text-gray-600">• Daily Homework & Tasks</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Homework & Daily Study Assignments
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               {isTeacher
                 ? "Create and distribute daily homework exercises, reading assignments, and worksheets."
                 : "Review your daily homework assignments, track due dates, and mark completed tasks."}
@@ -108,7 +108,7 @@ export default function HomeworkPage() {
           {isTeacher && (
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/25 hover:opacity-95 transition-all"
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-brand-black font-semibold text-xs shadow-lg shadow-emerald-600/25 hover:opacity-95 transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Assign New Homework</span>
@@ -121,7 +121,7 @@ export default function HomeworkPage() {
           {homeworkList.map(h => (
             <div
               key={h.id}
-              className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4 hover:border-emerald-500/40 transition-all flex flex-col justify-between"
+              className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4 hover:border-emerald-500/40 transition-all flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -137,14 +137,14 @@ export default function HomeworkPage() {
                   </span>
                 </div>
 
-                <h3 className="text-base font-bold text-white">{h.title}</h3>
-                <p className="text-xs text-gray-400 leading-relaxed">{h.description}</p>
+                <h3 className="text-base font-bold text-brand-black">{h.title}</h3>
+                <p className="text-xs text-gray-600 leading-relaxed">{h.description}</p>
               </div>
 
-              <div className="pt-3 border-t border-gray-800 space-y-3">
-                <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
+              <div className="pt-3 border-t border-gray-200 space-y-3">
+                <div className="flex items-center justify-between text-xs text-gray-600 font-mono">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                    <Calendar className="w-3.5 h-3.5 text-emerald-600" />
                     Due: {h.due_date}
                   </span>
                 </div>
@@ -152,7 +152,7 @@ export default function HomeworkPage() {
                 {!isTeacher && h.status === 'pending' && (
                   <button
                     onClick={() => handleMarkSubmitted(h.id, h.title)}
-                    className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20"
+                    className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-brand-black font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Mark as Completed</span>
@@ -166,33 +166,33 @@ export default function HomeworkPage() {
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <h3 className="text-base font-bold text-white">Create Homework Assignment</h3>
-                <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                <h3 className="text-base font-bold text-brand-black">Create Homework Assignment</h3>
+                <button onClick={() => setShowModal(false)} className="text-gray-600 hover:text-brand-black">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleCreate} className="space-y-3 text-xs">
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Assignment Title</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Assignment Title</label>
                   <input
                     type="text"
                     value={newHw.title}
                     onChange={e => setNewHw({ ...newHw, title: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Subject</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Subject</label>
                     <select
                       value={newHw.subject}
                       onChange={e => setNewHw({ ...newHw, subject: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     >
                       <option value="Physics">Physics</option>
                       <option value="Mathematics">Mathematics</option>
@@ -202,49 +202,49 @@ export default function HomeworkPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Target Grade</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Target Grade</label>
                     <input
                       type="text"
                       value={newHw.grade}
                       onChange={e => setNewHw({ ...newHw, grade: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Submission Due Date</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Submission Due Date</label>
                   <input
                     type="date"
                     value={newHw.due_date}
                     onChange={e => setNewHw({ ...newHw, due_date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Assignment Details & Instructions</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Assignment Details & Instructions</label>
                   <textarea
                     rows={3}
                     value={newHw.description}
                     onChange={e => setNewHw({ ...newHw, description: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     required
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs shadow-md shadow-emerald-600/30 hover:bg-emerald-500"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 text-brand-black font-semibold text-xs shadow-md shadow-emerald-600/30 hover:bg-emerald-500"
                   >
                     Assign Homework
                   </button>

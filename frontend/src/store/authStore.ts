@@ -26,6 +26,7 @@ export interface AuthUser {
   role: UserRole;
   department_id?: string | null;
   assigned_grade?: string | null;
+  profile_picture?: string | null;
 }
 
 interface AuthState {

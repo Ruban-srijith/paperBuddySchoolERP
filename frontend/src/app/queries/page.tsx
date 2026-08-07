@@ -83,19 +83,19 @@ export default function StudentQueriesPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30">
                 Academic Helpdesk
               </span>
-              <span className="text-xs text-gray-400">• Direct Teacher Assistance</span>
+              <span className="text-xs text-gray-600">• Direct Teacher Assistance</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Ask Teacher Doubts & Subject Questions
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               Submit your academic questions directly to subject teachers and review personalized feedback.
             </p>
           </div>
 
           <button
             onClick={() => setShowAskModal(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-white font-semibold text-xs shadow-lg shadow-cyan-600/25 hover:opacity-95 transition-all"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 text-brand-black font-semibold text-xs shadow-lg shadow-cyan-600/25 hover:opacity-95 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Ask New Doubt</span>
@@ -107,8 +107,8 @@ export default function StudentQueriesPage() {
           {queries.map(q => (
             <div
               key={q.id}
-              className={`glass-panel p-6 rounded-2xl border space-y-3 transition-all ${
-                q.status === 'open' ? 'border-cyan-500/40 bg-gray-900/50' : 'border-gray-800'
+              className={`bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border space-y-3 transition-all ${
+                q.status === 'open' ? 'border-cyan-500/40 bg-gray-50/50' : 'border-gray-200'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -116,7 +116,7 @@ export default function StudentQueriesPage() {
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                     {q.subject}
                   </span>
-                  <span className="text-xs font-semibold text-gray-300">• {q.topic}</span>
+                  <span className="text-xs font-semibold text-gray-700">• {q.topic}</span>
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                   q.status === 'answered'
@@ -127,13 +127,13 @@ export default function StudentQueriesPage() {
                 </span>
               </div>
 
-              <p className="text-sm font-bold text-white leading-relaxed">
+              <p className="text-sm font-bold text-brand-black leading-relaxed">
                 {q.question}
               </p>
 
               {q.answer && (
                 <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/20 space-y-1 text-xs text-emerald-200 leading-relaxed">
-                  <div className="text-[10px] font-bold uppercase text-emerald-400">
+                  <div className="text-[10px] font-bold uppercase text-emerald-600">
                     Teacher's Solution ({q.teacher_name}):
                   </div>
                   <p>{q.answer}</p>
@@ -146,21 +146,21 @@ export default function StudentQueriesPage() {
         {/* Ask Doubt Modal */}
         {showAskModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <h3 className="text-base font-bold text-white">Ask Academic Doubt</h3>
-                <button onClick={() => setShowAskModal(false)} className="text-gray-400 hover:text-white">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                <h3 className="text-base font-bold text-brand-black">Ask Academic Doubt</h3>
+                <button onClick={() => setShowAskModal(false)} className="text-gray-600 hover:text-brand-black">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleAsk} className="space-y-3 text-xs">
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Subject</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Subject</label>
                   <select
                     value={newQuery.subject}
                     onChange={e => setNewQuery({ ...newQuery, subject: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                   >
                     <option value="Physics">Physics</option>
                     <option value="Mathematics">Mathematics</option>
@@ -171,40 +171,40 @@ export default function StudentQueriesPage() {
                 </div>
 
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Chapter / Topic</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Chapter / Topic</label>
                   <input
                     type="text"
                     placeholder="e.g. Chapter 4 - Electromagnetic Induction"
                     value={newQuery.topic}
                     onChange={e => setNewQuery({ ...newQuery, topic: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Your Question / Doubt</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Your Question / Doubt</label>
                   <textarea
                     rows={4}
                     placeholder="Explain what concept or exercise problem you need help with..."
                     value={newQuery.question}
                     onChange={e => setNewQuery({ ...newQuery, question: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     required
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setShowAskModal(false)}
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-cyan-600 text-white font-semibold text-xs shadow-md shadow-cyan-600/30 hover:bg-cyan-500 flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-cyan-600 text-brand-black font-semibold text-xs shadow-md shadow-cyan-600/30 hover:bg-cyan-500 flex items-center gap-1.5"
                   >
                     <Send className="w-3.5 h-3.5" />
                     Submit Doubt

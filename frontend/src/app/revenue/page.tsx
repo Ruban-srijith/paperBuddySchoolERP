@@ -48,85 +48,85 @@ export default function RevenuePage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30">
                 Correspondent Financial Analytics
               </span>
-              <span className="text-xs text-gray-400">• Institutional Treasury</span>
+              <span className="text-xs text-gray-600">• Institutional Treasury</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Monthly Revenue & Fee Collections Breakdown
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               Institutional revenue matrix categorized by Tuition, Bus Transportation, Boarding Hostel, and Laboratory Kit Dues.
             </p>
           </div>
 
           <button
             onClick={() => toast.info("Exporting financial balance sheet (FY 2026-27)", "Export Started")}
-            className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl glass-panel text-gray-300 hover:text-white text-xs font-medium border border-gray-700 hover:border-gray-600 transition-colors"
+            className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
           >
-            <Download className="w-4 h-4 text-gray-400" />
+            <Download className="w-4 h-4 text-gray-600" />
             <span>Export Balance Sheet</span>
           </button>
         </div>
 
         {/* Big Numbers Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Total Net Collections (FY 2026)</div>
-            <div className="text-2xl font-bold text-emerald-400">₹{(totalCollected).toLocaleString()}</div>
-            <div className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Total Net Collections (FY 2026)</div>
+            <div className="text-2xl font-bold text-emerald-600">₹{(totalCollected).toLocaleString()}</div>
+            <div className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
               <ArrowUpRight className="w-3.5 h-3.5" /> +14.2% YoY growth vs FY 2025
             </div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Tuition Fee Vault</div>
-            <div className="text-2xl font-bold text-indigo-400">₹{(totalCollected * 0.58).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            <div className="text-[11px] text-gray-400">58% of gross institution revenues</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Tuition Fee Vault</div>
+            <div className="text-2xl font-bold text-brand-blue">₹{(totalCollected * 0.58).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div className="text-[11px] text-gray-600">58% of gross institution revenues</div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Transport & Bus Fleet</div>
-            <div className="text-2xl font-bold text-cyan-400">₹{(totalCollected * 0.16).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            <div className="text-[11px] text-gray-400">18 Route buses operational</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Transport & Bus Fleet</div>
+            <div className="text-2xl font-bold text-cyan-600">₹{(totalCollected * 0.16).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div className="text-[11px] text-gray-600">18 Route buses operational</div>
           </div>
 
-          <div className="glass-panel p-5 rounded-2xl border border-gray-800 space-y-1">
-            <div className="text-xs text-gray-400">Hostel & Boarding Fee</div>
+          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
+            <div className="text-xs text-gray-600">Hostel & Boarding Fee</div>
             <div className="text-2xl font-bold text-purple-400">₹{(totalCollected * 0.22).toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
-            <div className="text-[11px] text-gray-400">320 Hostelite students</div>
+            <div className="text-[11px] text-gray-600">320 Hostelite students</div>
           </div>
         </div>
 
         {/* Monthly Breakdown Matrix */}
-        <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-cyan-600" />
               <span>Monthly Inflow Breakdown (FY 2026-27)</span>
             </h2>
-            <span className="text-xs text-gray-400 font-mono">Currency: INR (₹)</span>
+            <span className="text-xs text-gray-600 font-mono">Currency: INR (₹)</span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-800">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-900/90 text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+              <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
                 <tr>
                   <th className="p-3.5">Month</th>
                   <th className="p-3.5 text-right">Tuition Fees</th>
                   <th className="p-3.5 text-right">Bus Transport</th>
                   <th className="p-3.5 text-right">Hostel & Boarding</th>
                   <th className="p-3.5 text-right">Lab & Activities</th>
-                  <th className="p-3.5 text-right font-bold text-white">Monthly Total</th>
+                  <th className="p-3.5 text-right font-bold text-brand-black">Monthly Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60 font-mono">
+              <tbody className="divide-y divide-gray-200 font-mono">
                 {monthlyCollections.map((m) => (
-                  <tr key={m.month} className="hover:bg-gray-900/40 transition-colors">
-                    <td className="p-3.5 font-bold text-white font-sans">{m.month}</td>
-                    <td className="p-3.5 text-right text-gray-300">₹{m.tuition.toLocaleString()}</td>
-                    <td className="p-3.5 text-right text-gray-300">₹{m.transport.toLocaleString()}</td>
-                    <td className="p-3.5 text-right text-gray-300">₹{m.hostel.toLocaleString()}</td>
-                    <td className="p-3.5 text-right text-gray-300">₹{m.lab.toLocaleString()}</td>
-                    <td className="p-3.5 text-right font-bold text-emerald-400 text-sm">
+                  <tr key={m.month} className="hover:bg-gray-50/40 transition-colors">
+                    <td className="p-3.5 font-bold text-brand-black font-sans">{m.month}</td>
+                    <td className="p-3.5 text-right text-gray-700">₹{m.tuition.toLocaleString()}</td>
+                    <td className="p-3.5 text-right text-gray-700">₹{m.transport.toLocaleString()}</td>
+                    <td className="p-3.5 text-right text-gray-700">₹{m.hostel.toLocaleString()}</td>
+                    <td className="p-3.5 text-right text-gray-700">₹{m.lab.toLocaleString()}</td>
+                    <td className="p-3.5 text-right font-bold text-emerald-600 text-sm">
                       ₹{m.total.toLocaleString()}
                     </td>
                   </tr>
@@ -137,23 +137,23 @@ export default function RevenuePage() {
         </div>
 
         {/* Grade-wise Revenue Yield Matrix */}
-        <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4">
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-indigo-400" />
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4">
+          <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-brand-blue" />
             <span>Grade-wise Revenue Distribution</span>
           </h2>
 
           <div className="space-y-3">
             {gradeRevenueData.map((g) => (
-              <div key={g.grade} className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 space-y-2">
+              <div key={g.grade} className="p-4 rounded-xl bg-white border border-gray-200 space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs gap-1">
-                  <div className="font-semibold text-white">{g.grade} ({g.students} Enrolled)</div>
+                  <div className="font-semibold text-brand-black">{g.grade} ({g.students} Enrolled)</div>
                   <div className="flex items-center gap-3">
-                    <span className="text-gray-400 font-mono">₹{g.feePerStudent.toLocaleString()} / student</span>
-                    <span className="font-bold text-emerald-400 font-mono">₹{g.collected.toLocaleString()}</span>
+                    <span className="text-gray-600 font-mono">₹{g.feePerStudent.toLocaleString()} / student</span>
+                    <span className="font-bold text-emerald-600 font-mono">₹{g.collected.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                   <div className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full" style={{ width: `${g.pct}%` }}></div>
                 </div>
               </div>

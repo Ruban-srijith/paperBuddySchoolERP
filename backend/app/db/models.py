@@ -80,6 +80,7 @@ class User(Base):
     roll_number = Column(String(50), nullable=True)
     admission_number = Column(String(50), nullable=True)
     age = Column(Integer, nullable=True)
+    profile_picture = Column(Text, nullable=True)  # Store Base64 strings or URLs
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)

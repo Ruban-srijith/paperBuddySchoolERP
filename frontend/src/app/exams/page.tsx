@@ -72,12 +72,12 @@ export default function ExamManagerPage() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30 whitespace-nowrap">
                 Vice-Principal Academics
               </span>
-              <span className="text-xs text-gray-400 whitespace-nowrap">• Institutional Examinations</span>
+              <span className="text-xs text-gray-600 whitespace-nowrap">• Institutional Examinations</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
               Examination Administration & Invigilation
             </h1>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-600">
               Manage centralized examination dates, room seating plans, invigilator teacher duties, and hall ticket dispatches.
             </p>
           </div>
@@ -92,7 +92,7 @@ export default function ExamManagerPage() {
             </button>
             <button
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/25 transition-all w-full sm:w-auto flex-1"
+              className="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-indigo-500 text-brand-black font-semibold text-xs shadow-lg shadow-indigo-600/25 transition-all w-full sm:w-auto flex-1"
             >
               <Plus className="w-4 h-4 shrink-0" />
               <span className="whitespace-nowrap">Schedule Paper</span>
@@ -101,18 +101,18 @@ export default function ExamManagerPage() {
         </div>
 
         {/* Exams Table */}
-        <div className="glass-panel p-4 sm:p-6 rounded-2xl border border-gray-800 space-y-4 w-full overflow-hidden">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 sm:p-6 rounded-2xl border border-gray-200 space-y-4 w-full overflow-hidden">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
               <FileCheck className="w-5 h-5 text-amber-400" />
               <span>{selectedTerm} Timetable</span>
             </h2>
-            <span className="text-xs text-gray-400 font-mono">{exams.length} Examination Papers</span>
+            <span className="text-xs text-gray-600 font-mono">{exams.length} Examination Papers</span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-800">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-900/90 text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
+              <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
                 <tr>
                   <th className="p-3.5">Date & Slot</th>
                   <th className="p-3.5">Subject Paper</th>
@@ -123,18 +123,18 @@ export default function ExamManagerPage() {
                   <th className="p-3.5 text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60">
+              <tbody className="divide-y divide-gray-200">
                 {exams.map(e => (
-                  <tr key={e.id} className="hover:bg-gray-900/40 transition-colors">
+                  <tr key={e.id} className="hover:bg-gray-50/40 transition-colors">
                     <td className="p-3.5">
-                      <div className="font-bold text-white">{e.date}</div>
-                      <div className="text-[11px] text-gray-400 font-mono">{e.time}</div>
+                      <div className="font-bold text-brand-black">{e.date}</div>
+                      <div className="text-[11px] text-gray-600 font-mono">{e.time}</div>
                     </td>
                     <td className="p-3.5 font-bold text-cyan-300">{e.subject}</td>
-                    <td className="p-3.5 text-gray-300 font-semibold">{e.grade}</td>
-                    <td className="p-3.5 text-gray-300">{e.hall}</td>
+                    <td className="p-3.5 text-gray-700 font-semibold">{e.grade}</td>
+                    <td className="p-3.5 text-gray-700">{e.hall}</td>
                     <td className="p-3.5 text-indigo-300">{e.invigilator}</td>
-                    <td className="p-3.5 text-right font-mono font-bold text-emerald-400">{e.max_marks}</td>
+                    <td className="p-3.5 text-right font-mono font-bold text-emerald-600">{e.max_marks}</td>
                     <td className="p-3.5 text-center">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                         {e.status.toUpperCase()}
@@ -150,83 +150,83 @@ export default function ExamManagerPage() {
         {/* Modal */}
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-                <h3 className="text-base font-bold text-white">Schedule Examination Paper</h3>
-                <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-white">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                <h3 className="text-base font-bold text-brand-black">Schedule Examination Paper</h3>
+                <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-brand-black">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleCreate} className="space-y-3 text-xs">
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Subject Name</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Subject Name</label>
                   <input
                     type="text"
                     value={newExam.subject}
                     onChange={e => setNewExam({ ...newExam, subject: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Grade</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Grade</label>
                     <input
                       type="text"
                       value={newExam.grade}
                       onChange={e => setNewExam({ ...newExam, grade: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     />
                   </div>
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Max Marks</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Max Marks</label>
                     <input
                       type="number"
                       value={newExam.max_marks}
                       onChange={e => setNewExam({ ...newExam, max_marks: parseInt(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Exam Date</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Exam Date</label>
                     <input
                       type="date"
                       value={newExam.date}
                       onChange={e => setNewExam({ ...newExam, date: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white font-mono"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
                     />
                   </div>
                   <div>
-                    <label className="text-gray-300 font-semibold block mb-1">Assigned Hall</label>
+                    <label className="text-gray-700 font-semibold block mb-1">Assigned Hall</label>
                     <input
                       type="text"
                       value={newExam.hall}
                       onChange={e => setNewExam({ ...newExam, hall: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-300 font-semibold block mb-1">Invigilator Staff</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Invigilator Staff</label>
                   <input
                     type="text"
                     value={newExam.invigilator}
                     onChange={e => setNewExam({ ...newExam, invigilator: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white"
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-800">
+                <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:bg-gray-700 text-xs"
+                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
                   </button>

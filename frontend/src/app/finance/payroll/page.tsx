@@ -75,22 +75,22 @@ export default function PayrollPortal() {
       <div className="space-y-6 max-w-6xl mx-auto">
         <header className="mb-8 flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
               <Wallet className="w-8 h-8 text-teal-400" />
               Staff Payroll
             </h1>
-            <p className="text-gray-400 mt-2">Manage monthly salaries, bonuses, and deductions for all staff.</p>
+            <p className="text-gray-600 mt-2">Manage monthly salaries, bonuses, and deductions for all staff.</p>
           </div>
-          <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 flex items-center gap-3">
-            <span className="text-sm text-gray-400">Current Cycle:</span>
+          <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-200 flex items-center gap-3">
+            <span className="text-sm text-gray-600">Current Cycle:</span>
             <span className="font-bold text-teal-400">{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
           </div>
         </header>
 
-        <div className="glass-panel rounded-2xl border border-gray-800 overflow-hidden">
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm rounded-2xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-400">
-              <thead className="bg-gray-900/80 text-gray-300 uppercase font-medium border-b border-gray-800">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="bg-gray-100 text-gray-700 uppercase font-medium border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-4">Staff Member</th>
                   <th className="px-6 py-4">Role</th>
@@ -109,13 +109,13 @@ export default function PayrollPortal() {
                   </tr>
                 ) : (
                   staff.map((s, idx) => (
-                    <tr key={idx} className="hover:bg-gray-800/30 transition-colors">
+                    <tr key={idx} className="hover:bg-gray-100/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-bold text-white">{s.full_name}</div>
+                        <div className="font-bold text-brand-black">{s.full_name}</div>
                         <div className="text-xs text-gray-500">{s.id}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="bg-gray-800 px-3 py-1 rounded-full text-gray-300 capitalize text-xs font-medium border border-gray-700">
+                        <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700 capitalize text-xs font-medium border border-gray-200">
                           {s.role.replace('_', ' ')}
                         </span>
                       </td>
@@ -140,58 +140,58 @@ export default function PayrollPortal() {
         {/* Processing Modal */}
         {showModal && selectedStaff && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="glass-panel border border-gray-700 max-w-md w-full rounded-2xl overflow-hidden shadow-2xl">
-              <div className="p-6 border-b border-gray-800">
-                <h2 className="text-xl font-bold text-white">Process Salary</h2>
-                <p className="text-sm text-gray-400 mt-1">For {selectedStaff.full_name} ({selectedStaff.role})</p>
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-bold text-brand-black">Process Salary</h2>
+                <p className="text-sm text-gray-600 mt-1">For {selectedStaff.full_name} ({selectedStaff.role})</p>
               </div>
               <form onSubmit={handleProcessSalary} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Base Salary (₹)</label>
+                  <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">Base Salary (₹)</label>
                   <input 
                     type="number" 
                     value={baseSalary} 
                     onChange={e => setBaseSalary(Number(e.target.value))}
-                    className="w-full bg-gray-900/50 border border-gray-700 text-white rounded-xl px-4 py-2 focus:outline-none focus:border-teal-500" 
+                    className="w-full bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-2 focus:outline-none focus:border-teal-500" 
                     required 
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Bonuses (₹)</label>
+                    <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">Bonuses (₹)</label>
                     <input 
                       type="number" 
                       value={bonuses} 
                       onChange={e => setBonuses(Number(e.target.value))}
-                      className="w-full bg-gray-900/50 border border-gray-700 text-green-400 rounded-xl px-4 py-2 focus:outline-none focus:border-teal-500" 
+                      className="w-full bg-gray-50/50 border border-gray-200 text-green-400 rounded-xl px-4 py-2 focus:outline-none focus:border-teal-500" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Deductions (₹)</label>
+                    <label className="block text-xs font-medium text-gray-600 uppercase tracking-wider mb-2">Deductions (₹)</label>
                     <input 
                       type="number" 
                       value={deductions} 
                       onChange={e => setDeductions(Number(e.target.value))}
-                      className="w-full bg-gray-900/50 border border-gray-700 text-rose-400 rounded-xl px-4 py-2 focus:outline-none focus:border-teal-500" 
+                      className="w-full bg-gray-50/50 border border-gray-200 text-rose-400 rounded-xl px-4 py-2 focus:outline-none focus:border-teal-500" 
                     />
                   </div>
                 </div>
-                <div className="pt-4 border-t border-gray-800 flex items-center justify-between">
-                  <span className="text-gray-400 font-medium">Net Payable:</span>
+                <div className="pt-4 border-t border-gray-200 flex items-center justify-between">
+                  <span className="text-gray-600 font-medium">Net Payable:</span>
                   <span className="text-2xl font-bold text-teal-400">₹{(baseSalary + bonuses - deductions).toLocaleString()}</span>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button 
                     type="button" 
                     onClick={() => setShowModal(false)}
-                    className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3 rounded-xl font-medium transition-colors"
+                    className="flex-1 bg-gray-100 hover:bg-gray-700 text-brand-black py-3 rounded-xl font-medium transition-colors"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
                     disabled={processing === selectedStaff.id}
-                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl font-medium transition-colors flex justify-center items-center gap-2"
+                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-brand-black py-3 rounded-xl font-medium transition-colors flex justify-center items-center gap-2"
                   >
                     {processing === selectedStaff.id ? 'Processing...' : 'Confirm Payment'}
                   </button>

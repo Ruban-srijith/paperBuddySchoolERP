@@ -1,58 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Outfit', sans-serif;
+  --font-syne: 'Syne', sans-serif;
 }
 
 body {
-  background-color: #090d16;
-  color: #f3f4f6;
-  font-family: var(--font-sans);
+  background-color: #EEF2F6;
+  color: #131313;
+  font-family: var(--font-syne);
   overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
+  font-family: var(--font-syne);
 }
 
+/* Base Light Mode Card */
 .glass-panel {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: #ffffff;
+  border-radius: 32px;
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
+/* Accent Card (Dark) */
 .glass-panel-glow {
-  background: linear-gradient(135deg, rgba(31, 41, 61, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.25);
+  background: #131313;
+  border-radius: 32px;
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 50%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #1846E5;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar Light Mode */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f293d;
+  background: #d1d5db;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
+  background: #1846E5;
 }
