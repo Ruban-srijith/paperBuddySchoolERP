@@ -16,7 +16,7 @@ export default function WardenRequests() {
     e.preventDefault();
     try {
       await api.post('/finance/core/requests', {
-        department_id: null,
+        department_id: "dept1111-1111-1111-1111-111111111111", // Using science dept as placeholder for warden
         title,
         description,
         amount: parseFloat(amount),

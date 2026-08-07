@@ -16,7 +16,8 @@ export type UserRole =
   | 'student'
   | 'parent'
   | 'finance'
-  | 'warden';
+  | 'warden'
+  | 'librarian';
 
 export interface AuthUser {
   id: string;
@@ -54,8 +55,9 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   mentor: 'Mentor',
   student: 'Student',
   parent: 'Parent',
-  finance: 'Finance Admin',
-  warden: 'Hostel Warden'
+  finance: 'Finance Manager',
+  warden: 'Hostel Warden',
+  librarian: 'Chief Librarian',
 };
 
 // Role colors for badges
@@ -70,9 +72,10 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   teacher: 'from-emerald-500 to-green-500',
   mentor: 'from-violet-500 to-purple-500',
   student: 'from-sky-500 to-blue-500',
-  parent: 'from-emerald-500 to-teal-500',
-  finance: 'from-green-500 to-emerald-500',
-  warden: 'from-fuchsia-500 to-pink-500',
+  parent: 'from-pink-500 to-rose-500',
+  finance: 'from-emerald-500 to-teal-500',
+  warden: 'from-fuchsia-500 to-purple-500',
+  librarian: 'from-sky-500 to-indigo-500',
 };
 
 // Navigation items per role
@@ -196,6 +199,8 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'my_class',
     'class-fees',
     'teacher-requests',
+    'teacher_leave',
+    'teacher_library',
     'attendance',
     'timetable',
     'homework',
@@ -228,6 +233,8 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'calendar',
     'queries',
     'fees',
+    'student_settings',
+    'student_library',
     'student_hostel',
     'ocr'
   ],
@@ -257,6 +264,13 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'warden_incidents',
     'warden_visitors'
   ],
+  librarian: [
+    'librarian_dashboard',
+    'librarian_inventory',
+    'librarian_issues',
+    'librarian_digital',
+    'librarian_requests'
+  ]
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({

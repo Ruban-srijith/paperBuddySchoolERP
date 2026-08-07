@@ -1,9 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { LogOut, CheckCircle2, XCircle } from "lucide-react";
 
 export default function OutpassApproval() {
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleAction = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   return (
     <ProtectedRoute allowedRoles={['warden', 'super_admin', 'admin', 'principal']}>
       <div className="space-y-6 max-w-6xl mx-auto">
@@ -40,9 +48,15 @@ export default function OutpassApproval() {
                 <td className="px-6 py-4 text-center">
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>
                 </td>
-                <td className="px-6 py-4 text-right space-x-3">
-                  <button className="text-emerald-400 hover:text-emerald-300 transition-colors"><CheckCircle2 className="w-5 h-5 inline" /></button>
-                  <button className="text-rose-400 hover:text-rose-300 transition-colors"><XCircle className="w-5 h-5 inline" /></button>
+                <td className="px-6 py-4 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => handleAction("Outpass Approved")} className="text-emerald-400 hover:text-emerald-300 p-1 border border-emerald-500/30 rounded-lg bg-emerald-500/10 transition-colors" title="Approve">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleAction("Outpass Rejected")} className="text-rose-400 hover:text-rose-300 p-1 border border-rose-500/30 rounded-lg bg-rose-500/10 transition-colors" title="Reject">
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
               <tr className="hover:bg-gray-800/30 transition-colors">
@@ -65,6 +79,13 @@ export default function OutpassApproval() {
             </tbody>
           </table>
         </div>
+
+        {toastMessage && (
+          <div className="fixed bottom-4 right-4 bg-gray-800 border border-gray-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            {toastMessage}
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );

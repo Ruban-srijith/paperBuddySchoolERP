@@ -19,6 +19,7 @@ class UserRole(str, enum.Enum):
     PARENT = "parent"
     FINANCE = "finance"
     WARDEN = "warden"
+    LIBRARIAN = "librarian"
 
 class AttendanceStatus(str, enum.Enum):
     PRESENT = "present"
@@ -704,3 +705,54 @@ class VisitorLog(Base):
     logged_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     
     student = relationship("User", foreign_keys=[student_id])
+
+
+# ─── Library Management Ecosystem ─────────────────────────────
+
+class Book(Base):
+    __tablename__ = "library_books"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String(255), nullable=False)
+    author = Column(String(255), nullable=False)
+    isbn = Column(String(50), nullable=True, unique=True)
+    category = Column(String(100), nullable=True)
+    total_copies = Column(Integer, default=1)
+    available_copies = Column(Integer, default=1)
+    is_digital = Column(Boolean, default=False)
+    digital_url = Column(String(500), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class BookIssue(Base):
+    __tablename__ = "library_issues"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    book_id = Column(String(36), ForeignKey("library_books.id"), nullable=False)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
+    issue_date = Column(DateTime, default=datetime.utcnow)
+    due_date = Column(DateTime, nullable=False)
+    return_date = Column(DateTime, nullable=True)
+    fine_amount = Column(Numeric(10, 2), default=0.0)
+    status = Column(String(50), default="issued") # issued, returned, overdue
+    
+    book = relationship("Book")
+    user = relationship("User")
+
+class BookRequest(Base):
+    __tablename__ = "library_requests"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    requested_by = Column(String(36), ForeignKey("users.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    author = Column(String(255), nullable=True)
+    reason = Column(Text, nullable=True)
+    status = Column(String(50), default="pending") # pending, approved, rejected, ordered
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    requester = relationship("User")
+
+class DigitalResource(Base):
+    __tablename__ = "library_digital_resources"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String(255), nullable=False)
+    url = Column(String(500), nullable=False)
+    category = Column(String(100), nullable=True)
+    access_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)

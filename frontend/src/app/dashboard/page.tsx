@@ -131,16 +131,19 @@ function DashboardContent() {
   const isManagement = isSuperAdmin || isAdmin || isVicePrincipal;
   const isFinance = user.role === 'finance';
   const isWarden = user.role === 'warden';
+  const isLibrarian = user.role === 'librarian';
 
   useEffect(() => {
     if (isFinance) {
       router.push('/finance');
     } else if (isWarden) {
       router.push('/warden');
+    } else if (isLibrarian) {
+      router.push('/librarian');
     }
-  }, [isFinance, isWarden, router]);
+  }, [isFinance, isWarden, isLibrarian, router]);
 
-  if (isFinance || isWarden) {
+  if (isFinance || isWarden || isLibrarian) {
     return null;
   }
 

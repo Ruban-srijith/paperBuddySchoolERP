@@ -42,6 +42,7 @@ export default function LoginPage() {
     { label: 'Mentor', email: 'mentor.10a@school.edu' },
     { label: 'Finance', email: 'finance@school.edu' },
     { label: 'Warden', email: 'warden@school.edu' },
+    { label: 'Librarian', email: 'librarian@school.edu' },
   ];
 
   return (

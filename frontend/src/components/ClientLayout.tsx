@@ -11,7 +11,8 @@ import {
   Clock, Activity, FileSpreadsheet, LayoutGrid, FileCheck,
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
-  Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle
+  Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
+  BookCopy, Library, MonitorSmartphone
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -71,6 +72,13 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   warden_incidents:     { href: '/warden/incidents',     label: 'Incident Reports',          icon: AlertTriangle,   color: 'group-hover:text-rose-400' },
   warden_visitors:      { href: '/warden/visitors',      label: 'Visitor Logbook',           icon: Users,           color: 'group-hover:text-cyan-400' },
   student_hostel:       { href: '/student/hostel',       label: 'Hostel Services',           icon: Home,            color: 'group-hover:text-indigo-400' },
+  librarian_dashboard:  { href: '/librarian',            label: 'Library Dashboard',         icon: LayoutDashboard, color: 'group-hover:text-sky-400' },
+  librarian_inventory:  { href: '/librarian/inventory',  label: 'Book Inventory',            icon: BookCopy,        color: 'group-hover:text-indigo-400' },
+  librarian_issues:     { href: '/librarian/issues',     label: 'Issue & Returns',           icon: CheckSquare,     color: 'group-hover:text-emerald-400' },
+  librarian_digital:    { href: '/librarian/digital',    label: 'Digital Library',           icon: MonitorSmartphone,color: 'group-hover:text-violet-400' },
+  librarian_requests:   { href: '/librarian/requests',   label: 'Book Requests',             icon: FileSearch,      color: 'group-hover:text-pink-400' },
+  student_library:      { href: '/student/library',      label: 'Digital Library',           icon: Library,         color: 'group-hover:text-sky-400' },
+  teacher_library:      { href: '/teacher/library',      label: 'Library & Resources',       icon: Library,         color: 'group-hover:text-sky-400' },
 };
 
 function AppShell({ children }: { children: React.ReactNode }) {

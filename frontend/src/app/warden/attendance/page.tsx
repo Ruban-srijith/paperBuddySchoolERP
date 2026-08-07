@@ -1,9 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Users, Save } from "lucide-react";
+import { Users, Save, CheckCircle2 } from "lucide-react";
 
 export default function WardenAttendance() {
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleSave = () => {
+    setToastMessage("Attendance saved successfully!");
+    setTimeout(() => setToastMessage(null), 3000);
+  };
   return (
     <ProtectedRoute allowedRoles={['warden', 'super_admin', 'admin', 'principal']}>
       <div className="space-y-6 max-w-5xl mx-auto">
@@ -15,7 +22,10 @@ export default function WardenAttendance() {
             </h1>
             <p className="text-gray-400 mt-2">Log daily evening attendance for boarding students.</p>
           </div>
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors">
+          <button 
+            onClick={handleSave}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
+          >
             <Save className="w-4 h-4" /> Save Attendance
           </button>
         </header>
@@ -70,6 +80,13 @@ export default function WardenAttendance() {
             </tbody>
           </table>
         </div>
+
+        {toastMessage && (
+          <div className="fixed bottom-4 right-4 bg-gray-800 border border-gray-700 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            {toastMessage}
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );

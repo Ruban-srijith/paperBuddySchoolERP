@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Utensils, Calendar, Clock, CheckCircle2 } from "lucide-react";
+import { Utensils, Calendar, Clock, CheckCircle2, X } from "lucide-react";
 
 export default function WardenMess() {
+  const [showEditModal, setShowEditModal] = useState(false);
+
   return (
     <ProtectedRoute allowedRoles={['warden', 'super_admin', 'admin', 'principal']}>
       <div className="space-y-6 max-w-6xl mx-auto">
@@ -23,7 +26,10 @@ export default function WardenMess() {
                 <Calendar className="w-5 h-5 text-orange-400" />
                 Today's Menu (Oct 12, 2026)
               </h2>
-              <button className="text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors">
+              <button 
+                onClick={() => setShowEditModal(true)}
+                className="text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg border border-gray-700 transition-colors"
+              >
                 Edit Menu
               </button>
             </div>
@@ -111,6 +117,69 @@ export default function WardenMess() {
             </div>
           </div>
         </div>
+        {/* Edit Menu Modal */}
+        {showEditModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl overflow-hidden">
+              <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-white">Edit Menu (Oct 12, 2026)</h3>
+                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+                {/* Breakfast */}
+                <div className="space-y-3">
+                  <h4 className="text-orange-400 font-medium border-b border-gray-800 pb-2">Breakfast</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Main Dish</label>
+                      <input type="text" defaultValue="Idli, Vada, Sambar" className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:border-orange-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Sides</label>
+                      <input type="text" defaultValue="Coconut Chutney, Coffee / Milk" className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:border-orange-500 outline-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lunch */}
+                <div className="space-y-3">
+                  <h4 className="text-orange-400 font-medium border-b border-gray-800 pb-2">Lunch</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Main Dish</label>
+                      <input type="text" defaultValue="Rice, Roti, Dal Makhani" className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:border-orange-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Sides</label>
+                      <input type="text" defaultValue="Mixed Veg Curry, Salad, Papad" className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:border-orange-500 outline-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dinner */}
+                <div className="space-y-3">
+                  <h4 className="text-orange-400 font-medium border-b border-gray-800 pb-2">Dinner</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Main Dish</label>
+                      <input type="text" defaultValue="Phulka, Paneer Butter Masala" className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:border-orange-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-1">Sides</label>
+                      <input type="text" defaultValue="Jeera Rice, Gulab Jamun" className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:border-orange-500 outline-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-800 bg-gray-900/50 flex justify-end gap-3">
+                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-lg text-gray-400 hover:text-white transition-colors">Cancel</button>
+                <button onClick={() => setShowEditModal(false)} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </ProtectedRoute>
   );
