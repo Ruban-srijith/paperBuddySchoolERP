@@ -1,37 +1,39 @@
 import asyncio
+import uuid
 from app.db.database import AsyncSessionLocal
 from app.services.ocr_engine import ocr_engine
 from app.services.timetable_solver import timetable_solver
 from app.services.email_service import email_service
-from app.db.models import User, Class, Subject, Classroom, SyllabusNode, UserRole
 
 async def test_all_services():
     print("--- 1. Testing OCR Ensemble Engine ---")
     extracted, results, notes = await ocr_engine.process_form(b"fake_image_bytes")
+    assert extracted is not None, "OCR engine returned empty result!"
     print(f"Extracted Student: {extracted.full_name}, Admission: {extracted.admission_number}")
     print(f"Vision Models: {[m.model_name for m in results]}")
 
     print("\n--- 2. Testing Google OR-Tools Solver ---")
-    async with AsyncSessionLocal() as session:
-        teachers = [{"id": "t1", "full_name": "Dr. Sarah Connor"}]
-        classes = [{"id": "c1", "grade": "10", "section": "A"}]
-        subjects = [{"id": "s1", "name": "Physics"}]
-        classrooms = [{"id": "r1", "name": "Room 204"}]
+    teachers = [{"id": "t1", "full_name": "Dr. Sarah Connor"}]
+    classes = [{"id": "c1", "grade": "10", "section": "A"}]
+    subjects = [{"id": "s1", "name": "Physics"}]
+    classrooms = [{"id": "r1", "name": "Room 204"}]
 
-        schedule = timetable_solver.solve(classes, teachers, subjects, classrooms)
-        print(f"Generated {len(schedule)} conflict-free slots.")
-        for s in schedule[:3]:
-            print(f"Slot: {s['day_of_week']} {s['time_slot']} -> {s['subject_name']} ({s['classroom_name']})")
+    schedule = timetable_solver.solve(classes, teachers, subjects, classrooms)
+    assert len(schedule) > 0, "Timetable solver failed to generate any slots!"
+    print(f"Generated {len(schedule)} conflict-free slots.")
+    for s in schedule[:3]:
+        print(f"Slot: {s['day_of_week']} {s['time_slot']} -> {s['subject_name']} ({s['classroom_name']})")
 
     print("\n--- 3. Testing Email Service Deduplication ---")
+    unique_rel_id = f"test_rel_{uuid.uuid4().hex[:8]}"
     async with AsyncSessionLocal() as session:
         email1 = await email_service.dispatch_email(
-            session, "test@school.edu", "Test Subject", "Body summary", "test_event", "rel1"
+            session, "test@school.edu", "Test Subject", "Body summary", "test_event", unique_rel_id
         )
         print(f"Email 1 Created with Status: {email1.status}, Dedup Key: {email1.dedup_key}")
 
         email2 = await email_service.dispatch_email(
-            session, "test@school.edu", "Test Subject", "Body summary", "test_event", "rel1"
+            session, "test@school.edu", "Test Subject", "Body summary", "test_event", unique_rel_id
         )
         print(f"Email 2 (Duplicate Attempt) Status: {email2.status}, Dedup Key: {email2.dedup_key}")
         assert email1.id == email2.id, "Deduplication failed!"

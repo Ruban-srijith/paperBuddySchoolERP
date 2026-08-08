@@ -37,6 +37,13 @@ class EmailStatus(str, enum.Enum):
     SENT = "sent"
     FAILED = "failed"
 
+class ScanStatus(str, enum.Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    VERIFIED = "verified"
+
 # ─── Role Hierarchy Utility ────────────────────────────────────
 # Used for permission checks: higher roles inherit access
 ROLE_HIERARCHY = {
@@ -514,6 +521,30 @@ class Announcement(Base):
 # =====================================================================
 # Finance Models
 # =====================================================================
+
+class ScanRecord(Base):
+    __tablename__ = "scan_records"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    unique_scan_id = Column(String(30), unique=True, index=True, nullable=False)
+    uploaded_by_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role = Column(SQLEnum(UserRole), nullable=False)
+    document_type = Column(String(50), nullable=False)
+    file_path = Column(String(255), nullable=True)
+    extracted_text = Column(Text, nullable=True)
+    extracted_fields = Column(Text, nullable=True)  # JSON serialized dict
+    confidence_score = Column(Numeric(5, 4), nullable=True)
+    status = Column(SQLEnum(ScanStatus), nullable=False, default=ScanStatus.COMPLETED)
+    linked_module = Column(String(50), nullable=True)
+    linked_object_id = Column(String(36), nullable=True)
+    verified_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    uploaded_by = relationship("User", foreign_keys=[uploaded_by_id])
+    verified_by = relationship("User", foreign_keys=[verified_by_id])
+
 
 class FeeStructure(Base):
     __tablename__ = "fee_structures"
