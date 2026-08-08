@@ -47,7 +47,7 @@ function UsersPageContent() {
     setLoading(true);
     try {
       const res = await api.get('/users');
-      setUsers(res.data);
+      setUsers(res.data.filter((u: UserItem) => u.role !== 'parent'));
     } catch (err) {
       setUsers([]);
     }
@@ -111,7 +111,7 @@ function UsersPageContent() {
             </div>
             User Management
           </h1>
-          <p className="text-sm text-gray-600">Manage users across all 8 roles — {users.length} total users</p>
+          <p className="text-sm text-gray-600">Manage users across all 9 roles — {users.length} total users</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}

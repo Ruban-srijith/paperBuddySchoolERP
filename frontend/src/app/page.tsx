@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+import { motion, useSpring, useMotionValue } from "framer-motion";
 import { 
   ArrowRight, Sparkles, BrainCircuit, ShieldCheck, 
   LayoutDashboard, Users, GraduationCap, BarChart3, Clock, 
@@ -26,6 +26,41 @@ const fadeUpVariant = {
   visible: { opacity: 1, y: 0, transition: { type: "spring" as any, stiffness: 100, damping: 20 } }
 };
 
+function MagneticButton({ children, className }: { children: React.ReactNode, className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15, mass: 0.1 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15, mass: 0.1 });
+
+  const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const { clientX, clientY } = e;
+    const { height, width, left, top } = ref.current.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    x.set(middleX * 0.3);
+    y.set(middleY * 0.3);
+  };
+
+  const reset = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      style={{ x: springX, y: springY }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function LandingPage() {
   const { isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
@@ -44,20 +79,21 @@ export default function LandingPage() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className="relative z-50 flex items-center justify-between px-6 py-6 max-w-7xl mx-auto bg-white border-b border-gray-100 rounded-b-[32px] shadow-sm mt-0"
+        className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm"
       >
-        <div className="flex items-center gap-3 shrink-0">
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.5, type: "spring" }}
-            className="w-10 h-10 flex items-center justify-center shrink-0 relative overflow-hidden group"
-          >
-            <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain relative z-10" />
-          </motion.div>
-          <span className="font-bold text-xl sm:text-2xl tracking-tight text-brand-blue whitespace-nowrap">
-            PaperBuddy
-          </span>
-        </div>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full">
+          <div className="flex items-center gap-3 shrink-0">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.5, type: "spring" }}
+              className="w-10 h-10 flex items-center justify-center shrink-0 relative overflow-hidden group"
+            >
+              <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain relative z-10" />
+            </motion.div>
+            <span className="font-bold text-xl sm:text-2xl tracking-tight text-brand-blue whitespace-nowrap">
+              PaperBuddy
+            </span>
+          </div>
         
         <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-500">
           <a href="#features" className="hover:text-brand-blue transition-colors">Features</a>
@@ -66,18 +102,19 @@ export default function LandingPage() {
           <a href="#platform" className="hover:text-brand-blue transition-colors">Platform</a>
         </div>
 
-        <div className="shrink-0">
-          {isAuthenticated ? (
-            <Link href="/dashboard" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gray-50 border border-gray-200 text-xs sm:text-sm font-bold text-brand-black hover:bg-gray-100 transition-all whitespace-nowrap overflow-hidden">
-              <span className="relative z-10">Dashboard</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          ) : (
-            <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-brand-blue text-white text-xs sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
-              <span className="relative z-10">Sign In</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          )}
+          <div className="shrink-0">
+            {isAuthenticated ? (
+              <Link href="/dashboard" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gray-50 border border-gray-200 text-xs sm:text-sm font-bold text-brand-black hover:bg-gray-100 transition-all whitespace-nowrap overflow-hidden">
+                <span className="relative z-10">Dashboard</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            ) : (
+              <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-brand-blue text-white text-xs sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
+                <span className="relative z-10">Sign In</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )}
+          </div>
         </div>
       </motion.nav>
 
@@ -103,29 +140,35 @@ export default function LandingPage() {
             </motion.h1>
 
             <motion.p variants={fadeUpVariant} className="mt-8 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              PaperBuddy transforms traditional school management with an 8-Role RBAC system, automated workflows, and intelligent analytics from LKG to 12th Standard.
+              PaperBuddy transforms traditional school management with a 9-Role RBAC system, automated workflows, and intelligent analytics from LKG to 12th Standard.
             </motion.p>
 
             <motion.div variants={fadeUpVariant} className="mt-12 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               {isAuthenticated ? (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link href="/dashboard" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
-                    <LayoutDashboard className="w-5 h-5" />
-                    Enter Workspace
-                  </Link>
-                </motion.div>
+                <MagneticButton>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link href="/dashboard" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+                      <LayoutDashboard className="w-5 h-5" />
+                      Enter Workspace
+                    </Link>
+                  </motion.div>
+                </MagneticButton>
               ) : (
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link href="/login" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
-                    Get Started Now
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                </motion.div>
+                <MagneticButton>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link href="/login" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+                      Get Started Now
+                      <ArrowRight className="w-5 h-5" />
+                    </Link>
+                  </motion.div>
+                </MagneticButton>
               )}
-              <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href="#features" className="group px-8 py-4 rounded-full bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-bold text-lg text-brand-black transition-colors flex items-center gap-2 shadow-sm">
-                Explore Features
-                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-brand-blue transition-colors" />
-              </motion.a>
+              <MagneticButton>
+                <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href="#features" className="group px-8 py-4 rounded-full bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-bold text-lg text-brand-black transition-colors flex items-center gap-2 shadow-sm">
+                  Explore Features
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-brand-blue transition-colors" />
+                </motion.a>
+              </MagneticButton>
             </motion.div>
             
             <motion.div variants={fadeUpVariant} className="mt-12 flex items-center gap-6 justify-center lg:justify-start text-sm text-gray-500 font-bold">
@@ -270,7 +313,7 @@ export default function LandingPage() {
                 <div className="w-12 h-12 rounded-[16px] bg-cyan-50 flex items-center justify-center mb-6 text-cyan-600 group-hover:scale-110 transition-transform">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-brand-black mb-3">8-Role Secure RBAC</h3>
+                <h3 className="text-xl font-bold text-brand-black mb-3">9-Role Secure RBAC</h3>
                 <p className="text-gray-500 font-medium text-sm leading-relaxed">
                   From Super Admin to Student, everyone gets a highly tailored dashboard with strictly enforced security scopes.
                 </p>

@@ -161,7 +161,7 @@ function DepartmentsContent() {
               <div key={dept.id} className="space-y-0">
                 <div
                   onClick={() => handleExpand(dept.id)}
-                  className={`w-full text-left bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl space-y-4 hover:bg-slate-900/80 transition-all cursor-pointer ${colors.border}`}
+                  className={`w-full text-left bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 space-y-4 hover:bg-gray-50 hover:shadow-md transition-all cursor-pointer ${colors.border}`}
                 >
                   <div className="flex items-start justify-between">
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.bg} border ${colors.border} flex items-center justify-center ${colors.icon}`}>
@@ -185,8 +185,8 @@ function DepartmentsContent() {
                     <h3 className="text-lg font-bold text-brand-black">{dept.name}</h3>
                     {dept.dean_name && (
                       <div className="flex items-center gap-1.5 mt-1.5">
-                        <Crown className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="text-xs text-amber-300">{dept.dean_name}</span>
+                        <Crown className="w-3.5 h-3.5 text-amber-500" />
+                        <span className="text-xs text-amber-600 font-medium">{dept.dean_name}</span>
                       </div>
                     )}
                   </div>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
-import { GraduationCap, Eye, EyeOff, ChevronRight, ArrowLeft } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, ChevronRight, ArrowLeft, BookOpen, Users, BarChart3, Globe, Shield } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 20 },
@@ -35,6 +35,7 @@ export default function LoginPage() {
   const { login, isLoading, error, isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
+  const [isSuccessMorphing, setIsSuccessMorphing] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -51,7 +52,10 @@ export default function LoginPage() {
     e.preventDefault();
     const success = await login(email, password);
     if (success) {
-      router.push('/dashboard');
+      setIsSuccessMorphing(true);
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 600);
     }
   };
 
@@ -60,7 +64,10 @@ export default function LoginPage() {
     setPassword('school@123');
     const success = await login(demoEmail, 'school@123');
     if (success) {
-      router.push('/dashboard');
+      setIsSuccessMorphing(true);
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 600);
     }
   };
 
@@ -91,12 +98,63 @@ export default function LoginPage() {
           transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
           className="absolute -bottom-[20%] -left-[10%] w-[600px] h-[600px] rounded-full bg-indigo-500/5 blur-3xl"
         />
+        
+        {/* Floating Icons Left Side */}
+        <motion.div 
+          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] left-[15%] hidden lg:flex items-center justify-center w-16 h-16 bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white"
+        >
+          <GraduationCap className="w-8 h-8 text-brand-blue/60" />
+        </motion.div>
+        
+        <motion.div 
+          animate={{ y: [0, 30, 0], rotate: [0, -10, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-[30%] left-[10%] hidden lg:flex items-center justify-center w-20 h-20 bg-white/40 backdrop-blur-sm rounded-full shadow-lg border border-white"
+        >
+          <BookOpen className="w-10 h-10 text-indigo-400/50" />
+        </motion.div>
+
+        <motion.div 
+          animate={{ y: [0, -15, 0], x: [0, 10, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute top-[60%] left-[25%] hidden xl:flex items-center justify-center w-12 h-12 bg-white/50 backdrop-blur-md rounded-xl shadow-md border border-white"
+        >
+          <Users className="w-6 h-6 text-emerald-400/60" />
+        </motion.div>
+
+        {/* Floating Icons Right Side */}
+        <motion.div 
+          animate={{ y: [0, 25, 0], rotate: [0, -5, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          className="absolute top-[25%] right-[15%] hidden lg:flex items-center justify-center w-20 h-20 bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white"
+        >
+          <BarChart3 className="w-10 h-10 text-brand-blue/60" />
+        </motion.div>
+        
+        <motion.div 
+          animate={{ y: [0, -35, 0], rotate: [0, 15, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+          className="absolute bottom-[25%] right-[10%] hidden lg:flex items-center justify-center w-16 h-16 bg-white/40 backdrop-blur-sm rounded-full shadow-lg border border-white"
+        >
+          <Globe className="w-8 h-8 text-indigo-400/50" />
+        </motion.div>
+
+        <motion.div 
+          animate={{ y: [0, 20, 0], x: [0, -10, 0] }}
+          transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 2.5 }}
+          className="absolute top-[55%] right-[25%] hidden xl:flex items-center justify-center w-14 h-14 bg-white/50 backdrop-blur-md rounded-xl shadow-md border border-white"
+        >
+          <Shield className="w-7 h-7 text-emerald-400/60" />
+        </motion.div>
       </div>
 
       <motion.div 
         variants={containerVariants}
         initial="hidden"
-        animate="visible"
+        animate={isSuccessMorphing ? { scale: 0.2, opacity: 0, borderRadius: "100%" } : "visible"}
+        transition={{ duration: 0.6, type: "spring" }}
         className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[40px] shadow-2xl overflow-hidden relative flex flex-col pt-12 pb-8 px-8 min-h-[750px] border border-white z-10"
       >
         
@@ -126,7 +184,12 @@ export default function LoginPage() {
             </div>
           </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-5 w-full">
+          <motion.form 
+            animate={error ? { x: [-10, 10, -10, 10, 0] } : {}}
+            transition={{ duration: 0.4 }}
+            onSubmit={handleSubmit} 
+            className="space-y-5 w-full"
+          >
             {/* Email Field */}
             <motion.div variants={itemVariants} className="space-y-1.5">
               <label htmlFor="email" className="text-[11px] font-bold text-gray-800 uppercase tracking-wide px-1">
@@ -139,7 +202,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="w-full px-5 py-4 rounded-full bg-[#F3F4F6] text-gray-900 placeholder-gray-400 text-[15px] font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue/50 transition-all border-none"
+                className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] text-gray-900 placeholder-gray-400 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent focus:ring-brand-blue/50'}`}
               />
             </motion.div>
 
@@ -156,7 +219,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full px-5 py-4 rounded-full bg-[#F3F4F6] text-gray-900 placeholder-gray-400 text-[15px] font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue/50 transition-all border-none pr-12"
+                  className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] text-gray-900 placeholder-gray-400 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border pr-12 ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent focus:ring-brand-blue/50'}`}
                 />
                 <button
                   type="button"
@@ -207,7 +270,7 @@ export default function LoginPage() {
                 )}
               </motion.button>
             </motion.div>
-          </form>
+          </motion.form>
 
           {/* Forgot Password Link */}
           <motion.div variants={itemVariants} className="mt-6 text-center">

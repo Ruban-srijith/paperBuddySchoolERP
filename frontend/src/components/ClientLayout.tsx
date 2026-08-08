@@ -18,6 +18,16 @@ import {
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
 
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const fadeLeftVariant = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0, transition: { type: "spring" as any, stiffness: 100, damping: 20 } }
+};
+
 // Map nav item keys to their config
 const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge?: string; color: string }> = {
   dashboard:            { href: '/dashboard',                     label: 'Dashboard Overview',         icon: LayoutDashboard, color: 'group-hover:text-indigo-400' },
@@ -45,6 +55,7 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   users:                { href: '/users',                label: 'User Management',           icon: Users,           color: 'group-hover:text-pink-400' },
   departments:          { href: '/departments',          label: 'Departments',               icon: Building2,       color: 'group-hover:text-teal-400' },
   class_roster:         { href: '/class-roster',         label: 'Class Roster & Assign',     icon: UsersRound,      color: 'group-hover:text-fuchsia-400' },
+  classes:              { href: '/classes',              label: 'Manage Classes',            icon: Building2,       color: 'group-hover:text-pink-400' },
   class_allotments:     { href: '/class-allotments',     label: 'Class Teachers Allotments', icon: Users,           color: 'group-hover:text-amber-400' },
   ocr:                  { href: '/ocr',                  label: 'Ensemble OCR Parser',       icon: FileSearch,      color: 'group-hover:text-cyan-400',   badge: 'AI' },
   timetable:            { href: '/timetable',            label: 'Timetable Grid',            icon: Calendar,        color: 'group-hover:text-indigo-400' },
@@ -253,35 +264,53 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <nav className="space-y-1">
+            <motion.nav 
+              className="space-y-1 relative"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
               {navItems.map((key) => {
                 const config = NAV_CONFIG[key];
                 if (!config) return null;
                 const isActive = pathname === config.href;
                 const Icon = config.icon;
                 return (
-                  <motion.div key={key} whileHover={{ x: 6 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+                  <motion.div 
+                    key={key} 
+                    variants={fadeLeftVariant}
+                    whileHover={{ x: 6 }} 
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
                     <Link
                       href={config.href}
-                    onClick={() => setShowMobileMenu(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-full text-sm font-medium transition-all group
-                      ${isActive 
-                        ? 'text-white bg-brand-blue shadow-md' 
-                        : 'text-gray-500 hover:text-brand-blue hover:bg-brand-blue/5'
-                      }`}
-                  >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : `text-gray-400 group-hover:text-brand-blue`}`} />
-                    <span>{config.label}</span>
-                    {config.badge && (
-                      <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-white text-brand-blue font-bold shadow-sm">
-                        {config.badge}
-                      </span>
-                    )}
+                      onClick={() => setShowMobileMenu(false)}
+                      className={`relative z-10 flex items-center space-x-3 px-4 py-3 rounded-full text-sm font-medium transition-colors group
+                        ${isActive 
+                          ? 'text-white' 
+                          : 'text-gray-500 hover:text-brand-blue hover:bg-brand-blue/5'
+                        }`}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeSidebarTab"
+                          className="absolute inset-0 bg-brand-blue rounded-full shadow-md"
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                          style={{ zIndex: -1 }}
+                        />
+                      )}
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : `text-gray-400 group-hover:text-brand-blue`}`} />
+                      <span>{config.label}</span>
+                      {config.badge && (
+                        <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-white text-brand-blue font-bold shadow-sm">
+                          {config.badge}
+                        </span>
+                      )}
                     </Link>
                   </motion.div>
                 );
               })}
-            </nav>
+            </motion.nav>
           </div>
 
           {/* Role Info Card */}

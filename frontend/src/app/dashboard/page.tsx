@@ -46,6 +46,7 @@ interface ClassDetailModalData {
     subject: string;
     teacher: string;
     room: string;
+    isOngoing?: boolean;
   }>;
 }
 
@@ -62,6 +63,7 @@ function DashboardContent() {
 
   const [aiSummary, setAiSummary] = useState<any | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string>("A");
   const [classDetail, setClassDetail] = useState<ClassDetailModalData | null>(null);
   const [loadingClass, setLoadingClass] = useState(false);
 
@@ -85,6 +87,7 @@ function DashboardContent() {
 
   const handleGradeClick = async (grade: string) => {
     setSelectedGrade(grade);
+    setSelectedSection("A");
     setLoadingClass(true);
     try {
       const res = await api.get(`/academics/class-detail/${grade}`);
@@ -107,10 +110,10 @@ function DashboardContent() {
           { id: "4", full_name: "Ananya Iyer", admission_number: "PB-2024-092", email: "ananya@school.edu", father_name: "R. Iyer", guardian_phone: "+91 98401 00044", attendance_pct: 98.1, gpa: "9.8" }
         ],
         schedule_today: [
-          { period: 1, time: "08:30 - 09:15", subject: "Mathematics", teacher: "Prof. Alan Turing", room: `Room ${grade}01` },
-          { period: 2, time: "09:15 - 10:00", subject: "Physics", teacher: "Mrs. Revathi Raman", room: "Physics Lab 204" },
-          { period: 3, time: "10:15 - 11:00", subject: "Chemistry", teacher: "Dr. Marie Curie", room: "Chem Lab 2" },
-          { period: 4, time: "11:00 - 11:45", subject: "Computer Science", teacher: "Mr. Alex Mercer", room: "CS Lab 1" }
+          { period: 1, time: "08:30 - 09:15", subject: "Mathematics", teacher: "Prof. Alan Turing", room: `Room ${grade}01`, isOngoing: false },
+          { period: 2, time: "09:15 - 10:00", subject: "Physics", teacher: "Mrs. Revathi Raman", room: "Physics Lab 204", isOngoing: true },
+          { period: 3, time: "10:15 - 11:00", subject: "Chemistry", teacher: "Dr. Marie Curie", room: "Chem Lab 2", isOngoing: false },
+          { period: 4, time: "11:00 - 11:45", subject: "Computer Science", teacher: "Mr. Alex Mercer", room: "CS Lab 1", isOngoing: false }
         ]
       });
     }
@@ -296,11 +299,23 @@ function DashboardContent() {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl font-bold text-brand-black flex flex-wrap items-center gap-2">
                     <span>Grade {classDetail.grade} Class Detail</span>
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-brand-blue border border-blue-100 whitespace-nowrap font-semibold">
-                      Section {classDetail.section}
-                    </span>
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1 truncate">
+                  <div className="flex items-center gap-2 mt-2">
+                    {['A', 'B', 'C'].map(sec => (
+                      <button
+                        key={sec}
+                        onClick={() => setSelectedSection(sec)}
+                        className={`text-xs px-3 py-1 rounded-full whitespace-nowrap font-semibold transition-all ${
+                          selectedSection === sec 
+                            ? 'bg-brand-blue text-white shadow-md' 
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        }`}
+                      >
+                        Section {sec}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 truncate">
                     Class Teacher: <span className="text-brand-black font-semibold">{classDetail.class_teacher}</span> ({classDetail.class_teacher_email})
                   </p>
                 </div>
@@ -338,14 +353,21 @@ function DashboardContent() {
                   <span>Today's Class Schedule</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {classDetail.schedule_today.map((s) => (
-                    <div key={s.period} className="p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-brand-blue/30 transition-colors shadow-sm space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
-                        <span>Period {s.period}</span>
-                        <span className="font-mono font-bold text-brand-blue">{s.time}</span>
+                  {classDetail.schedule_today.map((s: any) => (
+                    <div key={s.period} className={`p-4 rounded-xl border transition-colors shadow-sm space-y-1.5 relative overflow-hidden ${
+                      s.isOngoing ? 'bg-brand-blue/5 border-brand-blue/50 ring-1 ring-brand-blue/30' : 'bg-gray-50 border-gray-100 hover:border-brand-blue/30'
+                    }`}>
+                      {s.isOngoing && (
+                        <div className="absolute top-0 right-0 bg-brand-blue text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wider animate-pulse">
+                          Ongoing Now
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between text-[11px] font-medium">
+                        <span className={s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}>Period {s.period}</span>
+                        <span className={`font-mono font-bold ${s.isOngoing ? 'text-brand-blue' : 'text-brand-blue'}`}>{s.time}</span>
                       </div>
                       <div className="text-sm font-bold text-brand-black truncate">{s.subject}</div>
-                      <div className="text-[11px] text-gray-500 font-medium truncate">{s.teacher}</div>
+                      <div className={`text-[11px] font-medium truncate ${s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}`}>{s.teacher}</div>
                       <div className="text-[10px] font-bold text-gray-400">{s.room}</div>
                     </div>
                   ))}
