@@ -17,7 +17,8 @@ export type UserRole =
   | 'parent'
   | 'finance'
   | 'warden'
-  | 'librarian';
+  | 'librarian'
+  | 'transport';
 
 export interface AuthUser {
   id: string;
@@ -59,6 +60,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   finance: 'Finance Manager',
   warden: 'Hostel Warden',
   librarian: 'Chief Librarian',
+  transport: 'Transport Admin',
 };
 
 // Role colors for badges
@@ -77,6 +79,7 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   finance: 'from-emerald-500 to-teal-500',
   warden: 'from-fuchsia-500 to-purple-500',
   librarian: 'from-sky-500 to-indigo-500',
+  transport: 'from-blue-400 to-indigo-500',
 };
 
 // Navigation items per role
@@ -281,6 +284,13 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'librarian_issues',
     'librarian_digital',
     'librarian_requests'
+  ],
+  transport: [
+    'transport_dashboard',
+    'transport_fleet',
+    'transport_routes',
+    'transport_staff',
+    'transport_allocations'
   ]
 };
 

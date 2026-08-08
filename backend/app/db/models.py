@@ -20,6 +20,7 @@ class UserRole(str, enum.Enum):
     FINANCE = "finance"
     WARDEN = "warden"
     LIBRARIAN = "librarian"
+    TRANSPORT = "transport"
 
 class AttendanceStatus(str, enum.Enum):
     PRESENT = "present"
@@ -51,6 +52,7 @@ ROLE_HIERARCHY = {
     UserRole.MENTOR: 2,
     UserRole.STUDENT: 1,
     UserRole.PARENT: 1,
+    UserRole.TRANSPORT: 5,
 }
 
 
@@ -757,3 +759,56 @@ class DigitalResource(Base):
     category = Column(String(100), nullable=True)
     access_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ─── Transport Management Ecosystem ─────────────────────────────
+
+class Vehicle(Base):
+    __tablename__ = "transport_vehicles"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    registration_number = Column(String(50), nullable=False, unique=True)
+    vehicle_type = Column(String(50), default="bus") # bus, van
+    capacity = Column(Integer, nullable=False)
+    insurance_expiry = Column(Date, nullable=True)
+    fitness_expiry = Column(Date, nullable=True)
+    is_active = Column(Boolean, default=True)
+
+class TransportRoute(Base):
+    __tablename__ = "transport_routes"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), nullable=False, unique=True)
+    start_point = Column(String(200), nullable=False)
+    end_point = Column(String(200), nullable=False)
+    total_stops = Column(Integer, default=0)
+
+class TransportStop(Base):
+    __tablename__ = "transport_stops"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    route_id = Column(String(36), ForeignKey("transport_routes.id"), nullable=False)
+    stop_name = Column(String(200), nullable=False)
+    pickup_time = Column(String(20), nullable=True) # e.g., "07:30 AM"
+    drop_time = Column(String(20), nullable=True)
+    monthly_fee = Column(Numeric(10, 2), default=0.0)
+
+    route = relationship("TransportRoute", backref="stops")
+
+class TransportStaff(Base):
+    __tablename__ = "transport_staff"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), nullable=False)
+    role = Column(String(50), default="driver") # driver, conductor
+    license_number = Column(String(100), nullable=True)
+    phone = Column(String(20), nullable=True)
+    assigned_vehicle_id = Column(String(36), ForeignKey("transport_vehicles.id"), nullable=True)
+    
+    vehicle = relationship("Vehicle")
+
+class StudentTransport(Base):
+    __tablename__ = "transport_students"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id"), nullable=False, unique=True)
+    stop_id = Column(String(36), ForeignKey("transport_stops.id"), nullable=False)
+    status = Column(String(50), default="active") # active, inactive
+
+    student = relationship("User")
+    stop = relationship("TransportStop")

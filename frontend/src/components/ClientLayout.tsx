@@ -13,7 +13,7 @@ import {
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
   Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
-  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus
+  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus, Bus, MapPin
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -91,6 +91,11 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   librarian_requests:   { href: '/librarian/requests',   label: 'Book Requests',             icon: FileSearch,      color: 'group-hover:text-pink-400' },
   student_library:      { href: '/student/library',      label: 'Digital Library',           icon: Library,         color: 'group-hover:text-sky-400' },
   teacher_library:      { href: '/teacher/library',      label: 'Library & Resources',       icon: Library,         color: 'group-hover:text-sky-400' },
+  transport_dashboard:  { href: '/transport/dashboard',  label: 'Transport Overview',        icon: LayoutDashboard, color: 'group-hover:text-blue-400' },
+  transport_fleet:      { href: '/transport/fleet',      label: 'Fleet Management',          icon: Bus,             color: 'group-hover:text-indigo-400' },
+  transport_routes:     { href: '/transport/routes',     label: 'Routes & Stops',            icon: MapPin,          color: 'group-hover:text-emerald-400' },
+  transport_staff:      { href: '/transport/staff',      label: 'Transport Staff',           icon: Users,           color: 'group-hover:text-amber-400' },
+  transport_allocations:{ href: '/transport/allocations',label: 'Student Allocations',       icon: UserPlus,        color: 'group-hover:text-fuchsia-400' },
 };
 
 function AppShell({ children }: { children: React.ReactNode }) {

@@ -59,10 +59,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (demoEmail: string) => {
+  const handleQuickLogin = async (demoEmail: string, demoPassword?: string) => {
+    const pw = demoPassword || 'school@123';
     setEmail(demoEmail);
-    setPassword('school@123');
-    const success = await login(demoEmail, 'school@123');
+    setPassword(pw);
+    const success = await login(demoEmail, pw);
     if (success) {
       setIsSuccessMorphing(true);
       setTimeout(() => {
@@ -81,6 +82,7 @@ export default function LoginPage() {
     { label: 'Warden', email: 'warden@school.edu' },
     { label: 'Librarian', email: 'librarian@school.edu' },
     { label: 'Mentor', email: 'mentor.10a@school.edu' },
+    { label: 'Transport', email: 'transport@school.edu', password: 'password123' },
   ];
 
   return (
@@ -289,7 +291,7 @@ export default function LoginPage() {
                   whileTap={{ scale: 0.9 }}
                   key={ql.email}
                   type="button"
-                  onClick={() => handleQuickLogin(ql.email)}
+                  onClick={() => handleQuickLogin(ql.email, ql.password)}
                   disabled={isLoading}
                   className="px-3 py-1.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-50"
                 >
