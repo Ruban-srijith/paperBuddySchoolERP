@@ -18,8 +18,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
-// Grade levels for the school
-const ALL_GRADES = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+// Dynamic grade levels will be fetched from the backend
 
 interface ClassDetailModalData {
   grade: string;
@@ -66,13 +65,16 @@ function DashboardContent() {
   const [selectedSection, setSelectedSection] = useState<string>("A");
   const [classDetail, setClassDetail] = useState<ClassDetailModalData | null>(null);
   const [loadingClass, setLoadingClass] = useState(false);
+  const [activeClasses, setActiveClasses] = useState<{grade: string, sections: string[]}[]>([]);
+  const [totalSections, setTotalSections] = useState(0);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [studentsRes, aiRes] = await Promise.allSettled([
+        const [studentsRes, aiRes, classesRes] = await Promise.allSettled([
           api.get('/users/by-role/student'),
           api.get('/ai/school-health-summary'),
+          api.get('/classes')
         ]);
         if (studentsRes.status === 'fulfilled' && studentsRes.value.data.length > 0) {
           setStats(prev => ({ ...prev, totalStudents: studentsRes.value.data.length }));
@@ -80,44 +82,66 @@ function DashboardContent() {
         if (aiRes.status === 'fulfilled') {
           setAiSummary(aiRes.value.data);
         }
+        if (classesRes.status === 'fulfilled') {
+          const classesData = classesRes.value.data;
+          setTotalSections(classesData.length);
+          setStats(prev => ({ ...prev, totalClasses: classesData.length }));
+          
+          const grouped: Record<string, string[]> = {};
+          classesData.forEach((c: any) => {
+            if (!grouped[c.grade]) grouped[c.grade] = [];
+            if (!grouped[c.grade].includes(c.section)) {
+              grouped[c.grade].push(c.section);
+            }
+          });
+          
+          const gradeOrder = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+          const formattedClasses = Object.keys(grouped)
+            .sort((a, b) => {
+              const aIndex = gradeOrder.indexOf(a);
+              const bIndex = gradeOrder.indexOf(b);
+              if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+              if (aIndex !== -1) return -1;
+              if (bIndex !== -1) return 1;
+              return a.localeCompare(b);
+            })
+            .map(grade => ({
+              grade,
+              sections: grouped[grade].sort()
+            }));
+            
+          setActiveClasses(formattedClasses);
+        }
       } catch {}
     };
     fetchStats();
   }, []);
 
-  const handleGradeClick = async (grade: string) => {
-    setSelectedGrade(grade);
-    setSelectedSection("A");
+  const fetchClassDetail = async (grade: string, section: string) => {
     setLoadingClass(true);
     try {
-      const res = await api.get(`/academics/class-detail/${grade}`);
+      const res = await api.get(`/academics/class-detail/${grade}?section=${section}`);
       setClassDetail(res.data);
     } catch (err) {
-      // Resilient fallback so modal opens with rich data seamlessly
-      setClassDetail({
-        grade: grade,
-        section: "A",
-        class_name: `Grade ${grade}-Section A`,
-        class_teacher: grade === "10" ? "Mrs. Revathi Raman" : grade === "12" ? "Prof. Alan Turing" : "Dr. Sarah Connor",
-        class_teacher_email: "teacher@school.edu",
-        total_strength: 30,
-        attendance_rate: 95.2,
-        syllabus_coverage: 72.0,
-        students: [
-          { id: "1", full_name: "Kishor Kumar", admission_number: "PB-2024-089", email: "student@school.edu", father_name: "S. Kumar", guardian_phone: "+91 98401 00011", attendance_pct: 96.5, gpa: "9.4" },
-          { id: "2", full_name: "Priya Sharma", admission_number: "PB-2024-090", email: "priya@school.edu", father_name: "M. Sharma", guardian_phone: "+91 98401 00022", attendance_pct: 94.0, gpa: "9.2" },
-          { id: "3", full_name: "Rahul Verma", admission_number: "PB-2024-091", email: "rahul@school.edu", father_name: "V. Verma", guardian_phone: "+91 98401 00033", attendance_pct: 92.8, gpa: "8.9" },
-          { id: "4", full_name: "Ananya Iyer", admission_number: "PB-2024-092", email: "ananya@school.edu", father_name: "R. Iyer", guardian_phone: "+91 98401 00044", attendance_pct: 98.1, gpa: "9.8" }
-        ],
-        schedule_today: [
-          { period: 1, time: "08:30 - 09:15", subject: "Mathematics", teacher: "Prof. Alan Turing", room: `Room ${grade}01`, isOngoing: false },
-          { period: 2, time: "09:15 - 10:00", subject: "Physics", teacher: "Mrs. Revathi Raman", room: "Physics Lab 204", isOngoing: true },
-          { period: 3, time: "10:15 - 11:00", subject: "Chemistry", teacher: "Dr. Marie Curie", room: "Chem Lab 2", isOngoing: false },
-          { period: 4, time: "11:00 - 11:45", subject: "Computer Science", teacher: "Mr. Alex Mercer", room: "CS Lab 1", isOngoing: false }
-        ]
-      });
+      setClassDetail(null);
     }
     setLoadingClass(false);
+  };
+
+  const handleGradeClick = (grade: string) => {
+    setSelectedGrade(grade);
+    const classInfo = activeClasses.find(c => c.grade === grade);
+    const firstSection = classInfo && classInfo.sections.length > 0 ? classInfo.sections[0] : "A";
+    setSelectedSection(firstSection);
+    fetchClassDetail(grade, firstSection);
+  };
+
+  // When selected section changes from the modal tabs
+  const handleSectionClick = (sec: string) => {
+    if (selectedGrade && sec !== selectedSection) {
+      setSelectedSection(sec);
+      fetchClassDetail(selectedGrade, sec);
+    }
   };
 
   if (!user) return null;
@@ -252,37 +276,53 @@ function DashboardContent() {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
             <div>
-              <h2 className="text-lg font-bold text-brand-black">Grade Levels — LKG to 12th Standard</h2>
+              <h2 className="text-lg font-bold text-brand-black">Active Grade Levels</h2>
               <p className="text-xs text-gray-400">Click any grade card to view student roster, class teacher, and today's schedule</p>
             </div>
             <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 whitespace-nowrap flex-shrink-0">
-              14 Grade Tiers • 28 Sections
+              {activeClasses.length} Grade Tiers • {totalSections} Sections
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
-            {ALL_GRADES.map((grade) => (
-              <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                key={grade}
-                onClick={() => handleGradeClick(grade)}
-                className={`glass-panel p-3.5 rounded-xl text-center hover:border-indigo-500/50 hover:bg-indigo-600/10 transition-colors cursor-pointer group ${
-                  selectedGrade === grade ? 'border-indigo-500 bg-indigo-600/20 shadow-lg shadow-indigo-500/10' : ''
-                }`}
-              >
-                <div className="text-xl font-bold text-brand-black group-hover:text-indigo-600 transition-colors">{grade}</div>
-                <div className="text-[10px] text-gray-400 mt-1">
-                  {['LKG', 'UKG'].includes(grade) ? 'Pre-Primary' 
-                    : parseInt(grade) <= 5 ? 'Primary' 
-                    : parseInt(grade) <= 8 ? 'Middle' 
-                    : parseInt(grade) <= 10 ? 'Secondary' 
-                    : 'Sr. Secondary'}
-                </div>
-                <div className="text-[10px] text-cyan-400 mt-0.5 font-medium">Sec A & B</div>
-              </motion.button>
-            ))}
-          </div>
+          {activeClasses.length === 0 ? (
+            <div className="py-8 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-sm text-gray-500 font-medium">No classes have been created yet.</p>
+              <Link href="/classes" className="inline-block mt-3 text-brand-blue font-bold text-xs hover:underline">
+                Go to Manage Classes
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+              {activeClasses.map((cls) => {
+                const grade = cls.grade;
+                const sectionsText = cls.sections.length > 0 
+                  ? (cls.sections.length <= 3 ? `Sec ${cls.sections.join(' & ')}` : `${cls.sections.length} Sections`)
+                  : "No Sections";
+                  
+                return (
+                  <motion.button
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    key={grade}
+                    onClick={() => handleGradeClick(grade)}
+                    className={`glass-panel p-3.5 rounded-xl text-center hover:border-indigo-500/50 hover:bg-indigo-600/10 transition-colors cursor-pointer group ${
+                      selectedGrade === grade ? 'border-indigo-500 bg-indigo-600/20 shadow-lg shadow-indigo-500/10' : ''
+                    }`}
+                  >
+                    <div className="text-xl font-bold text-brand-black group-hover:text-indigo-600 transition-colors">{grade}</div>
+                    <div className="text-[10px] text-gray-400 mt-1">
+                      {['LKG', 'UKG'].includes(grade) ? 'Pre-Primary' 
+                        : parseInt(grade) <= 5 ? 'Primary' 
+                        : parseInt(grade) <= 8 ? 'Middle' 
+                        : parseInt(grade) <= 10 ? 'Secondary' 
+                        : 'Sr. Secondary'}
+                    </div>
+                    <div className="text-[10px] text-cyan-400 mt-0.5 font-medium">{sectionsText}</div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -301,10 +341,10 @@ function DashboardContent() {
                     <span>Grade {classDetail.grade} Class Detail</span>
                   </h3>
                   <div className="flex items-center gap-2 mt-2">
-                    {['A', 'B', 'C'].map(sec => (
+                    {activeClasses.find(c => c.grade === selectedGrade)?.sections.map(sec => (
                       <button
                         key={sec}
-                        onClick={() => setSelectedSection(sec)}
+                        onClick={() => handleSectionClick(sec)}
                         className={`text-xs px-3 py-1 rounded-full whitespace-nowrap font-semibold transition-all ${
                           selectedSection === sec 
                             ? 'bg-brand-blue text-white shadow-md' 
@@ -353,24 +393,30 @@ function DashboardContent() {
                   <span>Today's Class Schedule</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {classDetail.schedule_today.map((s: any) => (
-                    <div key={s.period} className={`p-4 rounded-xl border transition-colors shadow-sm space-y-1.5 relative overflow-hidden ${
-                      s.isOngoing ? 'bg-brand-blue/5 border-brand-blue/50 ring-1 ring-brand-blue/30' : 'bg-gray-50 border-gray-100 hover:border-brand-blue/30'
-                    }`}>
-                      {s.isOngoing && (
-                        <div className="absolute top-0 right-0 bg-brand-blue text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wider animate-pulse">
-                          Ongoing Now
+                  {classDetail.schedule_today.length > 0 ? (
+                    classDetail.schedule_today.map((s: any) => (
+                      <div key={s.period} className={`p-4 rounded-xl border transition-colors shadow-sm space-y-1.5 relative overflow-hidden ${
+                        s.isOngoing ? 'bg-brand-blue/5 border-brand-blue/50 ring-1 ring-brand-blue/30' : 'bg-gray-50 border-gray-100 hover:border-brand-blue/30'
+                      }`}>
+                        {s.isOngoing && (
+                          <div className="absolute top-0 right-0 bg-brand-blue text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wider animate-pulse">
+                            Ongoing Now
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between text-[11px] font-medium">
+                          <span className={s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}>Period {s.period}</span>
+                          <span className={`font-mono font-bold ${s.isOngoing ? 'text-brand-blue' : 'text-brand-blue'}`}>{s.time}</span>
                         </div>
-                      )}
-                      <div className="flex items-center justify-between text-[11px] font-medium">
-                        <span className={s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}>Period {s.period}</span>
-                        <span className={`font-mono font-bold ${s.isOngoing ? 'text-brand-blue' : 'text-brand-blue'}`}>{s.time}</span>
+                        <div className="text-sm font-bold text-brand-black truncate">{s.subject}</div>
+                        <div className={`text-[11px] font-medium truncate ${s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}`}>{s.teacher}</div>
+                        <div className="text-[10px] font-bold text-gray-400">{s.room}</div>
                       </div>
-                      <div className="text-sm font-bold text-brand-black truncate">{s.subject}</div>
-                      <div className={`text-[11px] font-medium truncate ${s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}`}>{s.teacher}</div>
-                      <div className="text-[10px] font-bold text-gray-400">{s.room}</div>
+                    ))
+                  ) : (
+                    <div className="col-span-full py-6 text-center text-gray-500 text-sm border border-dashed rounded-xl border-gray-200 bg-gray-50/50">
+                      No timetable configured for this class yet.
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -381,42 +427,48 @@ function DashboardContent() {
                   <span>Enrolled Student Roster ({classDetail.students.length})</span>
                 </h4>
                 <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                  <table className="w-full text-left text-xs min-w-[600px]">
-                    <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider border-b border-gray-200">
-                      <tr>
-                        <th className="p-3.5">Student Name</th>
-                        <th className="p-3.5">Admission No</th>
-                        <th className="p-3.5">Father / Guardian</th>
-                        <th className="p-3.5">Contact</th>
-                        <th className="p-3.5">Attendance</th>
-                        <th className="p-3.5 text-right">Academic GPA</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
-                      {classDetail.students.map((stu) => (
-                        <tr key={stu.id} className="hover:bg-blue-50/50 transition-colors">
-                          <td className="p-3.5 font-bold text-brand-black flex items-center gap-2.5 whitespace-nowrap">
-                            <div className="w-7 h-7 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center text-[11px] font-bold border border-brand-blue/20">
-                              {stu.full_name[0]}
-                            </div>
-                            {stu.full_name}
-                          </td>
-                          <td className="p-3.5 font-mono font-semibold text-gray-500 whitespace-nowrap">{stu.admission_number}</td>
-                          <td className="p-3.5 font-medium text-gray-700 whitespace-nowrap">{stu.father_name}</td>
-                          <td className="p-3.5 text-gray-600 flex items-center gap-1.5 font-mono font-medium whitespace-nowrap">
-                            <Phone className="w-3.5 h-3.5 text-brand-blue" />
-                            {stu.guardian_phone}
-                          </td>
-                          <td className="p-3.5 whitespace-nowrap">
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                              {stu.attendance_pct}%
-                            </span>
-                          </td>
-                          <td className="p-3.5 text-right font-bold text-brand-black whitespace-nowrap">{stu.gpa}</td>
+                  {classDetail.students.length > 0 ? (
+                    <table className="w-full text-left text-xs min-w-[600px]">
+                      <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider border-b border-gray-200">
+                        <tr>
+                          <th className="p-3.5">Student Name</th>
+                          <th className="p-3.5">Admission No</th>
+                          <th className="p-3.5">Father / Guardian</th>
+                          <th className="p-3.5">Contact</th>
+                          <th className="p-3.5">Attendance</th>
+                          <th className="p-3.5 text-right">Academic GPA</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 bg-white">
+                        {classDetail.students.map((stu) => (
+                          <tr key={stu.id} className="hover:bg-blue-50/50 transition-colors">
+                            <td className="p-3.5 font-bold text-brand-black flex items-center gap-2.5 whitespace-nowrap">
+                              <div className="w-7 h-7 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center text-[11px] font-bold border border-brand-blue/20">
+                                {stu.full_name[0]}
+                              </div>
+                              {stu.full_name}
+                            </td>
+                            <td className="p-3.5 font-mono font-semibold text-gray-500 whitespace-nowrap">{stu.admission_number}</td>
+                            <td className="p-3.5 font-medium text-gray-700 whitespace-nowrap">{stu.father_name}</td>
+                            <td className="p-3.5 text-gray-600 flex items-center gap-1.5 font-mono font-medium whitespace-nowrap">
+                              <Phone className="w-3.5 h-3.5 text-brand-blue" />
+                              {stu.guardian_phone}
+                            </td>
+                            <td className="p-3.5 whitespace-nowrap">
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                {stu.attendance_pct}%
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-right font-bold text-brand-black whitespace-nowrap">{stu.gpa}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="p-8 text-center text-gray-500 text-sm bg-gray-50">
+                      No students have been assigned to this class yet.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -38,68 +38,36 @@ router = APIRouter(prefix="/academics", tags=["Academics & Operations Modules"])
 @router.get("/class-detail/{grade}")
 async def get_class_detail(
     grade: str,
+    section: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Retrieve full class information for a specific grade level."""
-    # Find matching classes for grade (e.g. "10", "LKG", "UKG")
-    classes_res = await db.execute(
-        select(Class).options(selectinload(Class.class_teacher)).where(Class.grade == grade)
-    )
+    """Retrieve full class information for a specific grade level and section."""
+    query = select(Class).options(selectinload(Class.class_teacher)).where(Class.grade == grade)
+    if section:
+        query = query.where(Class.section == section)
+    else:
+        query = query.order_by(Class.section)
+        
+    classes_res = await db.execute(query)
     school_classes = classes_res.scalars().all()
 
     if not school_classes:
-        # Create virtual class placeholder or return default
         return {
             "grade": grade,
-            "section": "A",
-            "class_name": f"Grade {grade}-A",
-            "class_teacher": "Dr. Sarah Connor",
-            "class_teacher_email": "sarah.connor@school.edu",
-            "total_strength": 32,
-            "attendance_rate": 94.5,
-            "syllabus_coverage": 68.0,
-            "students": [
-                {
-                    "id": "demo-1",
-                    "full_name": "Kishor Kumar",
-                    "admission_number": "ADM-2026-042",
-                    "email": "kishor.k@school.edu",
-                    "father_name": "Ramesh Kumar",
-                    "guardian_phone": "+91 98765 43210",
-                    "attendance_pct": 96.2,
-                    "gpa": "A+",
-                },
-                {
-                    "id": "demo-2",
-                    "full_name": "Ananya Sharma",
-                    "admission_number": "ADM-2026-043",
-                    "email": "ananya.s@school.edu",
-                    "father_name": "Vikram Sharma",
-                    "guardian_phone": "+91 98765 43211",
-                    "attendance_pct": 98.0,
-                    "gpa": "A+",
-                },
-                {
-                    "id": "demo-3",
-                    "full_name": "Rohan Iyer",
-                    "admission_number": "ADM-2026-044",
-                    "email": "rohan.i@school.edu",
-                    "father_name": "Suresh Iyer",
-                    "guardian_phone": "+91 98765 43212",
-                    "attendance_pct": 91.5,
-                    "gpa": "A",
-                }
-            ],
-            "schedule_today": [
-                {"period": 1, "time": "08:30 - 09:15", "subject": "Mathematics", "teacher": "Dr. Sarah Connor", "room": "Room 101"},
-                {"period": 2, "time": "09:15 - 10:00", "subject": "Physics", "teacher": "Prof. Alan Turing", "room": "Science Lab A"},
-                {"period": 3, "time": "10:15 - 11:00", "subject": "Chemistry", "teacher": "Dr. Marie Curie", "room": "Room 102"},
-                {"period": 4, "time": "11:00 - 11:45", "subject": "Computer Science", "teacher": "Alex Mercer", "room": "CS Lab 1"},
-            ]
+            "section": section or "A",
+            "class_name": f"Grade {grade}-{section or 'A'}",
+            "class_teacher": "Unassigned",
+            "class_teacher_email": "-",
+            "total_strength": 0,
+            "attendance_rate": 0,
+            "syllabus_coverage": 0,
+            "students": [],
+            "schedule_today": []
         }
 
     target_class = school_classes[0]
+    
     # Fetch students enrolled in this class
     students_res = await db.execute(
         select(Student).options(selectinload(Student.user)).where(Student.class_id == target_class.id)
@@ -111,6 +79,7 @@ async def get_class_detail(
         select(Timetable)
         .options(selectinload(Timetable.subject), selectinload(Timetable.teacher), selectinload(Timetable.classroom))
         .where(Timetable.class_id == target_class.id)
+        .order_by(Timetable.time_slot)
     )
     timetables = tt_res.scalars().all()
 
@@ -119,11 +88,11 @@ async def get_class_detail(
             "id": s.id,
             "full_name": s.full_name,
             "admission_number": s.admission_number,
-            "email": s.user.email if s.user else "student@school.edu",
-            "father_name": s.father_name or "Guardian",
-            "guardian_phone": s.guardian_phone or "+91 98765 00000",
-            "attendance_pct": 95.0,
-            "gpa": "A",
+            "email": s.user.email if s.user else "-",
+            "father_name": s.father_name or "-",
+            "guardian_phone": s.guardian_phone or "-",
+            "attendance_pct": 0,
+            "gpa": "-",
         }
         for s in students
     ]
@@ -133,28 +102,21 @@ async def get_class_detail(
         "grade": target_class.grade,
         "section": target_class.section,
         "class_name": f"Grade {target_class.grade}-{target_class.section}",
-        "class_teacher": target_class.class_teacher.full_name if target_class.class_teacher else "Dr. Sarah Connor",
-        "class_teacher_email": target_class.class_teacher.email if target_class.class_teacher else "teacher@school.edu",
-        "total_strength": len(student_list) if len(student_list) > 0 else 30,
-        "attendance_rate": 95.2,
-        "syllabus_coverage": 72.4,
-        "students": student_list if len(student_list) > 0 else [
-            {"id": "demo-1", "full_name": "Kishor Kumar", "admission_number": "ADM-2026-042", "email": "kishor.k@school.edu", "father_name": "Ramesh Kumar", "guardian_phone": "+91 98765 43210", "attendance_pct": 96.2, "gpa": "A+"},
-            {"id": "demo-2", "full_name": "Pooja Reddy", "admission_number": "ADM-2026-043", "email": "pooja.r@school.edu", "father_name": "Rajesh Reddy", "guardian_phone": "+91 98765 43211", "attendance_pct": 97.4, "gpa": "A+"}
-        ],
+        "class_teacher": target_class.class_teacher.full_name if target_class.class_teacher else "Unassigned",
+        "class_teacher_email": target_class.class_teacher.email if target_class.class_teacher else "-",
+        "total_strength": len(student_list),
+        "attendance_rate": 0,
+        "syllabus_coverage": 0,
+        "students": student_list,
         "schedule_today": [
             {
                 "period": idx + 1,
-                "time": t.time_slot or f"Period {idx+1}",
-                "subject": t.subject.name if t.subject else "General Academic",
-                "teacher": t.teacher.full_name if t.teacher else "Faculty",
-                "room": t.classroom.name if t.classroom else "Room 101",
+                "time": t.time_slot or f"Period {idx + 1}",
+                "subject": t.subject.name if t.subject else "Unassigned",
+                "teacher": t.teacher.full_name if t.teacher else "Unassigned",
+                "room": t.classroom.name if t.classroom else "Unassigned",
             }
-            for idx, t in enumerate(timetables[:6])
-        ] if timetables else [
-            {"period": 1, "time": "08:30 - 09:15", "subject": "Mathematics", "teacher": "Dr. Sarah Connor", "room": "Room 101"},
-            {"period": 2, "time": "09:15 - 10:00", "subject": "Physics", "teacher": "Prof. Alan Turing", "room": "Lab 1"},
-            {"period": 3, "time": "10:15 - 11:00", "subject": "Chemistry", "teacher": "Dr. Marie Curie", "room": "Room 102"},
+            for idx, t in enumerate(timetables)
         ]
     }
 
