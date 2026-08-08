@@ -3,7 +3,7 @@ from app.api.v1 import (
     auth, users, students, departments, ocr, timetable, attendance,
     portion, labs, emails, mentorship, fees, approvals, substitutions, parent, ai,
     calendar, approvals_ext, academics, mongodb_status, classes, classrooms,
-    finance_fees, finance_payroll, class_teacher, finance_core, warden_core, librarian_core,
+    finance_fees, finance_payroll, class_teacher, finance_core, warden_core, librarian_core, scans,
     transport
 )
 
@@ -17,8 +17,10 @@ api_router.include_router(departments.router)
 
 # ERP Operations
 api_router.include_router(ocr.router)
+api_router.include_router(scans.router)
 api_router.include_router(timetable.router)
 api_router.include_router(attendance.router)
+
 api_router.include_router(portion.router)
 api_router.include_router(labs.router)
 api_router.include_router(emails.router)
