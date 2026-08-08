@@ -13,7 +13,7 @@ import {
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
   Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
-  BookCopy, Library, MonitorSmartphone, UserCircle
+  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -56,6 +56,7 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   departments:          { href: '/departments',          label: 'Departments',               icon: Building2,       color: 'group-hover:text-teal-400' },
   class_roster:         { href: '/class-roster',         label: 'Class Roster & Assign',     icon: UsersRound,      color: 'group-hover:text-fuchsia-400' },
   classes:              { href: '/classes',              label: 'Manage Classes',            icon: Building2,       color: 'group-hover:text-pink-400' },
+  assign_students:      { href: '/assign-students',      label: 'Assign Students',           icon: UserPlus,        color: 'group-hover:text-blue-400' },
   class_allotments:     { href: '/class-allotments',     label: 'Class Teachers Allotments', icon: Users,           color: 'group-hover:text-amber-400' },
   ocr:                  { href: '/ocr',                  label: 'Ensemble OCR Parser',       icon: FileSearch,      color: 'group-hover:text-cyan-400',   badge: 'AI' },
   timetable:            { href: '/timetable',            label: 'Timetable Grid',            icon: Calendar,        color: 'group-hover:text-indigo-400' },

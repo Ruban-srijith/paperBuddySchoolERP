@@ -96,6 +96,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'users',
     'departments',
     'classes',
+    'assign_students',
     'class_allotments',
     'ocr'
   ],
@@ -114,6 +115,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'users',
     'departments',
     'classes',
+    'assign_students',
     'class_roster',
     'class_allotments',
     'classroom_allocation',
@@ -134,6 +136,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'users',
     'departments',
     'classes',
+    'assign_students',
     'class_roster',
     'class_allotments',
     'ocr'
@@ -153,6 +156,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'users',
     'departments',
     'classes',
+    'assign_students',
     'class_roster',
     'class_allotments',
     'classroom_allocation',
@@ -173,6 +177,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'users',
     'departments',
     'classes',
+    'assign_students',
     'class_roster',
     'class_allotments',
     'ocr'
