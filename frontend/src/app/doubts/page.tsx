@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   HelpCircle, 
   MessageSquare, 
@@ -14,6 +14,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
 
 interface DoubtItem {
   id: string;
@@ -33,37 +34,19 @@ export default function AcademicDoubtsPage() {
   const [activeDoubt, setActiveDoubt] = useState<DoubtItem | null>(null);
   const [replyText, setReplyText] = useState("");
 
-  const [doubts, setDoubts] = useState<DoubtItem[]>([
-    {
-      id: "d1",
-      student_name: "Kishor Kumar",
-      grade: "10-A",
-      subject: "Physics",
-      question: "In Lenz's Law, why is the induced current always in a direction that opposes the change in magnetic flux?",
-      asked_at: "Aug 06, 2026 (08:30 AM)",
-      status: "open"
-    },
-    {
-      id: "d2",
-      student_name: "Priya Sharma",
-      grade: "10-A",
-      subject: "Physics",
-      question: "Could you clarify the difference between total internal reflection and refraction at the critical angle?",
-      asked_at: "Aug 05, 2026",
-      answer: "At the critical angle, the angle of refraction is 90°. For any angle of incidence greater than the critical angle, the light reflects back entirely into the denser medium without passing into the rarer medium.",
-      answered_at: "Aug 05, 2026 (04:15 PM)",
-      status: "resolved"
-    },
-    {
-      id: "d3",
-      student_name: "Rohan Iyer",
-      grade: "9-A",
-      subject: "Chemistry",
-      question: "Why does hydrochloric acid conduct electricity in aqueous solution but dry HCl gas does not?",
-      asked_at: "Aug 06, 2026 (09:10 AM)",
-      status: "open"
+  const [doubts, setDoubts] = useState<DoubtItem[]>([]);
+
+  useEffect(() => {
+    async function fetchDoubts() {
+      try {
+        const res = await api.get("/academics/queries");
+        setDoubts(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Failed to fetch doubts", err);
+      }
     }
-  ]);
+    fetchDoubts();
+  }, []);
 
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();

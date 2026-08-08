@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.db.database import get_db
-from app.db.models import User, UserRole, Department
+from app.db.models import User, UserRole, Department, Student
 from app.core.auth import (
     hash_password, get_current_user, require_role
 )
@@ -106,6 +106,17 @@ async def create_user(
         age=req.age,
     )
     db.add(new_user)
+    
+    if role_enum == UserRole.STUDENT:
+        new_student = Student(
+            id=str(uuid.uuid4()),
+            user_id=new_user.id,
+            admission_number=req.admission_number or f"ADM-{new_user.id[:8].upper()}",
+            full_name=req.full_name,
+            class_id=None,
+        )
+        db.add(new_student)
+        
     await db.commit()
 
     # Re-fetch with relationships

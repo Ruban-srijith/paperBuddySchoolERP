@@ -64,13 +64,9 @@ export default function AcademicCalendarPage() {
     setLoading(true);
     try {
       const res = await api.get("/calendar/events");
-      if (res.data && res.data.length > 0) {
-        setEvents(res.data);
-      } else {
-        setEvents(getDemoEvents());
-      }
+      setEvents(res.data || []);
     } catch {
-      setEvents(getDemoEvents());
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -79,56 +75,6 @@ export default function AcademicCalendarPage() {
   useEffect(() => {
     fetchEvents();
   }, []);
-
-  const getDemoEvents = (): CalendarEvent[] => [
-    {
-      id: "cal-1",
-      title: "Independence Day & Cultural Flag Hoisting Ceremony",
-      category: "celebration",
-      start_date: "2026-08-15",
-      description: "Patriotic parade, flag hoisting by Correspondent, and student anthem choir at 08:30 AM.",
-      target_audience: "all",
-      is_all_day: true,
-    },
-    {
-      id: "cal-2",
-      title: "Term 1 Midterm Theory & Practical Examinations",
-      category: "exam",
-      start_date: "2026-08-18",
-      end_date: "2026-08-25",
-      description: "Centralized examinations across all grades LKG to 12th. Examination hall seating published.",
-      target_audience: "students",
-      is_all_day: false,
-    },
-    {
-      id: "cal-3",
-      title: "Monthly Staff Council & Academic Review Meeting",
-      category: "meeting",
-      start_date: "2026-08-28",
-      description: "Principal and Vice-Principal review with all department deans and teaching faculty.",
-      target_audience: "teachers",
-      is_all_day: false,
-    },
-    {
-      id: "cal-4",
-      title: "Janmashtami Institutional Holiday",
-      category: "holiday",
-      start_date: "2026-09-04",
-      description: "School campus and administrative offices remain closed.",
-      target_audience: "all",
-      is_all_day: true,
-    },
-    {
-      id: "cal-5",
-      title: "State-Level Inter-School Science & Tech Expo",
-      category: "event",
-      start_date: "2026-09-15",
-      end_date: "2026-09-16",
-      description: "24 CBSE schools participating in science innovation project competitions.",
-      target_audience: "all",
-      is_all_day: false,
-    }
-  ];
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -48,20 +48,20 @@ export default function SearchableSelect({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full px-3 py-2.5 rounded-lg bg-gray-900/70 border border-gray-700/60 text-sm text-left flex items-center justify-between transition-colors
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-600 focus:outline-none focus:border-indigo-500'}
-          ${isOpen ? 'border-indigo-500 ring-1 ring-indigo-500/20' : ''}
+        className={`w-full px-3 py-2.5 rounded-xl bg-white border border-gray-200 text-sm text-left flex items-center justify-between transition-colors shadow-sm
+          ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-300 focus:outline-none focus:border-indigo-500'}
+          ${isOpen ? 'border-indigo-500 ring-2 ring-indigo-500/20' : ''}
         `}
       >
-        <span className={selectedOption ? 'text-white' : 'text-gray-500'}>
+        <span className={selectedOption ? 'text-gray-900 font-medium' : 'text-gray-500'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
-          <div className="p-2 border-b border-gray-700/50 relative">
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+          <div className="p-2 border-b border-gray-100 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
@@ -69,10 +69,10 @@ export default function SearchableSelect({
               placeholder="Search..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-gray-900/50 rounded border border-gray-700 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-8 pr-3 py-2 bg-gray-50 rounded-lg border border-transparent text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
             />
           </div>
-          <div className="max-h-60 overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-gray-700">
+          <div className="max-h-60 overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-gray-200">
             {filteredOptions.length === 0 ? (
               <div className="px-3 py-4 text-sm text-center text-gray-500">No results found</div>
             ) : (
@@ -87,14 +87,14 @@ export default function SearchableSelect({
                       setIsOpen(false);
                       setSearchTerm('');
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors ${
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors ${
                       isSelected 
-                        ? 'bg-indigo-600/20 text-indigo-300' 
-                        : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
+                        ? 'bg-indigo-50 text-indigo-700 font-medium' 
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {isSelected && <Check className="w-4 h-4 text-indigo-400" />}
+                    {isSelected && <Check className="w-4 h-4 text-indigo-600" />}
                   </button>
                 );
               })

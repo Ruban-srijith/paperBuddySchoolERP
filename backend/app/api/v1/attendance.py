@@ -48,14 +48,19 @@ async def batch_mark_attendance(
 
     # Scope check: Teachers can only mark attendance for classes they teach
     if current_user.role == UserRole.TEACHER:
-        tt_res = await db.execute(
-            select(Timetable).where(
-                Timetable.teacher_id == current_user.id,
-                Timetable.class_id == req.class_id
+        from app.db.models import Class
+        class_res = await db.execute(select(Class).where(Class.id == req.class_id, Class.class_teacher_id == current_user.id))
+        is_class_teacher = class_res.scalar_one_or_none() is not None
+        
+        if not is_class_teacher:
+            tt_res = await db.execute(
+                select(Timetable).where(
+                    Timetable.teacher_id == current_user.id,
+                    Timetable.class_id == req.class_id
+                )
             )
-        )
-        if not tt_res.scalars().first():
-            raise HTTPException(status_code=403, detail="You can only mark attendance for your own classes")
+            if not tt_res.scalars().first():
+                raise HTTPException(status_code=403, detail="You can only mark attendance for your own classes")
 
     saved_records = []
     for rec in req.records:

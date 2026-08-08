@@ -81,6 +81,29 @@ async def assign_teacher(
     
     return {"message": "Teacher assigned successfully"}
 
+@router.get("/my-class", response_model=ClassResponse)
+async def get_my_class(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
+):
+    # Find the class where this user is the class teacher
+    result = await db.execute(
+        select(Class)
+        .where(Class.class_teacher_id == current_user.id)
+    )
+    db_class = result.scalar_one_or_none()
+    
+    if not db_class:
+        raise HTTPException(status_code=404, detail="No class assigned to you")
+        
+    return ClassResponse(
+        id=db_class.id,
+        grade=db_class.grade,
+        section=db_class.section,
+        class_teacher_id=db_class.class_teacher_id,
+        teacher_name=current_user.full_name
+    )
+
 @router.delete("/{class_id}/assign")
 async def remove_assigned_teacher(
     class_id: str,

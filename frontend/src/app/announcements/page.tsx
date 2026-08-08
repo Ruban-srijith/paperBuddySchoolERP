@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Bell, 
   Plus, 
@@ -14,6 +14,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
 
 interface AnnouncementItem {
   id: string;
@@ -30,35 +31,19 @@ export default function AnnouncementsPage() {
   const { toast } = useToast();
   const canPost = user && ['teacher', 'admin', 'principal', 'vice_principal', 'super_admin', 'correspondent'].includes(user.role);
 
-  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([
-    {
-      id: "ann-1",
-      title: "Revised Science Practical Timings for Term 1 Examination",
-      author: "Dr. Sarah Connor (Head of Science)",
-      date: "Aug 06, 2026",
-      category: "academic",
-      content: "Physics practical lab batches for Grade 10-A will assemble in Room 204 starting at 09:00 AM sharp with printed lab record notebooks.",
-      pinned: true
-    },
-    {
-      id: "ann-2",
-      title: "Independence Day Celebrations — Uniform & Assembly Guidelines",
-      author: "Principal's Office",
-      date: "Aug 05, 2026",
-      category: "event",
-      content: "All students are requested to be present in ceremonial white uniform by 08:00 AM on August 15th for the flag hoisting parade.",
-      pinned: true
-    },
-    {
-      id: "ann-3",
-      title: "Annual Sports Day House Selection & Relay Trials",
-      author: "Physical Education Department",
-      date: "Aug 03, 2026",
-      category: "event",
-      content: "Inter-house 100m, 400m sprint and high-jump trials begin this Friday after period 4 on the main athletics pavilion.",
-      pinned: false
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
+
+  useEffect(() => {
+    async function fetchAnnouncements() {
+      try {
+        const res = await api.get("/academics/announcements");
+        setAnnouncements(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Failed to fetch announcements", err);
+      }
     }
-  ]);
+    fetchAnnouncements();
+  }, []);
 
   const [showModal, setShowModal] = useState(false);
   const [newAnn, setNewAnn] = useState({

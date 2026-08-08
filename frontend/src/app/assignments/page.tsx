@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   FileText, 
   Plus, 
@@ -16,6 +16,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
 
 interface AssignmentItem {
   id: string;
@@ -34,41 +35,22 @@ export default function AssignmentsPage() {
   const { toast } = useToast();
   const isTeacher = user?.role === "teacher" || ['super_admin', 'admin', 'principal', 'vice_principal'].includes(user?.role || '');
 
-  const [assignments, setAssignments] = useState<AssignmentItem[]>([
-    {
-      id: "as-1",
-      title: "Ray Optics & Wave Theory Term Paper",
-      subject: "Physics",
-      grade: "10-A",
-      due_date: "2026-08-20",
-      max_marks: 50,
-      description: "Comprehensive 5-page assignment covering Snell's law derivation, telescope optics, and Huygens' principle proofs.",
-      submissions_count: 26,
-      total_students: 30,
-    },
-    {
-      id: "as-2",
-      title: "Python Data Structures: Stacks, Queues & Trees",
-      subject: "Computer Science",
-      grade: "11-A",
-      due_date: "2026-08-18",
-      max_marks: 40,
-      description: "Write Python classes for dynamic stacks and double-ended queues with unit test suites.",
-      submissions_count: 28,
-      total_students: 32,
-    },
-    {
-      id: "as-3",
-      title: "Chemical Equilibrium & Le Chatelier's Principle",
-      subject: "Chemistry",
-      grade: "12-A",
-      due_date: "2026-08-22",
-      max_marks: 50,
-      description: "Solve numerical equilibrium constants Kp and Kc under varying temperature conditions.",
-      submissions_count: 15,
-      total_students: 30,
+  const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAssignments() {
+      try {
+        const res = await api.get("/academics/assignments");
+        setAssignments(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Failed to fetch assignments", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  ]);
+    fetchAssignments();
+  }, []);
 
   const [showModal, setShowModal] = useState(false);
   const [newAs, setNewAs] = useState({

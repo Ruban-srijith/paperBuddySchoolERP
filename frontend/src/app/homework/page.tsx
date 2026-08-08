@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   BookOpen, 
   Plus, 
@@ -16,6 +16,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
 
 interface HomeworkItem {
   id: string;
@@ -32,35 +33,23 @@ export default function HomeworkPage() {
   const { toast } = useToast();
   const isTeacher = user?.role === "teacher" || ['super_admin', 'admin', 'principal', 'vice_principal'].includes(user?.role || '');
 
-  const [homeworkList, setHomeworkList] = useState<HomeworkItem[]>([
-    {
-      id: "hw-1",
-      title: "Electromagnetic Induction Practice Problems (Exercise 4.2)",
-      subject: "Physics",
-      grade: "10-A",
-      due_date: "2026-08-10",
-      description: "Solve questions 1 through 15 from Chapter 4. Draw neat ray diagrams for Faraday's law of induction.",
-      status: "pending"
-    },
-    {
-      id: "hw-2",
-      title: "Quadratic Equations Word Problems",
-      subject: "Mathematics",
-      grade: "10-A",
-      due_date: "2026-08-09",
-      description: "Complete NCERT exercise 3.4 on nature of roots and discriminant analysis.",
-      status: "submitted"
-    },
-    {
-      id: "hw-3",
-      title: "Python Dictionary & Tuple Comprehensions",
-      subject: "Computer Science",
-      grade: "10-A",
-      due_date: "2026-08-12",
-      description: "Write code snippets for word frequency counting and nested dictionary inversion.",
-      status: "pending"
+  const [homeworkList, setHomeworkList] = useState<HomeworkItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchHomework() {
+      try {
+        const res = await api.get("/academics/homework");
+        // API might return data in a different shape, handle gracefully
+        setHomeworkList(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Failed to fetch homework", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  ]);
+    fetchHomework();
+  }, []);
 
   const [showModal, setShowModal] = useState(false);
   const [newHw, setNewHw] = useState({

@@ -17,35 +17,49 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
 
+import api from "@/lib/api";
+
 interface StudentClassRecord {
-  roll_no: number;
-  name: string;
-  admission_no: string;
-  parent_name: string;
-  parent_phone: string;
-  parent_email: string;
+  id: string;
+  full_name: string;
+  admission_number: string;
+  email: string;
+  father_name: string;
+  guardian_phone: string;
   attendance_pct: number;
-  term_gpa: number;
-  status: "active" | "absent_today";
+  gpa: string;
 }
 
 export default function MyClassPage() {
   const { user } = useAuthStore();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const assignedClass = user?.assigned_grade || "Grade 10 - Section A";
+  const [assignedClass, setAssignedClass] = useState<string>("Loading...");
+  const [students, setStudents] = useState<StudentClassRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [students, setStudents] = useState<StudentClassRecord[]>([
-    { roll_no: 1, name: "Kishor Kumar", admission_no: "PB-2024-089", parent_name: "S. Kumar", parent_phone: "+91 98401 11221", parent_email: "parent.kishor@example.com", attendance_pct: 99.1, term_gpa: 3.96, status: "active" },
-    { roll_no: 2, name: "Priya Sharma", admission_no: "PB-2024-090", parent_name: "R. Sharma", parent_phone: "+91 98401 11222", parent_email: "parent.priya@example.com", attendance_pct: 98.5, term_gpa: 3.92, status: "active" },
-    { roll_no: 3, name: "Aditya Verma", admission_no: "PB-2024-091", parent_name: "M. Verma", parent_phone: "+91 98401 11223", parent_email: "parent.aditya@example.com", attendance_pct: 96.8, term_gpa: 3.88, status: "active" },
-    { roll_no: 4, name: "Pooja Reddy", admission_no: "PB-2024-092", parent_name: "V. Reddy", parent_phone: "+91 98401 11224", parent_email: "parent.pooja@example.com", attendance_pct: 94.2, term_gpa: 3.75, status: "absent_today" },
-    { roll_no: 5, name: "Rohan Iyer", admission_no: "PB-2024-093", parent_name: "K. Iyer", parent_phone: "+91 98401 11225", parent_email: "parent.rohan@example.com", attendance_pct: 97.4, term_gpa: 3.82, status: "active" },
-  ]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const myClassRes = await api.get("/classes/my-class");
+        const { grade, section } = myClassRes.data;
+        setAssignedClass(`Grade ${grade} - Section ${section}`);
+
+        const detailRes = await api.get(`/academics/class-detail/${grade}?section=${section}`);
+        setStudents(detailRes.data.students || []);
+      } catch (err: any) {
+        setAssignedClass("Unassigned");
+        console.error("Failed to fetch class data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
 
   const filteredStudents = students.filter(s =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.admission_no.toLowerCase().includes(searchTerm.toLowerCase())
+    s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.admission_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -127,28 +141,32 @@ export default function MyClassPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredStudents.map(s => (
-                  <tr key={s.roll_no} className="hover:bg-gray-50/40 transition-colors">
-                    <td className="p-3.5 text-center font-bold text-cyan-300 font-mono">{s.roll_no}</td>
-                    <td className="p-3.5 font-bold text-brand-black">{s.name}</td>
-                    <td className="p-3.5 font-mono text-gray-600 text-[11px]">{s.admission_no}</td>
-                    <td className="p-3.5">
-                      <div className="text-gray-700 font-medium">{s.parent_name}</div>
-                      <div className="text-[11px] text-gray-500 font-mono">{s.parent_phone}</div>
-                    </td>
-                    <td className="p-3.5 text-center font-mono font-bold text-cyan-300">{s.attendance_pct}%</td>
-                    <td className="p-3.5 text-right font-mono font-bold text-emerald-600 text-sm">{s.term_gpa.toFixed(2)}</td>
-                    <td className="p-3.5 text-center">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        s.status === 'active'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                          : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                      }`}>
-                        {s.status === 'active' ? 'PRESENT' : 'ABSENT'}
-                      </span>
+                {filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-gray-500 font-medium">
+                      No students found in this class.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredStudents.map((s, index) => (
+                    <tr key={s.id} className="hover:bg-gray-50/40 transition-colors">
+                      <td className="p-3.5 text-center font-bold text-cyan-300 font-mono">{index + 1}</td>
+                      <td className="p-3.5 font-bold text-brand-black">{s.full_name}</td>
+                      <td className="p-3.5 font-mono text-gray-600 text-[11px]">{s.admission_number}</td>
+                      <td className="p-3.5">
+                        <div className="text-gray-700 font-medium">{s.father_name}</div>
+                        <div className="text-[11px] text-gray-500 font-mono">{s.guardian_phone}</div>
+                      </td>
+                      <td className="p-3.5 text-center font-mono font-bold text-cyan-300">{s.attendance_pct}%</td>
+                      <td className="p-3.5 text-right font-mono font-bold text-emerald-600 text-sm">{s.gpa}</td>
+                      <td className="p-3.5 text-center">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`}>
+                          PRESENT
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

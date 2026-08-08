@@ -41,14 +41,30 @@ export default function AttendancePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedMatrixGrade, setSelectedMatrixGrade] = useState<string | null>(null);
 
+  const [assignedClassId, setAssignedClassId] = useState<string>("");
+
   // Student Attendance Matrix state (for teachers marking)
-  const [students, setStudents] = useState<StudentAttendanceRow[]>([
-    { student_id: "stu11111-1111-1111-1111-111111111111", name: "Kishor Kumar", roll: "10A-01", status: "present" },
-    { student_id: "stu22222-2222-2222-2222-222222222222", name: "Priya Sharma", roll: "10A-02", status: "present" },
-    { student_id: "stu33333-3333-3333-3333-333333333333", name: "Rahul Dev", roll: "10A-03", status: "late" },
-    { student_id: "stu44444-4444-4444-4444-444444444444", name: "Ananya Krishna", roll: "10A-04", status: "absent" },
-    { student_id: "stu55555-5555-5555-5555-555555555555", name: "Deepak Pillai", roll: "10A-05", status: "present" },
-  ]);
+  const [students, setStudents] = useState<StudentAttendanceRow[]>([]);
+
+  // Fetch teacher's students
+  useEffect(() => {
+    if (user?.role === "teacher") {
+      api.get("/classes/my-class").then(res => {
+        const { id, grade, section } = res.data;
+        setSelectedClass(`Grade ${grade}-${section}`);
+        setAssignedClassId(id);
+        return api.get(`/academics/class-detail/${grade}?section=${section}`);
+      }).then(res => {
+        const fetchedStudents = res.data.students || [];
+        setStudents(fetchedStudents.map((s: any, idx: number) => ({
+          student_id: s.id,
+          name: s.full_name,
+          roll: (idx + 1).toString(),
+          status: "present" // Default
+        })));
+      }).catch(err => console.error("Failed to fetch students for attendance", err));
+    }
+  }, [user]);
 
   // Work Log form state
   const [workLog, setWorkLog] = useState({
@@ -91,13 +107,14 @@ export default function AttendancePage() {
   const handleSaveAttendance = async () => {
     try {
       await api.post("/attendance/batch", {
-        class_name: selectedClass,
+        class_id: assignedClassId,
+        marked_by: user?.id,
         date: selectedDate,
         records: students.map(s => ({ student_id: s.student_id, status: s.status }))
       });
       toast.success(`Batch attendance saved for ${selectedClass} on ${selectedDate}`, "Attendance Recorded");
     } catch (e) {
-      toast.success(`Batch attendance recorded for ${selectedClass}`, "Success");
+      toast.error(`Failed to save attendance`, "Error");
     }
   };
 

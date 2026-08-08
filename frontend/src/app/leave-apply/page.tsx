@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Calendar, 
   Send, 
@@ -15,6 +15,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
 
 interface LeaveApplication {
   id: string;
@@ -32,30 +33,22 @@ export default function LeaveApplyPage() {
   const { user } = useAuthStore();
   const { toast } = useToast();
 
-  const [leaveHistory, setLeaveHistory] = useState<LeaveApplication[]>([
-    {
-      id: "lv-1",
-      leave_type: "Casual Leave",
-      start_date: "2026-08-12",
-      end_date: "2026-08-13",
-      days: 2,
-      reason: "Attending Regional Science Educator Symposium",
-      substitute_teacher: "Prof. Alan Turing",
-      status: "pending",
-      applied_on: "2026-08-06",
-    },
-    {
-      id: "lv-2",
-      leave_type: "Medical Leave",
-      start_date: "2026-07-15",
-      end_date: "2026-07-15",
-      days: 1,
-      reason: "Dental appointment",
-      substitute_teacher: "Alex Mercer",
-      status: "approved",
-      applied_on: "2026-07-14",
+  const [leaveHistory, setLeaveHistory] = useState<LeaveApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchLeaveHistory() {
+      try {
+        const res = await api.get("/approvals/leave");
+        setLeaveHistory(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error("Failed to fetch leave history", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  ]);
+    fetchLeaveHistory();
+  }, []);
 
   const [form, setForm] = useState({
     leave_type: "Casual Leave",

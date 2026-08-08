@@ -34,26 +34,40 @@ interface SubjectProgress {
 }
 
 function PortionTrackerContent() {
-  const [selectedSubject, setSelectedSubject] = useState<string>("s1111111-1111-1111-1111-111111111111");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [progressData, setProgressData] = useState<SubjectProgress | null>(null);
+  const [subjects, setSubjects] = useState<{id: string, code: string, name: string}[]>([]);
 
-  const subjects = [
-    { id: "s1111111-1111-1111-1111-111111111111", code: "PHY101", name: "Physics" },
-    { id: "s2222222-2222-2222-2222-222222222222", code: "CS102", name: "Computer Science" },
-    { id: "s3333333-3333-3333-3333-333333333333", code: "CHEM103", name: "Chemistry" },
-  ];
+  useEffect(() => {
+    async function fetchSubjects() {
+      try {
+        const res = await fetch('/api/v1/portion-tracker/subjects');
+        if (res.ok) {
+          const data = await res.json();
+          setSubjects(data);
+          if (data.length > 0) {
+            setSelectedSubject(data[0].id);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    fetchSubjects();
+  }, []);
 
   const fetchProgress = async (subjectId: string) => {
+    if (!subjectId) return;
     try {
       const res = await fetch(`/api/v1/portion-tracker/subject/${subjectId}`);
       if (res.ok) {
         const data = await res.json();
         setProgressData(data);
       } else {
-        setProgressData(getDemoProgress(subjectId));
+        setProgressData(null);
       }
     } catch (e) {
-      setProgressData(getDemoProgress(subjectId));
+      setProgressData(null);
     }
   };
 
@@ -61,39 +75,7 @@ function PortionTrackerContent() {
     fetchProgress(selectedSubject);
   }, [selectedSubject]);
 
-  const getDemoProgress = (subId: string): SubjectProgress => {
-    if (subId === "s2222222-2222-2222-2222-222222222222") {
-      return {
-        subject_id: subId,
-        subject_code: "CS102",
-        subject_name: "Computer Science",
-        total_nodes: 2,
-        completed_nodes: 1,
-        completion_percentage: 50.0,
-        completed_weightage_percent: 30.0,
-        topics: [
-          { id: "n4", chapter_name: "Data Structures", topic_name: "Arrays & Linked Lists", weightage_percent: 30.0, is_completed: true, completed_at: "2026-07-26T10:00:00Z" },
-          { id: "n5", chapter_name: "Algorithms", topic_name: "Sorting & Binary Search", weightage_percent: 35.0, is_completed: false }
-        ]
-      };
-    }
-    return {
-      subject_id: subId,
-      subject_code: "PHY101",
-      subject_name: "Physics",
-      total_nodes: 3,
-      completed_nodes: 2,
-      completion_percentage: 66.67,
-      completed_weightage_percent: 35.0,
-      topics: [
-        { id: "n1", chapter_name: "Kinematics", topic_name: "Motion in One Dimension", weightage_percent: 15.0, is_completed: true, completed_at: "2026-07-25T14:30:00Z" },
-        { id: "n2", chapter_name: "Kinematics", topic_name: "Projectiles & Vectors", weightage_percent: 20.0, is_completed: true, completed_at: "2026-07-27T11:15:00Z" },
-        { id: "n3", chapter_name: "Thermodynamics", topic_name: "First Law of Thermodynamics", weightage_percent: 25.0, is_completed: false }
-      ]
-    };
-  };
-
-  const currentP = progressData || getDemoProgress(selectedSubject);
+  const currentP = progressData;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -118,16 +100,20 @@ function PortionTrackerContent() {
             onChange={(e) => setSelectedSubject(e.target.value)}
             className="bg-transparent text-amber-300 font-semibold focus:outline-none cursor-pointer"
           >
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id} className="bg-gray-50 text-gray-800">
-                {s.code} - {s.name}
-              </option>
+            {subjects.map(s => (
+              <option key={s.id} value={s.id} className="text-brand-black">{s.code} - {s.name}</option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Visual Progress Gauge Bar & Metric Cards */}
+      {!currentP ? (
+        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-12 text-center flex flex-col items-center">
+           <BookOpen className="w-12 h-12 text-gray-300 mb-4" />
+           <h3 className="text-lg font-semibold text-gray-800">No Portion Data</h3>
+           <p className="text-sm text-gray-500 mt-2">There is no portion tracking data available for this subject.</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Circular Progress Gauge Card */}
         <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-6 flex flex-col justify-between">
@@ -166,7 +152,7 @@ function PortionTrackerContent() {
                 />
               </svg>
               <div className="absolute text-center">
-                <span className="text-3xl font-extrabold text-brand-black">{currentP.completion_percentage}%</span>
+                <span className="text-3xl font-extrabold text-brand-black">{currentP.completion_percentage.toFixed(0)}%</span>
                 <p className="text-[10px] text-gray-600 font-medium">Completed</p>
               </div>
             </div>
@@ -234,6 +220,7 @@ function PortionTrackerContent() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

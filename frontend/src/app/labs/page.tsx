@@ -66,60 +66,17 @@ export default function LabsPage() {
 
   const fetchLabs = async () => {
     try {
-      const res = await api.get("/labs/assignments");
-      if (res.data && res.data.length > 0) {
-        setLabs(res.data);
-      } else {
-        setLabs(getDemoLabs());
-      }
+      const res = await api.get("/labs/assignments/class/all"); // Assuming 'all' or no ID fetches all for the user
+      setLabs(res.data || []);
     } catch (e) {
-      setLabs(getDemoLabs());
+      console.error("Failed to fetch labs", e);
+      setLabs([]);
     }
   };
 
   useEffect(() => {
     fetchLabs();
   }, []);
-
-  const getDemoLabs = (): LabAssignment[] => [
-    {
-      id: "lab-1",
-      title: "Lab 01: Python Binary Search Tree Implementation",
-      subject: "Computer Science",
-      grade: "11-A",
-      description: "Implement BST operations in Python including insert, delete, and level-order traversal.",
-      due_date: "2026-08-10T23:59:00Z",
-      status: "graded",
-      submitted_at: "2026-08-04T14:20:00Z",
-      grade_score: 95.0,
-      feedback: "Clean implementation with O(log n) average complexity benchmarks.",
-      total_submissions: 28,
-      total_students: 30,
-    },
-    {
-      id: "lab-2",
-      title: "Lab 02: Verification of Ohm's Law & Circuit Analysis",
-      subject: "Physics",
-      grade: "10-A",
-      description: "Measure V-I characteristic curves and compute internal resistance.",
-      due_date: "2026-08-05T18:00:00Z",
-      status: "submitted",
-      submitted_at: "2026-08-05T16:10:00Z",
-      total_submissions: 29,
-      total_students: 30,
-    },
-    {
-      id: "lab-3",
-      title: "Lab 03: Acid-Base Titration & pH Measurement",
-      subject: "Chemistry",
-      grade: "12-A",
-      description: "Standardize NaOH solution using potassium hydrogen phthalate (KHP).",
-      due_date: "2026-08-14T17:00:00Z",
-      status: "not_submitted",
-      total_submissions: 18,
-      total_students: 32,
-    }
-  ];
 
   const handleUploadSubmission = async (e: React.FormEvent) => {
     e.preventDefault();
