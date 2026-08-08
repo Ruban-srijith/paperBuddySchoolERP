@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Users, Search, GraduationCap, X, Check, UserPlus, Shield, Loader2, ListOrdered, CheckSquare, Plus, UsersRound } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore } from '@/store/authStore';
@@ -167,8 +168,8 @@ function ClassRosterContent() {
                 onClick={() => setSelectedClassId(cls.id)}
                 className={`w-full text-left p-3 rounded-xl border transition-all ${
                   selectedClassId === cls.id
-                    ? 'bg-fuchsia-600/20 border-fuchsia-500/50 text-fuchsia-200'
-                    : 'bg-gray-50/50 border-gray-200 hover:border-gray-200 text-gray-600 hover:bg-gray-100/50'
+                    ? 'bg-fuchsia-100 border-fuchsia-400 text-fuchsia-900 shadow-sm'
+                    : 'bg-gray-50/50 border-gray-200 hover:border-gray-300 text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 <div className="font-semibold text-sm">Grade {cls.grade} - {cls.section}</div>
@@ -202,7 +203,7 @@ function ClassRosterContent() {
                 
                 <button
                   onClick={() => setShowAddStudentsModal(true)}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-brand-black text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-lg shadow-fuchsia-500/20 transition-all"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 shadow-lg shadow-fuchsia-500/20 transition-all"
                 >
                   <UserPlus className="w-4 h-4" /> Add Students
                 </button>
@@ -257,8 +258,8 @@ function ClassRosterContent() {
       </div>
 
       {/* Add Students Modal */}
-      {showAddStudentsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      {showAddStudentsModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm w-full max-w-2xl h-[70vh] flex flex-col rounded-3xl shadow-2xl relative border border-gray-200 animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <div>
@@ -274,7 +275,7 @@ function ClassRosterContent() {
               {unassignedStudents.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <CheckSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p>All students have been assigned to a class.</p>
+                  <p>No unassigned students found.</p>
                 </div>
               ) : (
                 unassignedStudents.map(student => {
@@ -289,14 +290,14 @@ function ClassRosterContent() {
                         setSelectedStudentIds(newSet);
                       }}
                       className={`flex items-center gap-4 p-3 rounded-xl border cursor-pointer transition-all ${
-                        isSelected ? 'bg-fuchsia-600/20 border-fuchsia-500/50' : 'bg-gray-50/40 border-gray-200 hover:bg-gray-100/60'
+                        isSelected ? 'bg-fuchsia-100 border-fuchsia-400 shadow-sm' : 'bg-gray-50/40 border-gray-200 hover:bg-gray-100'
                       }`}
                     >
                       <div className={`w-5 h-5 rounded flex items-center justify-center border ${isSelected ? 'bg-fuchsia-500 border-fuchsia-400' : 'border-gray-600'}`}>
                         {isSelected && <Check className="w-3 h-3 text-brand-black" />}
                       </div>
                       <div>
-                        <div className={`text-sm font-semibold ${isSelected ? 'text-fuchsia-200' : 'text-gray-700'}`}>{student.full_name}</div>
+                        <div className={`text-sm font-semibold ${isSelected ? 'text-fuchsia-900' : 'text-gray-700'}`}>{student.full_name}</div>
                         <div className="text-[10px] text-gray-500">ADM: {student.admission_number}</div>
                       </div>
                     </div>
@@ -310,18 +311,19 @@ function ClassRosterContent() {
               <button 
                 onClick={handleBulkAssignStudents}
                 disabled={selectedStudentIds.size === 0}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-brand-black text-sm font-semibold shadow-lg shadow-fuchsia-500/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:shadow-none"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white text-sm font-semibold shadow-lg shadow-fuchsia-500/20 hover:opacity-90 transition-all disabled:opacity-50 disabled:shadow-none"
               >
                 Assign to Class
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Assign Teacher Modal */}
-      {showTeacherModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      {showTeacherModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm w-full max-w-md p-6 rounded-3xl shadow-2xl relative border border-gray-200 animate-in zoom-in-95 duration-200">
             <button 
               onClick={() => setShowTeacherModal(false)}
@@ -351,13 +353,14 @@ function ClassRosterContent() {
               <button
                 onClick={handleAssignTeacher}
                 disabled={!selectedTeacherId}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-brand-black font-bold shadow-lg shadow-fuchsia-500/25 hover:opacity-90 transition-all disabled:opacity-50 mt-4"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 text-white font-bold shadow-lg shadow-fuchsia-500/25 hover:opacity-90 transition-all disabled:opacity-50 mt-4"
               >
                 Assign Teacher
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
