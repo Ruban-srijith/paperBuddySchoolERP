@@ -161,9 +161,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex flex-col justify-center whitespace-nowrap">
               <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue">PaperBuddy</span>
-              <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue font-medium w-fit">
-                v2.5 Multi-Role
-              </span>
             </div>
             </Link>
           </motion.div>
