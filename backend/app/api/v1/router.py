@@ -4,12 +4,13 @@ from app.api.v1 import (
     portion, labs, emails, mentorship, fees, approvals, substitutions, parent, ai,
     calendar, approvals_ext, academics, mongodb_status, classes, classrooms,
     finance_fees, finance_payroll, class_teacher, finance_core, warden_core, librarian_core, scans,
-    transport
+    transport, schools
 )
 
 api_router = APIRouter()
 
 # Authentication & Core Admin Modules
+api_router.include_router(schools.router)
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
 api_router.include_router(students.router)

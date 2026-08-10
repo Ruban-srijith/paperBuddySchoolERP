@@ -112,13 +112,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }, [checkAuth]);
 
   useEffect(() => {
-    if (hasChecked && pathname !== '/login' && pathname !== '/' && !isAuthenticated) {
+    if (hasChecked && pathname !== '/login' && pathname !== '/' && pathname !== '/register' && !isAuthenticated) {
       router.push('/login');
     }
   }, [pathname, isAuthenticated, hasChecked, router]);
 
-  // Don't show shell on login page or landing page
-  if (pathname === '/login' || pathname === '/') {
+  // Don't show shell on public pages
+  if (pathname === '/login' || pathname === '/' || pathname === '/register') {
     return <>{children}</>;
   }
 

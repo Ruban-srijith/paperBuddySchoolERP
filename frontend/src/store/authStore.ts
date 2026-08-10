@@ -25,6 +25,7 @@ export interface AuthUser {
   email: string;
   full_name: string;
   role: UserRole;
+  school_id?: string | null;
   department_id?: string | null;
   assigned_grade?: string | null;
   profile_picture?: string | null;
@@ -312,6 +313,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email: data.email,
         full_name: data.full_name,
         role: data.role as UserRole,
+        school_id: data.school_id,
         department_id: data.department_id,
         assigned_grade: data.assigned_grade,
       };
@@ -377,6 +379,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               email: res.data.email,
               full_name: res.data.full_name,
               role: res.data.role,
+              school_id: res.data.school_id,
               department_id: res.data.department_id,
               assigned_grade: res.data.assigned_grade,
             };
@@ -406,6 +409,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email: res.data.email,
         full_name: res.data.full_name,
         role: res.data.role,
+        school_id: res.data.school_id,
         department_id: res.data.department_id,
         assigned_grade: res.data.assigned_grade,
       };

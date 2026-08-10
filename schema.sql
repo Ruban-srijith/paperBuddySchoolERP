@@ -1,10 +1,23 @@
 -- ============================================================
--- SCHOOL MANAGEMENT SYSTEM — POSTGRESQL SCHEMA (v2)
+-- SCHOOL MANAGEMENT SYSTEM — POSTGRESQL SCHEMA (v2 Multi-Tenant)
 -- Fixes vs. draft: conflict-free timetabling, lab_submissions,
--- classrooms, indexes, email status/dedup, auto-completion trigger
+-- classrooms, indexes, email status/dedup, auto-completion trigger,
+-- Multi-tenancy support (schools table and school_id FKs)
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ------------------------------------------------------------
+-- 0. SCHOOLS (Multi-Tenancy)
+-- ------------------------------------------------------------
+CREATE TABLE schools (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    address TEXT,
+    contact_email VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ------------------------------------------------------------
 -- 1. USERS & ROLES
@@ -13,6 +26,7 @@ CREATE TYPE user_role AS ENUM ('admin', 'teacher', 'student');
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     email VARCHAR(255) UNIQUE NOT NULL,
     full_name VARCHAR(100) NOT NULL,
     role user_role NOT NULL DEFAULT 'student',
@@ -21,30 +35,35 @@ CREATE TABLE users (
 );
 
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_school ON users(school_id);
 
 -- ------------------------------------------------------------
 -- 2. CLASSES, SUBJECTS & CLASSROOMS
 -- ------------------------------------------------------------
 CREATE TABLE classes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     grade VARCHAR(20) NOT NULL,
     section VARCHAR(10) NOT NULL,
-    UNIQUE(grade, section)
+    UNIQUE(school_id, grade, section)
 );
 
 CREATE TABLE subjects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    code VARCHAR(20) UNIQUE NOT NULL,
-    name VARCHAR(100) NOT NULL
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
+    code VARCHAR(20) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    UNIQUE(school_id, code)
 );
 
--- NEW: was referenced in the original architecture diagram but never defined.
 -- Needed to detect room-level double-booking, not just teacher/class clashes.
 CREATE TABLE classrooms (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(50) UNIQUE NOT NULL,     -- e.g. 'Room 204', 'Chem Lab 1'
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
+    name VARCHAR(50) NOT NULL,     -- e.g. 'Room 204', 'Chem Lab 1'
     capacity INT,
-    is_lab BOOLEAN DEFAULT FALSE
+    is_lab BOOLEAN DEFAULT FALSE,
+    UNIQUE(school_id, name)
 );
 
 -- ------------------------------------------------------------
@@ -52,6 +71,7 @@ CREATE TABLE classrooms (
 -- ------------------------------------------------------------
 CREATE TABLE syllabus_nodes (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
     chapter_name VARCHAR(150) NOT NULL,
     topic_name VARCHAR(200) NOT NULL,
@@ -62,12 +82,14 @@ CREATE TABLE syllabus_nodes (
 );
 
 CREATE INDEX idx_syllabus_subject ON syllabus_nodes(subject_id);
+CREATE INDEX idx_syllabus_school ON syllabus_nodes(school_id);
 
 -- ------------------------------------------------------------
 -- 4. TIMETABLE — now actually conflict-free
 -- ------------------------------------------------------------
 CREATE TABLE timetables (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
     teacher_id UUID REFERENCES users(id) ON DELETE CASCADE,
     subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
@@ -85,6 +107,7 @@ CREATE TABLE timetables (
 
 CREATE INDEX idx_timetables_teacher ON timetables(teacher_id);
 CREATE INDEX idx_timetables_class ON timetables(class_id);
+CREATE INDEX idx_timetables_school ON timetables(school_id);
 
 -- ------------------------------------------------------------
 -- 5. ATTENDANCE
@@ -97,6 +120,7 @@ CREATE TYPE attendance_status AS ENUM ('present', 'absent', 'late');
 
 CREATE TABLE attendance (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     student_id UUID REFERENCES users(id) ON DELETE CASCADE,
     class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
     marked_by UUID REFERENCES users(id) ON DELETE SET NULL, -- teacher who took attendance
@@ -107,12 +131,14 @@ CREATE TABLE attendance (
 
 CREATE INDEX idx_attendance_class_date ON attendance(class_id, date);
 CREATE INDEX idx_attendance_student ON attendance(student_id);
+CREATE INDEX idx_attendance_school ON attendance(school_id);
 
 -- ------------------------------------------------------------
 -- 6. DAILY WORK LOGS (feeds Smart Portion calculation)
 -- ------------------------------------------------------------
 CREATE TABLE daily_work_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     teacher_id UUID REFERENCES users(id) ON DELETE CASCADE,
     class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
     subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
@@ -124,6 +150,7 @@ CREATE TABLE daily_work_logs (
 
 CREATE INDEX idx_worklogs_teacher_date ON daily_work_logs(teacher_id, date);
 CREATE INDEX idx_worklogs_syllabus_node ON daily_work_logs(syllabus_node_id);
+CREATE INDEX idx_worklogs_school ON daily_work_logs(school_id);
 
 -- NEW: auto-mark a syllabus node complete the moment a teacher logs work
 -- against it. This is what actually drives the progress bar — without it,
@@ -152,6 +179,7 @@ EXECUTE FUNCTION mark_syllabus_node_completed();
 -- ------------------------------------------------------------
 CREATE TABLE lab_assignments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
     subject_id UUID REFERENCES subjects(id) ON DELETE CASCADE,
     teacher_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -163,6 +191,7 @@ CREATE TABLE lab_assignments (
 );
 
 CREATE INDEX idx_lab_assignments_class ON lab_assignments(class_id);
+CREATE INDEX idx_lab_assignments_school ON lab_assignments(school_id);
 
 -- NEW: was referenced in the architecture doc but never defined.
 -- Needed for the "submission status badge" feature to have anything to show.
@@ -170,6 +199,7 @@ CREATE TYPE submission_status AS ENUM ('not_submitted', 'submitted', 'late', 'gr
 
 CREATE TABLE lab_submissions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     lab_assignment_id UUID REFERENCES lab_assignments(id) ON DELETE CASCADE,
     student_id UUID REFERENCES users(id) ON DELETE CASCADE,
     file_url TEXT,
@@ -182,6 +212,7 @@ CREATE TABLE lab_submissions (
 
 CREATE INDEX idx_lab_submissions_assignment ON lab_submissions(lab_assignment_id);
 CREATE INDEX idx_lab_submissions_student ON lab_submissions(student_id);
+CREATE INDEX idx_lab_submissions_school ON lab_submissions(school_id);
 
 -- Auto-flag late submissions relative to the assignment's due_date
 CREATE OR REPLACE FUNCTION flag_late_submission()
@@ -211,6 +242,7 @@ CREATE TYPE email_status AS ENUM ('queued', 'sent', 'failed');
 
 CREATE TABLE email_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     recipient_email VARCHAR(255) NOT NULL,
     subject VARCHAR(200) NOT NULL,
     body_summary TEXT,
@@ -224,6 +256,7 @@ CREATE TABLE email_logs (
 );
 
 CREATE INDEX idx_email_logs_status ON email_logs(status);
+CREATE INDEX idx_email_logs_school ON email_logs(school_id);
 
 -- ============================================================
 -- END OF SCHEMA
