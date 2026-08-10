@@ -102,17 +102,22 @@ export default function LandingPage() {
           <a href="#platform" className="hover:text-brand-blue transition-colors">Platform</a>
         </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 flex items-center gap-3">
             {isAuthenticated ? (
               <Link href="/dashboard" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gray-50 border border-gray-200 text-xs sm:text-sm font-bold text-brand-black hover:bg-gray-100 transition-all whitespace-nowrap overflow-hidden">
                 <span className="relative z-10">Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
               </Link>
             ) : (
-              <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-brand-blue text-white text-xs sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
-                <span className="relative z-10">Sign In</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <>
+                <Link href="/register" className="group relative hidden sm:inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gray-50 border border-gray-200 text-brand-black text-xs sm:text-sm font-bold hover:bg-gray-100 transition-all whitespace-nowrap">
+                  <span className="relative z-10">Register School</span>
+                </Link>
+                <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-brand-blue text-white text-xs sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
+                  <span className="relative z-10">Sign In</span>
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </>
             )}
           </div>
         </div>
@@ -154,14 +159,24 @@ export default function LandingPage() {
                   </motion.div>
                 </MagneticButton>
               ) : (
-                <MagneticButton>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Link href="/login" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
-                      Get Started Now
-                      <ArrowRight className="w-5 h-5" />
-                    </Link>
-                  </motion.div>
-                </MagneticButton>
+                <>
+                  <MagneticButton>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Link href="/register" className="px-8 py-4 rounded-full bg-brand-black text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+                        Register School
+                        <ArrowRight className="w-5 h-5" />
+                      </Link>
+                    </motion.div>
+                  </MagneticButton>
+                  <MagneticButton>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Link href="/login" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+                        Sign In
+                        <ArrowRight className="w-5 h-5" />
+                      </Link>
+                    </motion.div>
+                  </MagneticButton>
+                </>
               )}
               <MagneticButton>
                 <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href="#features" className="group px-8 py-4 rounded-full bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-bold text-lg text-brand-black transition-colors flex items-center gap-2 shadow-sm">
