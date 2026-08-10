@@ -10,6 +10,7 @@ import {
   Quote
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -64,9 +65,13 @@ function MagneticButton({ children, className }: { children: React.ReactNode, cl
 export default function LandingPage() {
   const { isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [showPreloader, setShowPreloader] = useState(true);
 
   useEffect(() => {
     setMounted(true);
+    // Hide preloader after 2.5 seconds
+    const timer = setTimeout(() => setShowPreloader(false), 2500);
+    return () => clearTimeout(timer);
   }, []);
 
   if (!mounted) return null;
@@ -74,6 +79,27 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-brand-black overflow-x-hidden selection:bg-brand-blue/20 font-sans">
       
+      {/* Lottie Preloader */}
+      {showPreloader && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
+          <div className="w-64 h-64 md:w-96 md:h-96">
+            <DotLottieReact
+              src="https://lottie.host/057444ae-9ed4-4565-9c62-0342d6851089/8qWSdLzTv5.lottie"
+              loop
+              autoplay
+            />
+          </div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-4 text-xl font-bold text-brand-blue tracking-tight"
+          >
+            PaperBuddy
+          </motion.h2>
+        </div>
+      )}
+
       {/* Navbar */}
       <motion.nav 
         initial={{ y: -100, opacity: 0 }}
@@ -109,15 +135,10 @@ export default function LandingPage() {
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
               </Link>
             ) : (
-              <>
-                <Link href="/register" className="group relative hidden sm:inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gray-50 border border-gray-200 text-brand-black text-xs sm:text-sm font-bold hover:bg-gray-100 transition-all whitespace-nowrap">
-                  <span className="relative z-10">Register School</span>
-                </Link>
-                <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-brand-blue text-white text-xs sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
-                  <span className="relative z-10">Sign In</span>
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </>
+              <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-brand-blue text-white text-xs sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
+                <span className="relative z-10">Sign In</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+              </Link>
             )}
           </div>
         </div>
@@ -159,24 +180,14 @@ export default function LandingPage() {
                   </motion.div>
                 </MagneticButton>
               ) : (
-                <>
-                  <MagneticButton>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Link href="/register" className="px-8 py-4 rounded-full bg-brand-black text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
-                        Register School
-                        <ArrowRight className="w-5 h-5" />
-                      </Link>
-                    </motion.div>
-                  </MagneticButton>
-                  <MagneticButton>
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Link href="/login" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
-                        Sign In
-                        <ArrowRight className="w-5 h-5" />
-                      </Link>
-                    </motion.div>
-                  </MagneticButton>
-                </>
+                <MagneticButton>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link href="/login" className="px-8 py-4 rounded-full bg-brand-blue text-white font-bold text-lg shadow-lg hover:shadow-xl transition-shadow flex items-center gap-3">
+                      Sign In
+                      <ArrowRight className="w-5 h-5" />
+                    </Link>
+                  </motion.div>
+                </MagneticButton>
               )}
               <MagneticButton>
                 <motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} href="#features" className="group px-8 py-4 rounded-full bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 font-bold text-lg text-brand-black transition-colors flex items-center gap-2 shadow-sm">
@@ -397,6 +408,36 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Platform Modules Section */}
+        <section id="platform" className="py-32 px-4 max-w-7xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16 max-w-3xl mx-auto"
+          >
+            <h2 className="text-3xl md:text-5xl font-extrabold text-brand-black mb-6">A Complete <span className="text-brand-blue">Platform</span></h2>
+            <p className="text-gray-500 font-medium text-lg">Every module you need to run your institution, seamlessly talking to each other in real-time.</p>
+          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+             {['Academics', 'Finance & Fees', 'HR & Payroll', 'Library', 'Transport'].map((module, i) => (
+               <motion.div 
+                 key={i}
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true }}
+                 transition={{ delay: i * 0.1 }}
+                 whileHover={{ y: -5 }}
+                 className="bg-white border border-gray-200 p-6 rounded-2xl text-center shadow-sm hover:shadow-md transition-all cursor-pointer group"
+               >
+                 <div className="w-12 h-12 bg-brand-blue/5 group-hover:bg-brand-blue/10 rounded-xl flex items-center justify-center mx-auto mb-4 transition-colors">
+                    <CheckCircle2 className="w-6 h-6 text-brand-blue" />
+                 </div>
+                 <h4 className="font-bold text-brand-black text-sm">{module}</h4>
+               </motion.div>
+             ))}
+          </div>
+        </section>
         {/* New Testimonials Section */}
         <section id="testimonials" className="py-32 px-4 bg-gray-50 border-y border-gray-200">
           <div className="max-w-7xl mx-auto">

@@ -9,6 +9,12 @@ import uuid
 
 router = APIRouter(prefix="/schools", tags=["Schools"])
 
+@router.get("", response_model=list[SchoolResponse])
+async def get_schools(db: AsyncSession = Depends(get_db)):
+    """Get a list of all registered schools."""
+    result = await db.execute(select(School))
+    return result.scalars().all()
+
 @router.post("/register", response_model=SchoolResponse, status_code=status.HTTP_201_CREATED)
 async def register_school(req: SchoolRegister, db: AsyncSession = Depends(get_db)):
     """Register a new school and its first admin user."""

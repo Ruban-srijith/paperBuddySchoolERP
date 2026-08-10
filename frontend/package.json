@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@lottiefiles/dotlottie-react": "^0.19.13",
     "axios": "^1.6.7",
     "clsx": "^2.1.0",
     "framer-motion": "^13.0.0",
