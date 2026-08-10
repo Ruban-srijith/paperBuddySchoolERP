@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.db.database import get_db
-from app.db.models import User, UserRole, Department
+from app.db.models import User, UserRole, Department, Student
 from app.core.auth import (
     hash_password, get_current_user, require_role
 )
@@ -31,6 +31,11 @@ def _user_to_response(user: User) -> dict:
         "department_id": user.department_id,
         "department_name": user.department.name if user.department else None,
         "assigned_grade": user.assigned_grade,
+        "phone": user.phone,
+        "roll_number": user.roll_number,
+        "admission_number": user.admission_number,
+        "age": user.age,
+        "profile_picture": getattr(user, 'profile_picture', None),
         "is_active": user.is_active,
         "created_at": user.created_at,
     }
@@ -42,7 +47,7 @@ async def list_users(
     department_id: Optional[str] = Query(None, description="Filter by department"),
     grade: Optional[str] = Query(None, description="Filter by assigned grade"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN, UserRole.DEPT_HEAD)),
 ):
     """List all users with optional filtering."""
     query = select(User).options(selectinload(User.department))
@@ -71,7 +76,7 @@ async def list_users(
 async def create_user(
     req: UserCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Create a new user with role assignment (Admin only)."""
     try:
@@ -95,8 +100,23 @@ async def create_user(
         password_hash=hash_password(req.password),
         department_id=req.department_id,
         assigned_grade=req.assigned_grade,
+        phone=req.phone,
+        roll_number=req.roll_number,
+        admission_number=req.admission_number,
+        age=req.age,
     )
     db.add(new_user)
+    
+    if role_enum == UserRole.STUDENT:
+        new_student = Student(
+            id=str(uuid.uuid4()),
+            user_id=new_user.id,
+            admission_number=req.admission_number or f"ADM-{new_user.id[:8].upper()}",
+            full_name=req.full_name,
+            class_id=None,
+        )
+        db.add(new_student)
+        
     await db.commit()
 
     # Re-fetch with relationships
@@ -113,7 +133,7 @@ async def update_user(
     user_id: str,
     req: UserUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Update user profile & role (Admin only)."""
     result = await db.execute(select(User).where(User.id == user_id))
@@ -133,6 +153,16 @@ async def update_user(
         user.department_id = req.department_id
     if req.assigned_grade is not None:
         user.assigned_grade = req.assigned_grade
+    if req.phone is not None:
+        user.phone = req.phone
+    if req.roll_number is not None:
+        user.roll_number = req.roll_number
+    if req.admission_number is not None:
+        user.admission_number = req.admission_number
+    if req.age is not None:
+        user.age = req.age
+    if req.profile_picture is not None:
+        user.profile_picture = req.profile_picture
     if req.is_active is not None:
         user.is_active = req.is_active
 

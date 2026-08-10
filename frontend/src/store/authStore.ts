@@ -14,7 +14,11 @@ export type UserRole =
   | 'teacher' 
   | 'mentor' 
   | 'student'
-  | 'parent';
+  | 'parent'
+  | 'finance'
+  | 'warden'
+  | 'librarian'
+  | 'transport';
 
 export interface AuthUser {
   id: string;
@@ -23,6 +27,7 @@ export interface AuthUser {
   role: UserRole;
   department_id?: string | null;
   assigned_grade?: string | null;
+  profile_picture?: string | null;
 }
 
 interface AuthState {
@@ -36,26 +41,31 @@ interface AuthState {
   logout: () => void;
   getAuthHeaders: () => Record<string, string>;
   checkAuth: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 // Role display names for UI
 export const ROLE_LABELS: Record<UserRole, string> = {
-  super_admin: 'Super Admin',
+  super_admin: 'Super Admin (Correspondent)',
   correspondent: 'Correspondent',
-  admin: 'Admin',
+  admin: 'Admin (Principal)',
   principal: 'Principal',
-  vice_principal: 'Vice Principal',
-  dean: 'Dean',
-  dept_head: 'Dept Head',
+  vice_principal: 'Sub-admin (Vice-Principal)',
+  dean: 'Dean of Academics',
+  dept_head: 'Head of Department',
   teacher: 'Teacher',
   mentor: 'Mentor',
   student: 'Student',
   parent: 'Parent',
+  finance: 'Finance Manager',
+  warden: 'Hostel Warden',
+  librarian: 'Chief Librarian',
+  transport: 'Transport Admin',
 };
 
 // Role colors for badges
 export const ROLE_COLORS: Record<UserRole, string> = {
-  super_admin: 'from-red-500 to-orange-500',
+  super_admin: 'from-red-500 to-amber-500',
   correspondent: 'from-amber-500 to-red-500',
   admin: 'from-indigo-500 to-purple-500',
   principal: 'from-amber-500 to-yellow-500',
@@ -65,29 +75,223 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   teacher: 'from-emerald-500 to-green-500',
   mentor: 'from-violet-500 to-purple-500',
   student: 'from-sky-500 to-blue-500',
-  parent: 'from-emerald-500 to-teal-500',
+  parent: 'from-pink-500 to-rose-500',
+  finance: 'from-emerald-500 to-teal-500',
+  warden: 'from-fuchsia-500 to-purple-500',
+  librarian: 'from-sky-500 to-indigo-500',
+  transport: 'from-blue-400 to-indigo-500',
 };
 
 // Navigation items per role
-export type NavItem = {
-  href: string;
-  label: string;
-  icon: string; // lucide icon name
-  badge?: string;
-};
-
 export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
-  super_admin:   ['dashboard', 'users', 'departments', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  correspondent: ['dashboard', 'users', 'departments', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  admin:         ['dashboard', 'users', 'departments', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  principal:     ['dashboard', 'ocr', 'timetable', 'attendance', 'portion', 'labs', 'emails', 'mentorship', 'fees', 'approvals'],
-  vice_principal:['dashboard', 'timetable', 'substitutions', 'attendance', 'portion', 'labs'],
-  dean:          ['dashboard', 'timetable', 'attendance', 'portion', 'labs', 'mentorship'],
-  dept_head:     ['dashboard', 'timetable', 'attendance', 'portion', 'labs', 'mentorship'],
-  teacher:       ['dashboard', 'timetable', 'attendance', 'portion', 'labs'],
-  mentor:        ['dashboard', 'mentorship', 'attendance', 'portion'],
-  student:       ['dashboard', 'timetable', 'attendance', 'portion', 'labs', 'fees'],
-  parent:        ['parent_portal'],
+  super_admin: [
+    'dashboard',
+    'salary_approvals',
+    'event_approvals',
+    'revenue',
+    'toppers',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'classes',
+    'assign_students',
+    'class_allotments',
+    'ocr'
+  ],
+  correspondent: [
+    'dashboard',
+    'salary_approvals',
+    'event_approvals',
+    'revenue',
+    'toppers',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'classes',
+    'assign_students',
+    'class_roster',
+    'class_allotments',
+    'classroom_allocation',
+    'ocr'
+  ],
+  admin: [
+    'dashboard',
+    'pending_approvals',
+    'workload',
+    'staff_management',
+    'reports',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'classes',
+    'assign_students',
+    'class_roster',
+    'class_allotments',
+    'ocr'
+  ],
+  principal: [
+    'dashboard',
+    'pending_approvals',
+    'workload',
+    'staff_management',
+    'reports',
+    'calendar',
+    'timetable',
+    'attendance',
+    'mentorship',
+    'fees',
+    'emails',
+    'users',
+    'departments',
+    'classes',
+    'assign_students',
+    'class_roster',
+    'class_allotments',
+    'classroom_allocation',
+    'ocr'
+  ],
+  vice_principal: [
+    'dashboard',
+    'timetable',
+    'classroom_allocation',
+    'workload',
+    'exams',
+    'calendar',
+    'reports',
+    'labs',
+    'substitutions',
+    'attendance',
+    'portion',
+    'users',
+    'departments',
+    'classes',
+    'assign_students',
+    'class_roster',
+    'class_allotments',
+    'ocr'
+  ],
+  dean: [
+    'dashboard',
+    'timetable',
+    'classroom_allocation',
+    'workload',
+    'exams',
+    'calendar',
+    'reports',
+    'labs',
+    'attendance',
+    'portion',
+    'ocr'
+  ],
+  dept_head: [
+    'dashboard',
+    'timetable',
+    'workload',
+    'calendar',
+    'labs',
+    'attendance',
+    'portion',
+    'ocr'
+  ],
+  teacher: [
+    'dashboard',
+    'my_class',
+    'class-fees',
+    'teacher-requests',
+    'teacher_leave',
+    'teacher_library',
+    'attendance',
+    'timetable',
+    'homework',
+    'assignments',
+    'labs',
+    'portion',
+    'calendar',
+    'doubts',
+    'leave_apply',
+    'announcements',
+    'departments',
+    'ocr'
+  ],
+  mentor: [
+    'dashboard',
+    'mentorship',
+    'attendance',
+    'portion',
+    'ocr'
+  ],
+  student: [
+    'dashboard',
+    'timetable',
+    'attendance',
+    'homework',
+    'assignments',
+    'exam_schedule',
+    'portion',
+    'labs',
+    'calendar',
+    'queries',
+    'fees',
+    'student_settings',
+    'student_library',
+    'student_hostel',
+    'ocr'
+  ],
+  parent: [
+    'parent_portal',
+    'ocr'
+  ],
+  finance: [
+    'dashboard',
+    'finance_approvals',
+    'budgets',
+    'vendors',
+    'scholarships',
+    'fee-config',
+    'fees',
+    'expenses',
+    'payroll',
+    'reports'
+  ],
+  warden: [
+    'dashboard',
+    'hostel_rooms',
+    'outpasses',
+    'hostel_attendance',
+    'mess',
+    'warden-finance',
+    'warden_incidents',
+    'warden_visitors'
+  ],
+  librarian: [
+    'librarian_dashboard',
+    'librarian_inventory',
+    'librarian_issues',
+    'librarian_digital',
+    'librarian_requests'
+  ],
+  transport: [
+    'transport_dashboard',
+    'transport_fleet',
+    'transport_routes',
+    'transport_staff',
+    'transport_allocations'
+  ]
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -163,12 +367,54 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         try {
           const user = JSON.parse(userStr) as AuthUser;
           set({ token, user, isAuthenticated: true });
+          
+          // Background refresh to get latest profile (e.g. assigned_grade updates)
+          axios.get(`${API_BASE}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(res => {
+            const freshUser: AuthUser = {
+              id: res.data.id,
+              email: res.data.email,
+              full_name: res.data.full_name,
+              role: res.data.role,
+              department_id: res.data.department_id,
+              assigned_grade: res.data.assigned_grade,
+            };
+            localStorage.setItem('pb_user', JSON.stringify(freshUser));
+            set({ user: freshUser });
+          }).catch(() => {
+             // Silently fail, keep local state
+          });
         } catch {
           set({ token: null, user: null, isAuthenticated: false });
         }
       } else {
         set({ token: null, user: null, isAuthenticated: false });
       }
+    }
+  },
+  
+  refreshUser: async () => {
+    const token = get().token;
+    if (!token) return;
+    try {
+      const res = await axios.get(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const freshUser: AuthUser = {
+        id: res.data.id,
+        email: res.data.email,
+        full_name: res.data.full_name,
+        role: res.data.role,
+        department_id: res.data.department_id,
+        assigned_grade: res.data.assigned_grade,
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pb_user', JSON.stringify(freshUser));
+      }
+      set({ user: freshUser });
+    } catch (err) {
+      console.error("Failed to refresh user profile", err);
     }
   },
 }));

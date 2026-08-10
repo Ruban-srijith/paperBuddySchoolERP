@@ -19,6 +19,7 @@ from app.schemas.auth import (
     LoginRequest, TokenResponse, RegisterRequest,
     UserProfileResponse, ChangePasswordRequest
 )
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -71,11 +72,17 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserProfileResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
+async def get_me(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Return the current authenticated user's profile."""
     dept_name = None
-    if current_user.department:
-        dept_name = current_user.department.name
+    if current_user.department_id:
+        dept_res = await db.execute(select(Department).where(Department.id == current_user.department_id))
+        dept = dept_res.scalar_one_or_none()
+        if dept:
+            dept_name = dept.name
 
     return UserProfileResponse(
         id=current_user.id,
@@ -85,9 +92,23 @@ async def get_me(current_user: User = Depends(get_current_user)):
         department_id=current_user.department_id,
         department_name=dept_name,
         assigned_grade=current_user.assigned_grade,
+        profile_picture=current_user.profile_picture,
         is_active=current_user.is_active,
         created_at=current_user.created_at,
     )
+
+class ProfilePictureUpdate(BaseModel):
+    profile_picture: str
+
+@router.patch("/me/profile-picture")
+async def update_profile_picture(
+    req: ProfilePictureUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    current_user.profile_picture = req.profile_picture
+    await db.commit()
+    return {"message": "Profile picture updated"}
 
 
 @router.post("/register", response_model=UserProfileResponse)

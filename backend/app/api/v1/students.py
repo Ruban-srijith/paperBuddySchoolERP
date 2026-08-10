@@ -16,7 +16,7 @@ from app.db.database import get_db
 from app.db.models import User, UserRole, Student, Class
 from app.core.auth import require_role, hash_password
 from app.schemas.students import (
-    BulkOnboardRangeRequest, BulkOnboardResponse
+    BulkOnboardRangeRequest, BulkOnboardResponse, StudentClassAssignment
 )
 
 router = APIRouter(prefix="/students", tags=["Student Management & Onboarding"])
@@ -239,7 +239,7 @@ async def bulk_onboard_students(
 async def list_students(
     class_id: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.TEACHER, UserRole.MENTOR)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT, UserRole.TEACHER, UserRole.MENTOR)),
 ):
     """List student profiles with optional class filtering."""
     query = select(Student).options(selectinload(Student.user), selectinload(Student.school_class))
@@ -264,3 +264,35 @@ async def list_students(
         }
         for s in students
     ]
+
+@router.put("/assign-class")
+async def assign_students_to_class(
+    req: StudentClassAssignment,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT)),
+):
+    """Bulk assign or unassign students to a specific class."""
+    query = select(Student).where(Student.id.in_(req.student_ids))
+    result = await db.execute(query)
+    students = result.scalars().all()
+
+    if not students:
+        raise HTTPException(status_code=404, detail="No students found matching the provided IDs")
+
+    target_grade = None
+    if req.class_id:
+        class_res = await db.execute(select(Class).where(Class.id == req.class_id))
+        class_obj = class_res.scalar_one_or_none()
+        if class_obj:
+            target_grade = class_obj.grade
+
+    for student in students:
+        student.class_id = req.class_id
+        if student.user_id:
+            user_res = await db.execute(select(User).where(User.id == student.user_id))
+            user_obj = user_res.scalar_one_or_none()
+            if user_obj:
+                user_obj.assigned_grade = target_grade
+
+    await db.commit()
+    return {"status": "success", "message": f"Updated class assignment for {len(students)} students", "updated_count": len(students)}
