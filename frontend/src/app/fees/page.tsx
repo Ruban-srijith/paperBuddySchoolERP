@@ -21,6 +21,16 @@ import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
 
+const loadRazorpay = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 interface ReceiptItem {
   id: string;
   student_id: string;
@@ -80,27 +90,62 @@ export default function FeesPage() {
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setPaying(true);
+
+    const resScript = await loadRazorpay();
+    if (!resScript) {
+      toast.error("Failed to load Razorpay SDK. Please check your connection.", "Error");
+      setPaying(false);
+      return;
+    }
+
     try {
-      const res = await api.post("/fees/pay", form);
-      toast.success(`Payment of ₹${form.amount.toLocaleString()} successful! Receipt: ${res.data?.receipt_number || "REC-2026-092"}`, "Fee Paid");
-      fetchReceipts();
-    } catch (err: any) {
-      toast.success(`Payment of ₹${form.amount.toLocaleString()} processed via Razorpay Sandbox!`, "Payment Successful");
-      const newRec: ReceiptItem = {
-        id: `rec-${Date.now()}`,
-        student_id: user?.id || "stu1",
-        student_name: user?.full_name || "Kishor Kumar",
-        grade: user?.assigned_grade || "10-A",
-        title: form.title,
-        category: form.category,
+      const orderRes = await api.post("/fees/create-order", {
         amount: form.amount,
-        payment_method: form.payment_method,
-        transaction_id: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
-        receipt_number: `PB-REC-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        status: "completed",
-        created_at: new Date().toISOString(),
+        currency: "INR"
+      });
+
+      const options = {
+        key: orderRes.data.key,
+        amount: orderRes.data.amount * 100,
+        currency: orderRes.data.currency,
+        name: "PaperBuddy ERP",
+        description: form.title,
+        order_id: orderRes.data.order_id,
+        handler: async function (response: any) {
+          try {
+             const verifyRes = await api.post("/fees/verify-signature", {
+               razorpay_order_id: response.razorpay_order_id,
+               razorpay_payment_id: response.razorpay_payment_id,
+               razorpay_signature: response.razorpay_signature,
+               title: form.title,
+               amount: form.amount,
+               payment_method: "Razorpay Checkout"
+             });
+             toast.success(`Payment successful! Receipt: ${verifyRes.data.receipt_number}`, "Fee Paid");
+             fetchReceipts();
+          } catch (verifyErr) {
+             toast.error("Payment verification failed on server", "Payment Error");
+          }
+        },
+        prefill: {
+          name: user?.full_name || "",
+          email: user?.email || "",
+          contact: "9999999999"
+        },
+        theme: {
+          color: "#0284c7"
+        }
       };
-      setReceipts(prev => [newRec, ...prev]);
+
+      const paymentObject = new (window as any).Razorpay(options);
+      
+      paymentObject.on('payment.failed', function (response: any) {
+          toast.error(`Payment failed: ${response.error.description}`, "Payment Error");
+      });
+
+      paymentObject.open();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to initialize payment", "Error");
     } finally {
       setPaying(false);
     }
