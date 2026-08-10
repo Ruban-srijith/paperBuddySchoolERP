@@ -22,6 +22,10 @@ class Settings(BaseSettings):
 
     # Default password for seeded users
     DEFAULT_PASSWORD: str = "school@123"
+
+    # Razorpay Keys
+    RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", "")
+    RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", "")
     
     class Config:
         env_file = ".env"
