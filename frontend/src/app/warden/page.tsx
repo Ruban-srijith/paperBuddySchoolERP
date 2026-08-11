@@ -34,10 +34,10 @@ export default function WardenDashboard() {
             <div className="text-3xl font-bold text-amber-400">12</div>
             <div className="text-xs text-gray-500 mt-2 flex items-center gap-1">Requires Approval</div>
           </div>
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-rose-900/50 bg-rose-900/10">
-            <div className="text-rose-400 text-sm font-medium mb-1">Active Incidents</div>
-            <div className="text-3xl font-bold text-brand-black">3</div>
-            <div className="text-xs text-rose-300 mt-2 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Action Required</div>
+          <div className="bg-rose-50 dark:bg-rose-950/30 rounded-[24px] border border-rose-200 dark:border-rose-800/50 shadow-sm p-5 transition-colors">
+            <div className="text-rose-700 dark:text-rose-300 text-sm font-semibold mb-1">Active Incidents</div>
+            <div className="text-3xl font-bold text-rose-900 dark:text-rose-100">3</div>
+            <div className="text-xs text-rose-600 dark:text-rose-400 mt-2 flex items-center gap-1"><AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-400" /> Action Required</div>
           </div>
         </div>
 

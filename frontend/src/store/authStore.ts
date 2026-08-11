@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 export type UserRole = 
   | 'super_admin' 
@@ -83,6 +83,7 @@ export const ROLE_COLORS: Record<UserRole, string> = {
 export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   super_admin: [
     'dashboard',
+    'admin_documents',
     'salary_approvals',
     'event_approvals',
     'revenue',
@@ -97,11 +98,11 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'departments',
     'classes',
     'assign_students',
-    'class_allotments',
-    'ocr'
+    'class_allotments'
   ],
   correspondent: [
     'dashboard',
+    'admin_documents',
     'salary_approvals',
     'event_approvals',
     'revenue',
@@ -118,11 +119,11 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'assign_students',
     'class_roster',
     'class_allotments',
-    'classroom_allocation',
-    'ocr'
+    'classroom_allocation'
   ],
   admin: [
     'dashboard',
+    'admin_documents',
     'pending_approvals',
     'workload',
     'staff_management',
@@ -138,11 +139,11 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'classes',
     'assign_students',
     'class_roster',
-    'class_allotments',
-    'ocr'
+    'class_allotments'
   ],
   principal: [
     'dashboard',
+    'admin_documents',
     'pending_approvals',
     'workload',
     'staff_management',
@@ -159,8 +160,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'assign_students',
     'class_roster',
     'class_allotments',
-    'classroom_allocation',
-    'ocr'
+    'classroom_allocation'
   ],
   vice_principal: [
     'dashboard',
@@ -179,8 +179,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'classes',
     'assign_students',
     'class_roster',
-    'class_allotments',
-    'ocr'
+    'class_allotments'
   ],
   dean: [
     'dashboard',
@@ -192,8 +191,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'reports',
     'labs',
     'attendance',
-    'portion',
-    'ocr'
+    'portion'
   ],
   dept_head: [
     'dashboard',
@@ -202,8 +200,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'calendar',
     'labs',
     'attendance',
-    'portion',
-    'ocr'
+    'portion'
   ],
   teacher: [
     'dashboard',
@@ -222,18 +219,17 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'doubts',
     'leave_apply',
     'announcements',
-    'departments',
-    'ocr'
+    'departments'
   ],
   mentor: [
     'dashboard',
     'mentorship',
     'attendance',
-    'portion',
-    'ocr'
+    'portion'
   ],
   student: [
     'dashboard',
+    'student_documents',
     'timetable',
     'attendance',
     'homework',
@@ -246,12 +242,10 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'fees',
     'student_settings',
     'student_library',
-    'student_hostel',
-    'ocr'
+    'student_hostel'
   ],
   parent: [
-    'parent_portal',
-    'ocr'
+    'parent_portal'
   ],
   finance: [
     'dashboard',

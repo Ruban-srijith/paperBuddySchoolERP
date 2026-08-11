@@ -15,6 +15,8 @@ from app.services.email_service import email_service
 router = APIRouter(prefix="/fees", tags=["Fee Payment Gateway & Receipts"])
 
 
+from app.db.models import FeeTransaction
+
 @router.post("/pay", response_model=FeePaymentResponse)
 async def process_fee_payment(
     req: FeePaymentCreate,
@@ -23,7 +25,7 @@ async def process_fee_payment(
 ):
     """
     Process student fee payment, save record into fee_payments table,
-    and trigger async email receipt notification with deduplication key.
+    record FeeTransaction to reduce ledger dues, and trigger async email receipt notification.
     """
     txn_id = f"TXN-2026-{uuid.uuid4().hex[:8].upper()}"
     receipt_no = f"RCP-2026-{uuid.uuid4().hex[:6].upper()}"
@@ -39,6 +41,19 @@ async def process_fee_payment(
         status="paid",
     )
     db.add(payment)
+
+    if req.fee_structure_id:
+        ft = FeeTransaction(
+            id=str(uuid.uuid4()),
+            student_id=current_user.id,
+            fee_structure_id=req.fee_structure_id,
+            amount_paid=req.amount,
+            payment_method=req.payment_method,
+            receipt_number=receipt_no,
+            processed_by=current_user.id
+        )
+        db.add(ft)
+
     await db.commit()
     await db.refresh(payment)
 

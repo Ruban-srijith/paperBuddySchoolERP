@@ -47,17 +47,20 @@ export default function FeesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
+  const [dues, setDues] = useState<any[]>([]);
+  const [selectedDue, setSelectedDue] = useState<any | null>(null);
   const [form, setForm] = useState({
     title: "Term 1 Tuition & Academic Fee",
     category: "Tuition",
     amount: 45000.0,
     payment_method: "Razorpay UPI",
+    fee_structure_id: "",
   });
 
-  const isManagement = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal'].includes(user.role);
+  const isManagement = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'finance'].includes(user.role);
   const isStudentOrParent = user && ['student', 'parent'].includes(user.role);
 
-  const fetchReceipts = async () => {
+  const fetchDuesAndReceipts = async () => {
     setLoading(true);
     try {
       const res = await api.get("/fees/receipts");
@@ -65,6 +68,27 @@ export default function FeesPage() {
         setReceipts(res.data);
       } else {
         setReceipts(getDemoReceipts());
+      }
+
+      if (user?.id) {
+        try {
+          const duesRes = await api.get(`/finance/fees/student/${user.id}/dues`);
+          if (duesRes.data && duesRes.data.length > 0) {
+            setDues(duesRes.data);
+            const firstPending = duesRes.data.find((d: any) => d.balance > 0);
+            if (firstPending) {
+              setSelectedDue(firstPending);
+              setForm(prev => ({
+                ...prev,
+                title: firstPending.title || `Grade 10-A ${firstPending.fee_type.toUpperCase()} Fee`,
+                amount: firstPending.balance,
+                fee_structure_id: firstPending.fee_structure_id
+              }));
+            }
+          }
+        } catch (e) {
+          console.log("No custom dues found.");
+        }
       }
     } catch (err) {
       setReceipts(getDemoReceipts());
@@ -74,16 +98,21 @@ export default function FeesPage() {
   };
 
   useEffect(() => {
-    fetchReceipts();
-  }, []);
+    fetchDuesAndReceipts();
+  }, [user?.id]);
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     setPaying(true);
     try {
-      const res = await api.post("/fees/pay", form);
+      const res = await api.post("/fees/pay", {
+        title: form.title,
+        amount: form.amount,
+        payment_method: form.payment_method,
+        fee_structure_id: selectedDue?.fee_structure_id
+      });
       toast.success(`Payment of ₹${form.amount.toLocaleString()} successful! Receipt: ${res.data?.receipt_number || "REC-2026-092"}`, "Fee Paid");
-      fetchReceipts();
+      fetchDuesAndReceipts();
     } catch (err: any) {
       toast.success(`Payment of ₹${form.amount.toLocaleString()} processed via Razorpay Sandbox!`, "Payment Successful");
       const newRec: ReceiptItem = {
@@ -232,59 +261,106 @@ export default function FeesPage() {
             STUDENT / PARENT ONLINE PAYMENT PORTAL
         ═══════════════════════════════════════════════════════ */}
         {isStudentOrParent && (
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-emerald-600" />
-              <span>Make Online Fee Payment</span>
-            </h2>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 p-6 shadow-sm space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+              <h2 className="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <span>Official Fee Payment Gateway (Read-Only Fixed Ledger)</span>
+              </h2>
+              <span className="text-xs px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold rounded-full border border-emerald-200 dark:border-emerald-800">
+                Verified School Dues
+              </span>
+            </div>
 
-            <form onSubmit={handlePay} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-              <div>
-                <label className="text-gray-700 font-semibold block mb-1">Fee Category</label>
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
-                >
-                  <option value="Tuition">Term 1 Tuition Fee</option>
-                  <option value="Transport">Bus Transport Fee</option>
-                  <option value="Hostel">Hostel & Boarding</option>
-                  <option value="Lab Kit">Laboratory & Exam Kit</option>
-                </select>
+            {/* Read-Only Itemized Dues Selection */}
+            {dues.length > 0 ? (
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block uppercase tracking-wider">
+                  Select Pending Due Item to Pay
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {dues.map((d: any) => (
+                    <button
+                      key={d.fee_structure_id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedDue(d);
+                        setForm(prev => ({
+                          ...prev,
+                          title: d.title || `Grade Fee (${d.fee_type.toUpperCase()})`,
+                          amount: d.balance,
+                          fee_structure_id: d.fee_structure_id
+                        }));
+                      }}
+                      className={`p-4 rounded-2xl border text-left transition-all flex justify-between items-center ${
+                        selectedDue?.fee_structure_id === d.fee_structure_id
+                          ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20"
+                          : "bg-gray-50/60 dark:bg-slate-800/40 border-gray-200 dark:border-slate-700 hover:border-gray-300"
+                      }`}
+                    >
+                      <div>
+                        <div className="font-bold text-sm text-gray-900 dark:text-slate-100">{d.title || d.fee_type.toUpperCase()}</div>
+                        <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                          Total: ₹{d.total_amount.toLocaleString()} {d.discount_applied > 0 && `(Discount: ₹${d.discount_applied})`}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-base text-emerald-700 dark:text-emerald-300">₹{d.balance.toLocaleString()}</div>
+                        <div className={`text-[10px] font-semibold uppercase ${d.balance > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600"}`}>
+                          {d.balance > 0 ? "Pending Due" : "Paid"}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
+            ) : (
+              <div className="p-6 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl text-center text-emerald-800 dark:text-emerald-200 text-sm font-medium">
+                ✅ All fee dues for this term have been fully cleared! No outstanding balance.
+              </div>
+            )}
 
+            <form onSubmit={handlePay} className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-2">
               <div>
-                <label className="text-gray-700 font-semibold block mb-1">Amount Due (₹)</label>
+                <label className="text-gray-700 dark:text-slate-300 font-semibold block mb-1">Fee Item Title</label>
                 <input
-                  type="number"
-                  value={form.amount}
-                  onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
-                  required
+                  type="text"
+                  value={form.title}
+                  readOnly={true}
+                  className="w-full px-3.5 py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100 font-medium cursor-not-allowed border border-gray-200 dark:border-slate-700"
                 />
               </div>
 
               <div>
-                <label className="text-gray-700 font-semibold block mb-1">Payment Method</label>
+                <label className="text-gray-700 dark:text-slate-300 font-semibold block mb-1">Fixed Due Amount (₹)</label>
+                <input
+                  type="number"
+                  value={form.amount}
+                  readOnly={true}
+                  className="w-full px-3.5 py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100 font-bold text-sm cursor-not-allowed border border-gray-200 dark:border-slate-700"
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-700 dark:text-slate-300 font-semibold block mb-1">Payment Method</label>
                 <select
                   value={form.payment_method}
                   onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                  className="w-full px-3.5 py-3 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 font-semibold border border-gray-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="Razorpay UPI">UPI (GPay / PhonePe / Paytm)</option>
-                  <option value="Credit Card">Credit / Debit Card</option>
-                  <option value="Net Banking">Net Banking</option>
+                  <option value="Razorpay UPI">Razorpay UPI / QR Code</option>
+                  <option value="Credit/Debit Card">Credit / Debit Card</option>
+                  <option value="Net Banking">Net Banking (All Indian Banks)</option>
                 </select>
               </div>
 
-              <div className="flex items-end">
+              <div className="sm:col-span-3 pt-2">
                 <button
                   type="submit"
-                  disabled={paying}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-brand-black font-semibold text-xs shadow-lg shadow-emerald-600/30 hover:opacity-95 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  disabled={paying || form.amount <= 0}
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-colors shadow-md flex items-center justify-center gap-2"
                 >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>{paying ? "Processing..." : `Pay ₹${form.amount.toLocaleString()}`}</span>
+                  {paying ? "Connecting to Payment Gateway..." : `Pay ₹${form.amount.toLocaleString()} Now via Gateway`}
                 </button>
               </div>
             </form>

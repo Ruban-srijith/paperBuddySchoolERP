@@ -403,25 +403,25 @@ export default function TimetablePage() {
             <span className="text-xs text-gray-600 font-mono">5 Working Days • 6 Daily Periods</span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-800">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
+              <thead className="bg-transparent text-gray-700 dark:text-slate-300 uppercase text-[10px] font-semibold border-b border-gray-200 dark:border-slate-800">
                 <tr>
-                  <th className="p-3.5 w-28 bg-gray-950/60">Day / Period</th>
+                  <th className="p-3.5 w-28 bg-transparent text-gray-800 dark:text-slate-200 border-r border-gray-200 dark:border-slate-800">Day / Period</th>
                   {TIME_SLOTS.slice(0, 6).map((time, idx) => (
-                    <th key={time} className="p-3.5 text-center min-w-[140px]">
+                    <th key={time} className="p-3.5 text-center min-w-[140px] bg-transparent">
                       <div>Period {idx + 1}</div>
-                      <div className="text-[9px] text-gray-500 font-mono normal-case">{time}</div>
+                      <div className="text-[9px] text-gray-500 dark:text-slate-400 font-mono normal-case">{time}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
                 {DAYS.map(day => {
                   const daySlots = schedule.filter(s => s.day_of_week === day);
                   return (
-                    <tr key={day} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="p-3.5 font-bold text-gray-700 bg-gray-950/40 border-r border-gray-200/60">
+                    <tr key={day} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="p-3.5 font-bold text-gray-800 dark:text-slate-200 bg-transparent border-r border-gray-200 dark:border-slate-800">
                         {day}
                       </td>
                       {TIME_SLOTS.slice(0, 6).map(slotTime => {
@@ -429,7 +429,7 @@ export default function TimetablePage() {
                         if (!slot) {
                           return (
                             <td key={slotTime} className="p-2 text-center">
-                              <div className="p-3 rounded-lg border border-dashed border-gray-200 text-gray-600 text-[11px]">
+                              <div className="p-3 rounded-lg border border-dashed border-gray-200 dark:border-slate-800 text-gray-400 dark:text-slate-500 text-[11px]">
                                 Free Slot
                               </div>
                             </td>
@@ -444,26 +444,30 @@ export default function TimetablePage() {
                               onClick={() => canEdit && setEditingSlot(slot)}
                               className={`p-3 rounded-xl border transition-all space-y-1 relative group ${
                                 isLab
-                                  ? "bg-purple-950/20 border-purple-800/40 hover:border-purple-500/60"
-                                  : "bg-indigo-950/20 border-indigo-800/40 hover:border-indigo-500/60"
+                                  ? "bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800/50 hover:border-purple-400"
+                                  : "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-400"
                               } ${canEdit ? "cursor-pointer hover:scale-[1.02]" : ""}`}
                             >
                               <div className="flex items-center justify-between">
-                                <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${isLab ? "bg-purple-500/20 text-purple-300" : "bg-indigo-500/20 text-indigo-300"}`}>
+                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                                  isLab 
+                                    ? "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300" 
+                                    : "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"
+                                }`}>
                                   {viewMode === "by_teacher" ? slot.class_name : slot.subject_name}
                                 </span>
                                 {canEdit && (
-                                  <Edit3 className="w-3 h-3 text-gray-500 group-hover:text-indigo-300 transition-colors opacity-0 group-hover:opacity-100" />
+                                  <Edit3 className="w-3 h-3 text-gray-400 dark:text-slate-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors opacity-0 group-hover:opacity-100" />
                                 )}
                               </div>
 
-                              <div className="text-xs font-bold text-brand-black truncate">
+                              <div className="text-xs font-bold text-gray-900 dark:text-slate-100 truncate">
                                 {viewMode === "by_teacher" ? slot.subject_name : slot.teacher_name}
                               </div>
 
-                              <div className="flex items-center justify-between text-[10px] text-gray-600">
+                              <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-slate-400">
                                 <span className="flex items-center gap-1">
-                                  <MapPin className="w-2.5 h-2.5 text-cyan-600" />
+                                  <MapPin className="w-2.5 h-2.5 text-cyan-600 dark:text-cyan-400" />
                                   {slot.classroom_name}
                                 </span>
                               </div>

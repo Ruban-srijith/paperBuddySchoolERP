@@ -72,11 +72,16 @@ export default function LoginPage() {
   };
 
   const quickLogins = [
+    { label: 'Super Admin', email: 'superadmin@school.edu' },
+    { label: 'Admin', email: 'admin@school.edu' },
     { label: 'Correspondent', email: 'correspondent@school.edu' },
     { label: 'Principal', email: 'principal@school.edu' },
     { label: 'Vice-Principal', email: 'vp@school.edu' },
+    { label: 'Dean', email: 'dean.science@school.edu' },
+    { label: 'Dept Head', email: 'head.physics@school.edu' },
     { label: 'Teacher', email: 'sarah.connor@school.edu' },
     { label: 'Student', email: 'kishor.k@school.edu' },
+    { label: 'Parent', email: 'parent.kishor@school.edu' },
     { label: 'Finance', email: 'finance@school.edu' },
     { label: 'Warden', email: 'warden@school.edu' },
     { label: 'Librarian', email: 'librarian@school.edu' },
@@ -84,69 +89,69 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8F9FD] p-4 font-sans overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8F9FD] dark:bg-[#0b0f19] p-4 font-sans overflow-hidden transition-colors duration-300">
       
       {/* Background Animated Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 150, repeat: Infinity, ease: "linear" }}
-          className="absolute -top-[30%] -right-[10%] w-[800px] h-[800px] rounded-full bg-brand-blue/5 blur-3xl"
+          className="absolute -top-[30%] -right-[10%] w-[800px] h-[800px] rounded-full bg-brand-blue/5 dark:bg-brand-blue/10 blur-3xl"
         />
         <motion.div 
           animate={{ rotate: -360 }}
           transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
-          className="absolute -bottom-[20%] -left-[10%] w-[600px] h-[600px] rounded-full bg-indigo-500/5 blur-3xl"
+          className="absolute -bottom-[20%] -left-[10%] w-[600px] h-[600px] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-3xl"
         />
         
         {/* Floating Icons Left Side */}
         <motion.div 
           animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[20%] left-[15%] hidden lg:flex items-center justify-center w-16 h-16 bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white"
+          className="absolute top-[20%] left-[15%] hidden lg:flex items-center justify-center w-16 h-16 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-xl border border-white dark:border-slate-700"
         >
-          <GraduationCap className="w-8 h-8 text-brand-blue/60" />
+          <GraduationCap className="w-8 h-8 text-brand-blue/60 dark:text-blue-400/80" />
         </motion.div>
         
         <motion.div 
           animate={{ y: [0, 30, 0], rotate: [0, -10, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[30%] left-[10%] hidden lg:flex items-center justify-center w-20 h-20 bg-white/40 backdrop-blur-sm rounded-full shadow-lg border border-white"
+          className="absolute bottom-[30%] left-[10%] hidden lg:flex items-center justify-center w-20 h-20 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-full shadow-lg border border-white dark:border-slate-700"
         >
-          <BookOpen className="w-10 h-10 text-indigo-400/50" />
+          <BookOpen className="w-10 h-10 text-indigo-400/50 dark:text-indigo-400/80" />
         </motion.div>
 
         <motion.div 
           animate={{ y: [0, -15, 0], x: [0, 10, 0] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute top-[60%] left-[25%] hidden xl:flex items-center justify-center w-12 h-12 bg-white/50 backdrop-blur-md rounded-xl shadow-md border border-white"
+          className="absolute top-[60%] left-[25%] hidden xl:flex items-center justify-center w-12 h-12 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-md border border-white dark:border-slate-700"
         >
-          <Users className="w-6 h-6 text-emerald-400/60" />
+          <Users className="w-6 h-6 text-emerald-400/60 dark:text-emerald-400/80" />
         </motion.div>
 
         {/* Floating Icons Right Side */}
         <motion.div 
           animate={{ y: [0, 25, 0], rotate: [0, -5, 0] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="absolute top-[25%] right-[15%] hidden lg:flex items-center justify-center w-20 h-20 bg-white/60 backdrop-blur-md rounded-2xl shadow-xl border border-white"
+          className="absolute top-[25%] right-[15%] hidden lg:flex items-center justify-center w-20 h-20 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-xl border border-white dark:border-slate-700"
         >
-          <BarChart3 className="w-10 h-10 text-brand-blue/60" />
+          <BarChart3 className="w-10 h-10 text-brand-blue/60 dark:text-blue-400/80" />
         </motion.div>
         
         <motion.div 
           animate={{ y: [0, -35, 0], rotate: [0, 15, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-          className="absolute bottom-[25%] right-[10%] hidden lg:flex items-center justify-center w-16 h-16 bg-white/40 backdrop-blur-sm rounded-full shadow-lg border border-white"
+          className="absolute bottom-[25%] right-[10%] hidden lg:flex items-center justify-center w-16 h-16 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-full shadow-lg border border-white dark:border-slate-700"
         >
-          <Globe className="w-8 h-8 text-indigo-400/50" />
+          <Globe className="w-8 h-8 text-indigo-400/50 dark:text-indigo-400/80" />
         </motion.div>
 
         <motion.div 
           animate={{ y: [0, 20, 0], x: [0, -10, 0] }}
           transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 2.5 }}
-          className="absolute top-[55%] right-[25%] hidden xl:flex items-center justify-center w-14 h-14 bg-white/50 backdrop-blur-md rounded-xl shadow-md border border-white"
+          className="absolute top-[55%] right-[25%] hidden xl:flex items-center justify-center w-14 h-14 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-md border border-white dark:border-slate-700"
         >
-          <Shield className="w-7 h-7 text-emerald-400/60" />
+          <Shield className="w-7 h-7 text-emerald-400/60 dark:text-emerald-400/80" />
         </motion.div>
       </div>
 
@@ -155,11 +160,11 @@ export default function LoginPage() {
         initial="hidden"
         animate={isSuccessMorphing ? { scale: 0.2, opacity: 0, borderRadius: "100%" } : "visible"}
         transition={{ duration: 0.6, type: "spring" }}
-        className="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[40px] shadow-2xl overflow-hidden relative flex flex-col pt-12 pb-8 px-8 min-h-[750px] border border-white z-10"
+        className="w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[40px] shadow-2xl overflow-hidden relative flex flex-col pt-12 pb-8 px-8 min-h-[750px] border border-white dark:border-slate-800 z-10 transition-colors duration-300"
       >
         
         {/* Back Button */}
-        <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-brand-blue hover:opacity-80 transition-opacity">
+        <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-brand-blue dark:text-blue-400 hover:opacity-80 transition-opacity">
           <ArrowLeft className="w-3.5 h-3.5" />
           Back
         </Link>
@@ -175,10 +180,10 @@ export default function LoginPage() {
               <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain drop-shadow-md" />
             </motion.div>
             <div className="text-center">
-              <h1 className="text-[26px] font-extrabold text-[#111827] tracking-tight">
+              <h1 className="text-[26px] font-extrabold text-[#111827] dark:text-slate-100 tracking-tight">
                 School Connect
               </h1>
-              <p className="text-sm text-gray-500 font-medium mt-1">
+              <p className="text-sm text-gray-500 dark:text-slate-400 font-medium mt-1">
                 Your school, always connected
               </p>
             </div>
@@ -192,7 +197,7 @@ export default function LoginPage() {
           >
             {/* Email Field */}
             <motion.div variants={itemVariants} className="space-y-1.5">
-              <label htmlFor="email" className="text-[11px] font-bold text-gray-800 uppercase tracking-wide px-1">
+              <label htmlFor="email" className="text-[11px] font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide px-1">
                 Email Address
               </label>
               <input
@@ -202,13 +207,13 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] text-gray-900 placeholder-gray-400 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent focus:ring-brand-blue/50'}`}
+                className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] dark:bg-slate-800/90 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent dark:border-slate-700/60 focus:ring-brand-blue/50'}`}
               />
             </motion.div>
 
             {/* Password Field */}
             <motion.div variants={itemVariants} className="space-y-1.5">
-              <label htmlFor="password" className="text-[11px] font-bold text-gray-800 uppercase tracking-wide px-1">
+              <label htmlFor="password" className="text-[11px] font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide px-1">
                 Password
               </label>
               <div className="relative">
@@ -219,12 +224,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] text-gray-900 placeholder-gray-400 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border pr-12 ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent focus:ring-brand-blue/50'}`}
+                  className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] dark:bg-slate-800/90 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border pr-12 ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent dark:border-slate-700/60 focus:ring-brand-blue/50'}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -236,7 +241,7 @@ export default function LoginPage() {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="px-4 py-3 rounded-2xl bg-red-50 text-red-600 text-sm font-medium text-center"
+                className="px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 text-sm font-medium text-center border border-red-200 dark:border-red-900/50"
               >
                 {error}
               </motion.div>
@@ -251,11 +256,11 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="group relative w-full h-14 rounded-full bg-brand-blue text-white font-bold text-base shadow-lg shadow-brand-blue/30 hover:bg-brand-blue/90 disabled:opacity-70 transition-colors flex items-center mt-8 overflow-hidden"
               >
-                <div className="absolute left-1.5 w-11 h-11 bg-white rounded-full flex items-center justify-center">
+                <div className="absolute left-1.5 w-11 h-11 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center shadow-sm">
                   {isLoading ? (
                      <div className="w-5 h-5 border-2 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                     <ChevronRight className="w-5 h-5 text-brand-blue" />
+                     <ChevronRight className="w-5 h-5 text-brand-blue dark:text-blue-400" />
                   )}
                 </div>
                 <span className="flex-1 text-center pr-8">
@@ -274,24 +279,24 @@ export default function LoginPage() {
 
           {/* Forgot Password Link */}
           <motion.div variants={itemVariants} className="mt-6 text-center">
-            <Link href="#" className="text-xs font-bold text-brand-blue hover:underline">
+            <Link href="#" className="text-xs font-bold text-brand-blue dark:text-blue-400 hover:underline">
               Forgot your password ?
             </Link>
           </motion.div>
           
           {/* Demo Logins */}
-          <motion.div variants={itemVariants} className="mt-12 flex flex-col items-center opacity-50 hover:opacity-100 transition-opacity">
-            <p className="text-[10px] text-gray-400 font-medium mb-3 uppercase tracking-wider">Demo Access</p>
+          <motion.div variants={itemVariants} className="mt-10 flex flex-col items-center opacity-80 hover:opacity-100 transition-opacity">
+            <p className="text-[10px] text-gray-400 dark:text-slate-400 font-medium mb-3 uppercase tracking-wider">Demo Access</p>
             <div className="flex flex-wrap justify-center gap-2">
-              {quickLogins.map((ql, i) => (
+              {quickLogins.map((ql) => (
                 <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   key={ql.email}
                   type="button"
                   onClick={() => handleQuickLogin(ql.email)}
                   disabled={isLoading}
-                  className="px-3 py-1.5 rounded-full bg-gray-100 text-[10px] font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-50"
+                  className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 disabled:opacity-50 transition-colors"
                 >
                   {ql.label}
                 </motion.button>

@@ -13,7 +13,7 @@ import {
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
   Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
-  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus
+  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus, Sun, Moon, ShieldCheck
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -31,6 +31,8 @@ const fadeLeftVariant = {
 // Map nav item keys to their config
 const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge?: string; color: string }> = {
   dashboard:            { href: '/dashboard',                     label: 'Dashboard Overview',         icon: LayoutDashboard, color: 'group-hover:text-indigo-400' },
+  student_documents:    { href: '/student/documents',            label: 'Profile Documents',         icon: ShieldCheck,     color: 'group-hover:text-sky-400', badge: 'AI' },
+  admin_documents:      { href: '/admin/documents',              label: 'Document Audit Panel',      icon: ShieldCheck,     color: 'group-hover:text-indigo-400', badge: 'AI' },
   salary_approvals:     { href: '/salary-approvals',     label: 'Salary Approvals',          icon: DollarSign,      color: 'group-hover:text-emerald-400' },
   event_approvals:      { href: '/event-approvals',      label: 'Approve Major Events',      icon: Award,           color: 'group-hover:text-amber-400' },
   revenue:              { href: '/revenue',              label: 'Monthly Revenue',           icon: TrendingUp,      color: 'group-hover:text-cyan-400' },
@@ -57,7 +59,6 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   class_roster:         { href: '/class-roster',         label: 'Class Roster & Assign',     icon: UsersRound,      color: 'group-hover:text-fuchsia-400' },
   classes:              { href: '/classes',              label: 'Manage Classes',            icon: Building2,       color: 'group-hover:text-pink-400' },
   class_allotments:     { href: '/class-allotments',     label: 'Class Teachers Allotments', icon: Users,           color: 'group-hover:text-amber-400' },
-  ocr:                  { href: '/ocr',                  label: 'Ensemble OCR Parser',       icon: FileSearch,      color: 'group-hover:text-cyan-400',   badge: 'AI' },
   timetable:            { href: '/timetable',            label: 'Timetable Grid',            icon: Calendar,        color: 'group-hover:text-indigo-400' },
   substitutions:        { href: '/substitutions',        label: 'Teacher Substitutions',     icon: RefreshCw,       color: 'group-hover:text-cyan-400' },
   attendance:           { href: '/attendance',           label: 'Attendance & Logs',         icon: CheckSquare,     color: 'group-hover:text-emerald-400' },
@@ -100,10 +101,15 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     checkAuth();
     setHasChecked(true);
+    if (typeof window !== 'undefined') {
+      const isDark = document.documentElement.classList.contains('dark');
+      setTheme(isDark ? 'dark' : 'light');
+    }
   }, [checkAuth]);
 
   useEffect(() => {
@@ -111,6 +117,18 @@ function AppShell({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [pathname, isAuthenticated, hasChecked, router]);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('pb_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('pb_theme', 'light');
+    }
+  };
 
   // Don't show shell on login page or landing page
   if (pathname === '/login' || pathname === '/') {
@@ -120,10 +138,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
   // If not authenticated and not on login, show brief loading while redirecting
   if (!hasChecked || (!isAuthenticated || !user)) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#EEF2F6' }}>
+      <div className="min-h-screen flex items-center justify-center bg-[#EEF2F6] dark:bg-[#0b0f19]">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 rounded-full border-4 border-brand-blue/30 border-t-brand-blue animate-spin mx-auto"></div>
-          <p className="text-gray-500 text-sm">Loading application...</p>
+          <p className="text-gray-500 dark:text-slate-400 text-sm">Loading application...</p>
         </div>
       </div>
     );
@@ -139,13 +157,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#EEF2F6', color: '#131313' }}>
+    <div className="min-h-screen flex flex-col bg-[#EEF2F6] dark:bg-[#0b0f19] text-[#131313] dark:text-slate-100 transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="h-16 bg-white border-b border-gray-100 shadow-sm sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between">
+      <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800/80 shadow-sm sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between transition-colors duration-200">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setShowMobileMenu(true)}
-            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-brand-black transition-colors"
+            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-brand-black dark:hover:text-white transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -155,8 +173,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col justify-center whitespace-nowrap">
-              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue">PaperBuddy</span>
-              <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue font-medium w-fit">
+              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue dark:text-blue-400">PaperBuddy</span>
+              <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 font-medium w-fit">
                 v2.5 Multi-Role
               </span>
             </div>
@@ -165,7 +183,31 @@ function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex items-center space-x-2 md:space-x-4">
-          <div className="hidden lg:flex items-center space-x-2 text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 whitespace-nowrap font-medium">
+          {/* Dark Mode Switch */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleTheme}
+            aria-label="Toggle Dark Mode"
+            title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+            className="relative flex items-center justify-between w-14 h-8 p-1 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 shadow-inner group"
+          >
+            <Sun className={`w-3.5 h-3.5 ml-1 text-amber-500 transition-opacity duration-200 ${theme === 'dark' ? 'opacity-40' : 'opacity-100'}`} />
+            <Moon className={`w-3.5 h-3.5 mr-1 text-indigo-400 transition-opacity duration-200 ${theme === 'dark' ? 'opacity-100' : 'opacity-40'}`} />
+            <motion.div
+              className="absolute top-1 left-1 w-6 h-6 rounded-full bg-white dark:bg-slate-900 shadow-md flex items-center justify-center border border-slate-200 dark:border-slate-700"
+              animate={{ x: theme === 'dark' ? 24 : 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            >
+              {theme === 'dark' ? (
+                <Moon className="w-3.5 h-3.5 text-indigo-400 fill-indigo-400/20" />
+              ) : (
+                <Sun className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
+              )}
+            </motion.div>
+          </motion.button>
+
+          <div className="hidden lg:flex items-center space-x-2 text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-900/50 whitespace-nowrap font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
             <span>FastAPI & Live Engine Active</span>
           </div>
@@ -176,7 +218,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-3 pl-4 border-l border-gray-200 hover:bg-gray-50 rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+              className="flex items-center space-x-3 pl-4 border-l border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
             >
               <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${roleColor} flex items-center justify-center text-white font-semibold text-xs shadow-md overflow-hidden`}>
                 {user.profile_picture ? (
@@ -186,32 +228,32 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 )}
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-xs font-semibold text-brand-black">{user.full_name}</p>
+                <p className="text-xs font-semibold text-brand-black dark:text-slate-100">{user.full_name}</p>
                 <div className="flex items-center gap-1">
-                  <Shield className="w-2.5 h-2.5 text-brand-blue" />
-                  <p className="text-[10px] text-gray-500 font-medium">{roleLabel}</p>
+                  <Shield className="w-2.5 h-2.5 text-brand-blue dark:text-blue-400" />
+                  <p className="text-[10px] text-gray-500 dark:text-slate-400 font-medium">{roleLabel}</p>
                   {user.assigned_grade && (
-                    <span className="text-[10px] text-brand-blue ml-1 font-medium">• Grade {user.assigned_grade}</span>
+                    <span className="text-[10px] text-brand-blue dark:text-blue-400 ml-1 font-medium">• Grade {user.assigned_grade}</span>
                   )}
                 </div>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
             </motion.button>
 
             {/* Dropdown Menu */}
             {showUserMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-[24px] border border-gray-100 shadow-xl z-50 overflow-hidden">
-                  <div className="p-4 border-b border-gray-100">
-                    <p className="font-semibold text-sm text-brand-black">{user.full_name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 shadow-xl z-50 overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 dark:border-slate-800">
+                    <p className="font-semibold text-sm text-brand-black dark:text-slate-100">{user.full_name}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{user.email}</p>
                     <div className="mt-2 flex items-center gap-2">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r ${roleColor} text-white font-medium`}>
                         {roleLabel}
                       </span>
                       {user.assigned_grade && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-blue/10 text-brand-blue font-medium">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 font-medium">
                           Grade {user.assigned_grade}
                         </span>
                       )}
@@ -221,14 +263,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     <Link 
                       href="/profile"
                       onClick={() => setShowUserMenu(false)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:text-brand-black transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-brand-black dark:hover:text-white transition-colors"
                     >
                       <UserCircle className="w-4 h-4" />
                       My Profile
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign Out
@@ -251,15 +293,15 @@ function AppShell({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Left Sidebar — Dynamic by Role */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 p-4 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:max-h-[calc(100vh-4rem)] ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 p-4 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:max-h-[calc(100vh-4rem)] ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="space-y-6">
             <div className="flex items-center justify-between px-3">
-              <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              <div className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                 {roleLabel} Menu
               </div>
               <button 
                 onClick={() => setShowMobileMenu(false)}
-                className="lg:hidden p-1 rounded-md text-gray-400 hover:text-brand-black hover:bg-gray-100"
+                className="lg:hidden p-1 rounded-md text-gray-400 dark:text-slate-500 hover:text-brand-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -288,21 +330,21 @@ function AppShell({ children }: { children: React.ReactNode }) {
                       className={`relative z-10 flex items-center space-x-3 px-4 py-3 rounded-full text-sm font-medium transition-colors group
                         ${isActive 
                           ? 'text-white' 
-                          : 'text-gray-500 hover:text-brand-blue hover:bg-brand-blue/5'
+                          : 'text-gray-500 dark:text-slate-400 hover:text-brand-blue dark:hover:text-blue-400 hover:bg-brand-blue/5 dark:hover:bg-slate-800/60'
                         }`}
                     >
                       {isActive && (
                         <motion.div
                           layoutId="activeSidebarTab"
-                          className="absolute inset-0 bg-brand-blue rounded-full shadow-md"
+                          className="absolute inset-0 bg-brand-blue dark:bg-blue-600 rounded-full shadow-md"
                           transition={{ type: "spring", stiffness: 300, damping: 30 }}
                           style={{ zIndex: -1 }}
                         />
                       )}
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : `text-gray-400 group-hover:text-brand-blue`}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : `text-gray-400 dark:text-slate-500 group-hover:text-brand-blue dark:group-hover:text-blue-400`}`} />
                       <span>{config.label}</span>
                       {config.badge && (
-                        <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-white text-brand-blue font-bold shadow-sm">
+                        <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 text-brand-blue dark:text-blue-400 font-bold shadow-sm border border-transparent dark:border-slate-700">
                           {config.badge}
                         </span>
                       )}
@@ -314,13 +356,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Role Info Card */}
-          <div className="p-4 mt-6 bg-gray-50 rounded-[24px] border border-gray-100 text-xs space-y-2">
-            <div className="flex items-center space-x-2 text-brand-blue font-semibold">
-              <Shield className="w-4 h-4 text-brand-blue" />
+          <div className="p-4 mt-6 bg-gray-50 dark:bg-slate-800/50 rounded-[24px] border border-gray-100 dark:border-slate-800 text-xs space-y-2">
+            <div className="flex items-center space-x-2 text-brand-blue dark:text-blue-400 font-semibold">
+              <Shield className="w-4 h-4 text-brand-blue dark:text-blue-400" />
               <span>Multi-Role RBAC</span>
             </div>
-            <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
-              Logged in as <span className="text-brand-blue font-bold">{roleLabel}</span>.
+            <p className="text-[11px] text-gray-500 dark:text-slate-400 leading-relaxed font-medium">
+              Logged in as <span className="text-brand-blue dark:text-blue-400 font-bold">{roleLabel}</span>.
               {user.assigned_grade ? ` Grade ${user.assigned_grade} scope.` : ' Operational scope active.'}
             </p>
           </div>

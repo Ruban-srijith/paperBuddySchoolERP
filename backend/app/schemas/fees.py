@@ -6,6 +6,7 @@ class FeePaymentCreate(BaseModel):
     title: str = Field("Term 1 Tuition & Operations Fee", example="Term 1 Tuition Fee")
     amount: float = Field(..., example=450.00)
     payment_method: str = Field("Card", example="Card") # Card, UPI, Net Banking
+    fee_structure_id: Optional[str] = Field(None)
 
 class FeePaymentResponse(BaseModel):
     id: str

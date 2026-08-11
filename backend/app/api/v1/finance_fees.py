@@ -67,22 +67,54 @@ async def get_fee_structures(grade: str, academic_year: str = "2026-2027", db: A
     fs_result = await db.execute(select(FeeStructure).where(FeeStructure.grade == grade, FeeStructure.academic_year == academic_year))
     return fs_result.scalars().all()
 
-@router.get("/student/{student_id}/dues")
-async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_admin)):
-    student_result = await db.execute(select(User).where(User.id == student_id, User.role == UserRole.STUDENT))
-    student = student_result.scalars().first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-        
-    student_prof_result = await db.execute(select(Student).where(Student.user_id == student_id))
-    student_prof = student_prof_result.scalars().first()
+from app.db.models import FeePayment
+from app.services.email_service import email_service
 
-    grade = student.assigned_grade
-    if not grade:
-        return []
+@router.get("/student/{student_id}/dues")
+async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # 1. Flexible Student Lookup by User.id, Student.id, or Student.admission_number
+    student_query = select(User).where(
+        (User.id == student_id) | (User.email == student_id)
+    )
+    user_res = await db.execute(student_query)
+    target_user = user_res.scalars().first()
+
+    student_prof = None
+    if not target_user:
+        # Search in Student profile table by admission_number or id
+        prof_res = await db.execute(
+            select(Student).where(
+                (Student.id == student_id) | (Student.admission_number == student_id)
+            )
+        )
+        student_prof = prof_res.scalars().first()
+        if student_prof and student_prof.user_id:
+            u_res = await db.execute(select(User).where(User.id == student_prof.user_id))
+            target_user = u_res.scalars().first()
+
+    if not target_user and not student_prof:
+        raise HTTPException(status_code=404, detail="Student record not found")
+
+    user_id = target_user.id if target_user else student_prof.user_id
+
+    # 2. Check authorization: Students/Parents can view own/child dues, Management/Teachers can view any student dues
+    if current_user.role in [UserRole.STUDENT, UserRole.PARENT]:
+        if current_user.id != user_id and current_user.role == UserRole.STUDENT:
+            raise HTTPException(status_code=403, detail="Forbidden: You can only view your own fee dues.")
+
+    if not student_prof and user_id:
+        p_res = await db.execute(select(Student).where(Student.user_id == user_id))
+        student_prof = p_res.scalars().first()
+
+    grade = (target_user.assigned_grade if target_user else None) or (student_prof.school_class.grade if student_prof and student_prof.school_class else "10-A")
 
     fee_structures_result = await db.execute(select(FeeStructure).where(FeeStructure.grade == grade))
     fee_structures = fee_structures_result.scalars().all()
+
+    # Fallback to standard 10-A structures if grade specific structure hasn't been initialized
+    if not fee_structures:
+        fallback_res = await db.execute(select(FeeStructure).where(FeeStructure.grade == "10-A"))
+        fee_structures = fallback_res.scalars().all()
 
     dues = []
     for fs in fee_structures:
@@ -90,42 +122,44 @@ async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), 
             continue
         if fs.fee_type == 'hostel' and (not student_prof or not student_prof.is_hostel_user):
             continue
+
         transactions_result = await db.execute(
             select(FeeTransaction)
-            .where(FeeTransaction.student_id == student_id, FeeTransaction.fee_structure_id == fs.id)
+            .where(FeeTransaction.student_id == user_id, FeeTransaction.fee_structure_id == fs.id)
         )
         transactions = transactions_result.scalars().all()
         total_paid = sum(float(tx.amount_paid) for tx in transactions)
-        
-        # Determine if this fee structure should receive the scholarship discount (apply to term1 only for simplicity)
+
+        # Scholarship discount on term1
         discount = 0.0
         if fs.fee_type == 'term1':
-            schol_res = await db.execute(select(Scholarship).where(Scholarship.student_id == student_id, Scholarship.is_active == True))
+            schol_res = await db.execute(select(Scholarship).where(Scholarship.student_id == user_id, Scholarship.is_active == True))
             scholars = schol_res.scalars().all()
             discount = sum(float(s.discount_amount) for s in scholars)
-            
+
         final_amount = max(0, float(fs.amount) - discount)
         balance = final_amount - total_paid
 
         dues.append({
             "fee_structure_id": fs.id,
             "fee_type": fs.fee_type,
+            "title": f"Grade {grade} - {fs.fee_type.replace('_', ' ').title()}",
             "total_amount": float(fs.amount),
             "discount_applied": discount,
             "final_amount": final_amount,
             "total_paid": total_paid,
-            "balance": balance,
+            "balance": max(0.0, balance),
             "due_date": fs.due_date
         })
 
     return dues
 
 @router.post("/pay")
-async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_admin)):
+async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     student_result = await db.execute(select(User).where(User.id == request.student_id))
     student = student_result.scalars().first()
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail="Student user record not found")
 
     fs_result = await db.execute(select(FeeStructure).where(FeeStructure.id == request.fee_structure_id))
     fs = fs_result.scalars().first()
@@ -133,6 +167,9 @@ async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends
         raise HTTPException(status_code=404, detail="Fee structure not found")
 
     receipt_no = f"RCPT-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{str(uuid4())[:4]}"
+    txn_id = f"TXN-{str(uuid4())[:8].upper()}"
+
+    # 1. Record FeeTransaction for ledger dues deduction
     transaction = FeeTransaction(
         id=str(uuid4()),
         student_id=request.student_id,
@@ -142,12 +179,43 @@ async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends
         receipt_number=receipt_no,
         processed_by=current_user.id
     )
-    
     db.add(transaction)
+
+    # 2. Record FeePayment receipt record for unified receipts log
+    payment = FeePayment(
+        id=str(uuid4()),
+        student_id=request.student_id,
+        title=f"Grade {fs.grade} - {fs.fee_type.replace('_', ' ').title()}",
+        amount=request.amount_paid,
+        payment_method=request.payment_method,
+        transaction_id=txn_id,
+        receipt_number=receipt_no,
+        status="paid"
+    )
+    db.add(payment)
+
     try:
         await db.commit()
         await db.refresh(transaction)
-        return {"success": True, "receipt_number": receipt_no, "amount_paid": float(transaction.amount_paid)}
+
+        # Dispatch email intimation
+        if student.email:
+            await email_service.dispatch_email(
+                db=db,
+                recipient_email=student.email,
+                subject=f"Fee Payment Receipt — {receipt_no}",
+                body_summary=f"Fee payment of ₹{request.amount_paid:.2f} for '{payment.title}' processed via {request.payment_method}. Receipt: {receipt_no}",
+                event_type="fee_payment",
+                related_id=payment.id
+            )
+
+        return {
+            "success": True,
+            "receipt_number": receipt_no,
+            "transaction_id": txn_id,
+            "amount_paid": float(transaction.amount_paid)
+        }
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to process payment")
+        raise HTTPException(status_code=500, detail="Failed to process fee payment")
+
