@@ -22,3 +22,21 @@ class FeePaymentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RazorpayOrderRequest(BaseModel):
+    amount: float
+    currency: str = "INR"
+
+class RazorpayOrderResponse(BaseModel):
+    order_id: str
+    amount: float
+    currency: str
+    key: str
+
+class RazorpayVerifyRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+    title: str = Field("Term 1 Tuition & Operations Fee")
+    amount: float
+    payment_method: str = Field("Razorpay")

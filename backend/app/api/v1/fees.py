@@ -8,11 +8,17 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.db.database import get_db
 from app.db.models import User, UserRole, FeePayment
-from app.schemas.fees import FeePaymentCreate, FeePaymentResponse
+from app.schemas.fees import FeePaymentCreate, FeePaymentResponse, RazorpayOrderRequest, RazorpayOrderResponse, RazorpayVerifyRequest
 from app.core.auth import get_current_user, require_role
 from app.services.email_service import email_service
+from app.core.config import settings
+import razorpay
 
 router = APIRouter(prefix="/fees", tags=["Fee Payment Gateway & Receipts"])
+
+# Initialize Razorpay Client
+razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
 
 
 from app.db.models import FeeTransaction
@@ -80,6 +86,105 @@ async def process_fee_payment(
         status=payment.status,
         created_at=payment.created_at,
     )
+
+
+@router.post("/create-order", response_model=RazorpayOrderResponse)
+async def create_razorpay_order(
+    req: RazorpayOrderRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Create a Razorpay order for fee payment.
+    """
+    try:
+        # Amount should be in paise
+        order_amount = int(req.amount * 100)
+        order_currency = req.currency
+        order_receipt = f"RCP-2026-{uuid.uuid4().hex[:6].upper()}"
+        
+        order_data = {
+            "amount": order_amount,
+            "currency": order_currency,
+            "receipt": order_receipt,
+            "payment_capture": 1
+        }
+        
+        razorpay_order = razorpay_client.order.create(data=order_data)
+        
+        return RazorpayOrderResponse(
+            order_id=razorpay_order["id"],
+            amount=req.amount,
+            currency=req.currency,
+            key=settings.RAZORPAY_KEY_ID
+        )
+    except Exception as e:
+        print(f"Error creating Razorpay order: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create payment order")
+
+
+@router.post("/verify-signature", response_model=FeePaymentResponse)
+async def verify_razorpay_signature(
+    req: RazorpayVerifyRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Verify the Razorpay signature and record the successful payment.
+    """
+    try:
+        # Verify Signature
+        razorpay_client.utility.verify_payment_signature({
+            'razorpay_order_id': req.razorpay_order_id,
+            'razorpay_payment_id': req.razorpay_payment_id,
+            'razorpay_signature': req.razorpay_signature
+        })
+        
+        # Once verified, save the payment record
+        receipt_no = f"RCP-2026-{uuid.uuid4().hex[:6].upper()}"
+        
+        payment = FeePayment(
+            id=str(uuid.uuid4()),
+            student_id=current_user.id,
+            title=req.title,
+            amount=req.amount,
+            payment_method=req.payment_method,
+            transaction_id=req.razorpay_payment_id,
+            receipt_number=receipt_no,
+            status="paid",
+        )
+        db.add(payment)
+        await db.commit()
+        await db.refresh(payment)
+        
+        # Trigger Email
+        dedup = f"fee_payment_{payment.id}_{current_user.email}"
+        await email_service.dispatch_email(
+            db=db,
+            recipient_email=current_user.email,
+            subject=f"Fee Payment Receipt — {payment.receipt_number}",
+            body_summary=f"Payment of ₹{float(payment.amount):.2f} for '{payment.title}' received via {payment.payment_method}. Transaction ID: {payment.transaction_id}",
+            event_type="fee_payment",
+            related_id=payment.id,
+        )
+        
+        return FeePaymentResponse(
+            id=payment.id,
+            student_id=payment.student_id,
+            student_name=current_user.full_name,
+            title=payment.title,
+            amount=float(payment.amount),
+            payment_method=payment.payment_method,
+            transaction_id=payment.transaction_id,
+            receipt_number=payment.receipt_number,
+            status=payment.status,
+            created_at=payment.created_at,
+        )
+        
+    except razorpay.errors.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid payment signature")
+    except Exception as e:
+        print(f"Error verifying payment: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to verify payment")
 
 
 @router.get("/receipts", response_model=List[FeePaymentResponse])

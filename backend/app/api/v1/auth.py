@@ -57,12 +57,14 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
     access_token = create_access_token(
         user_id=user.id,
         role=user.role.value,
-        email=user.email
+        email=user.email,
+        school_id=user.school_id
     )
 
     return TokenResponse(
         access_token=access_token,
         user_id=user.id,
+        school_id=user.school_id,
         email=user.email,
         full_name=user.full_name,
         role=user.role.value,
@@ -86,6 +88,7 @@ async def get_me(
 
     return UserProfileResponse(
         id=current_user.id,
+        school_id=current_user.school_id,
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role.value,
@@ -143,6 +146,7 @@ async def register_user(
 
     new_user = User(
         id=str(uuid.uuid4()),
+        school_id=current_user.school_id,
         email=req.email,
         full_name=req.full_name,
         role=role_enum,
@@ -156,6 +160,7 @@ async def register_user(
 
     return UserProfileResponse(
         id=new_user.id,
+        school_id=new_user.school_id,
         email=new_user.email,
         full_name=new_user.full_name,
         role=new_user.role.value,

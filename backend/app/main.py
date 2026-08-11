@@ -17,6 +17,9 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Relational database initialized successfully.")
     
+    if "neon" in str(engine.url).lower():
+        logger.info("the neon db is connected to verify")
+    
     # Initialize & verify MongoDB Local connection
     mongo_ok = await ping_mongodb()
     if mongo_ok:

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
-import { GraduationCap, Eye, EyeOff, ChevronRight, ArrowLeft, BookOpen, Users, BarChart3, Globe, Shield } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, ChevronRight, ArrowLeft, BookOpen, Users, BarChart3, Globe, Shield, Building2 } from 'lucide-react';
+import api from '@/lib/api';
 
 const containerVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 20 },
@@ -28,10 +29,21 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { type: "spring" as any, stiffness: 100 } }
 };
 
+interface School {
+  id: string;
+  name: string;
+  code: string;
+  address?: string;
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [schools, setSchools] = useState<School[]>([]);
+  const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(true);
+
   const { login, isLoading, error, isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
@@ -40,7 +52,22 @@ export default function LoginPage() {
   useEffect(() => {
     checkAuth();
     setHasChecked(true);
+    fetchSchools();
   }, [checkAuth]);
+
+  const fetchSchools = async () => {
+    try {
+      const res = await api.get('/schools/public');
+      setSchools(res.data);
+      if (res.data && res.data.length > 0) {
+        setSelectedSchool(res.data[0]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch schools", err);
+    } finally {
+      setIsLoadingSchools(false);
+    }
+  };
 
   useEffect(() => {
     if (hasChecked && isAuthenticated) {
@@ -59,10 +86,11 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (demoEmail: string) => {
+  const handleQuickLogin = async (demoEmail: string, demoPassword?: string) => {
+    const pw = demoPassword || 'school@123';
     setEmail(demoEmail);
-    setPassword('school@123');
-    const success = await login(demoEmail, 'school@123');
+    setPassword(pw);
+    const success = await login(demoEmail, pw);
     if (success) {
       setIsSuccessMorphing(true);
       setTimeout(() => {
@@ -86,6 +114,7 @@ export default function LoginPage() {
     { label: 'Warden', email: 'warden@school.edu' },
     { label: 'Librarian', email: 'librarian@school.edu' },
     { label: 'Mentor', email: 'mentor.10a@school.edu' },
+    { label: 'Transport', email: 'transport@school.edu', password: 'password123' },
   ];
 
   return (
@@ -171,138 +200,177 @@ export default function LoginPage() {
 
         <div className="flex-1 flex flex-col justify-center max-w-xs mx-auto w-full mt-8">
           {/* Logo & Branding */}
-          <motion.div variants={itemVariants} className="flex flex-col items-center mb-10 space-y-4">
+          <motion.div variants={itemVariants} className="flex flex-col items-center mb-6 space-y-4">
             <motion.div 
               whileHover={{ scale: 1.1, rotate: 5 }}
               transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              className="w-24 h-24 flex items-center justify-center"
+              className="w-20 h-20 flex items-center justify-center"
             >
               <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain drop-shadow-md" />
             </motion.div>
             <div className="text-center">
-              <h1 className="text-[26px] font-extrabold text-[#111827] dark:text-slate-100 tracking-tight">
-                School Connect
+              <h1 className="text-[24px] font-extrabold text-[#111827] dark:text-slate-100 tracking-tight">
+                {selectedSchool ? selectedSchool.name : "Select Your School"}
               </h1>
-              <p className="text-sm text-gray-500 dark:text-slate-400 font-medium mt-1">
-                Your school, always connected
+              <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mt-1">
+                {selectedSchool ? "Enter your credentials to continue" : "Choose your workspace to login"}
               </p>
             </div>
           </motion.div>
 
-          <motion.form 
-            animate={error ? { x: [-10, 10, -10, 10, 0] } : {}}
-            transition={{ duration: 0.4 }}
-            onSubmit={handleSubmit} 
-            className="space-y-5 w-full"
-          >
-            {/* Email Field */}
-            <motion.div variants={itemVariants} className="space-y-1.5">
-              <label htmlFor="email" className="text-[11px] font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide px-1">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] dark:bg-slate-800/90 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent dark:border-slate-700/60 focus:ring-brand-blue/50'}`}
-              />
+          {!selectedSchool ? (
+            <motion.div variants={itemVariants} className="flex flex-col gap-3 w-full">
+              {isLoadingSchools ? (
+                <div className="flex justify-center p-8">
+                  <div className="w-6 h-6 border-2 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : schools.length === 0 ? (
+                <p className="text-center text-sm text-gray-500 dark:text-slate-400">No schools available.</p>
+              ) : (
+                schools.map(school => (
+                  <motion.button
+                    key={school.id}
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedSchool(school)}
+                    className="p-4 rounded-2xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-800/80 shadow-sm hover:border-brand-blue cursor-pointer transition-colors flex items-center gap-4 text-left w-full group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center group-hover:bg-brand-blue/20 transition-colors shrink-0">
+                      <Building2 className="w-5 h-5 text-brand-blue dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-900 dark:text-slate-100 text-sm">{school.name}</div>
+                      <div className="text-xs text-gray-500 dark:text-slate-400 line-clamp-1">{school.address}</div>
+                    </div>
+                  </motion.button>
+                ))
+              )}
             </motion.div>
-
-            {/* Password Field */}
-            <motion.div variants={itemVariants} className="space-y-1.5">
-              <label htmlFor="password" className="text-[11px] font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide px-1">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                  className={`w-full px-5 py-4 rounded-full bg-[#F3F4F6] dark:bg-slate-800/90 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 text-[15px] font-medium focus:outline-none focus:ring-2 transition-all border pr-12 ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent dark:border-slate-700/60 focus:ring-brand-blue/50'}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors"
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.4 }}
+              className="w-full flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-4 px-1">
+                <button 
+                  type="button" 
+                  onClick={() => { setSelectedSchool(null); setEmail(''); setPassword(''); }} 
+                  className="text-xs font-bold text-gray-500 dark:text-slate-400 hover:text-brand-blue dark:hover:text-blue-400 flex items-center gap-1 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  <ArrowLeft className="w-3 h-3" /> Change School
                 </button>
               </div>
-            </motion.div>
 
-            {/* Error Message */}
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 text-sm font-medium text-center border border-red-200 dark:border-red-900/50"
+              <form 
+                onSubmit={handleSubmit} 
+                className="space-y-4 w-full"
               >
-                {error}
-              </motion.div>
-            )}
-
-            {/* Login Button */}
-            <motion.div variants={itemVariants}>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full h-14 rounded-full bg-brand-blue text-white font-bold text-base shadow-lg shadow-brand-blue/30 hover:bg-brand-blue/90 disabled:opacity-70 transition-colors flex items-center mt-8 overflow-hidden"
-              >
-                <div className="absolute left-1.5 w-11 h-11 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center shadow-sm">
-                  {isLoading ? (
-                     <div className="w-5 h-5 border-2 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                     <ChevronRight className="w-5 h-5 text-brand-blue dark:text-blue-400" />
-                  )}
+                {/* Email Field */}
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-[11px] font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide px-1">
+                    Email Address
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    required
+                    className={`w-full px-5 py-3.5 rounded-full bg-[#F3F4F6] dark:bg-slate-800/90 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 text-[14px] font-medium focus:outline-none focus:ring-2 transition-all border ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent dark:border-slate-700/60 focus:ring-brand-blue/50'}`}
+                  />
                 </div>
-                <span className="flex-1 text-center pr-8">
-                  {isLoading ? 'Authenticating...' : 'Sign In'}
-                </span>
-                {!isLoading && (
-                  <div className="absolute right-5 flex items-center space-x-[-8px] opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
-                    <ChevronRight className="w-4 h-4" />
-                    <ChevronRight className="w-4 h-4" />
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                )}
-              </motion.button>
-            </motion.div>
-          </motion.form>
 
-          {/* Forgot Password Link */}
-          <motion.div variants={itemVariants} className="mt-6 text-center">
-            <Link href="#" className="text-xs font-bold text-brand-blue dark:text-blue-400 hover:underline">
-              Forgot your password ?
-            </Link>
-          </motion.div>
-          
-          {/* Demo Logins */}
-          <motion.div variants={itemVariants} className="mt-10 flex flex-col items-center opacity-80 hover:opacity-100 transition-opacity">
-            <p className="text-[10px] text-gray-400 dark:text-slate-400 font-medium mb-3 uppercase tracking-wider">Demo Access</p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {quickLogins.map((ql) => (
-                <motion.button
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.92 }}
-                  key={ql.email}
-                  type="button"
-                  onClick={() => handleQuickLogin(ql.email)}
-                  disabled={isLoading}
-                  className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 disabled:opacity-50 transition-colors"
-                >
-                  {ql.label}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
+                {/* Password Field */}
+                <div className="space-y-1.5">
+                  <label htmlFor="password" className="text-[11px] font-bold text-gray-800 dark:text-slate-200 uppercase tracking-wide px-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      required
+                      className={`w-full px-5 py-3.5 rounded-full bg-[#F3F4F6] dark:bg-slate-800/90 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 text-[14px] font-medium focus:outline-none focus:ring-2 transition-all border pr-12 ${error ? 'border-red-500 focus:ring-red-500/50' : 'border-transparent dark:border-slate-700/60 focus:ring-brand-blue/50'}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="px-4 py-3 rounded-2xl bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 text-xs font-medium text-center border border-red-200 dark:border-red-900/50"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                {/* Login Button */}
+                <div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={isLoading}
+                    className="group relative w-full h-13 rounded-full bg-brand-blue text-white font-bold text-sm shadow-lg shadow-brand-blue/30 hover:bg-brand-blue/90 disabled:opacity-70 transition-colors flex items-center mt-6 overflow-hidden py-3"
+                  >
+                    <div className="absolute left-1.5 w-10 h-10 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center shadow-sm">
+                      {isLoading ? (
+                         <div className="w-4 h-4 border-2 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                         <ChevronRight className="w-5 h-5 text-brand-blue dark:text-blue-400" />
+                      )}
+                    </div>
+                    <span className="flex-1 text-center pr-6">
+                      {isLoading ? 'Authenticating...' : 'Sign In'}
+                    </span>
+                  </motion.button>
+                </div>
+              </form>
+
+              {/* Forgot Password Link */}
+              <div className="mt-4 text-center">
+                <Link href="#" className="text-xs font-bold text-brand-blue dark:text-blue-400 hover:underline">
+                  Forgot your password ?
+                </Link>
+              </div>
+              
+              {/* Demo Logins */}
+              <div className="mt-8 flex flex-col items-center opacity-80 hover:opacity-100 transition-opacity">
+                <p className="text-[10px] text-gray-400 dark:text-slate-400 font-medium mb-2 uppercase tracking-wider">Demo Access</p>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {quickLogins.map((ql) => (
+                    <motion.button
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      key={ql.email}
+                      type="button"
+                      onClick={() => handleQuickLogin(ql.email, ql.password)}
+                      disabled={isLoading}
+                      className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200/60 dark:border-slate-700/60 disabled:opacity-50 transition-colors"
+                    >
+                      {ql.label}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
 
         </div>
       </motion.div>

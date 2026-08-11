@@ -24,13 +24,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 # ─── JWT Token ──────────────────────────────────────────────────
 security = HTTPBearer(auto_error=False)
 
-def create_access_token(user_id: str, role: str, email: str) -> str:
+def create_access_token(user_id: str, role: str, email: str, school_id: Optional[str] = None) -> str:
     """Create a signed JWT token with user info in payload."""
     expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
         "sub": user_id,
         "role": role,
         "email": email,
+        "school_id": school_id,
         "exp": expire,
         "iat": datetime.utcnow(),
     }

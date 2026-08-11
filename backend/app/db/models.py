@@ -20,6 +20,7 @@ class UserRole(str, enum.Enum):
     FINANCE = "finance"
     WARDEN = "warden"
     LIBRARIAN = "librarian"
+    TRANSPORT = "transport"
 
 class AttendanceStatus(str, enum.Enum):
     PRESENT = "present"
@@ -58,11 +59,25 @@ ROLE_HIERARCHY = {
     UserRole.MENTOR: 2,
     UserRole.STUDENT: 1,
     UserRole.PARENT: 1,
+    UserRole.TRANSPORT: 5,
 }
 
 
+
+class School(Base):
+    __tablename__ = "schools"
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(255), nullable=False)
+    address = Column(Text, nullable=True)
+    contact_email = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    users = relationship("User", back_populates="school", cascade="all, delete-orphan")
+
 class Department(Base):
     __tablename__ = "departments"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(100), unique=True, nullable=False)
@@ -75,6 +90,7 @@ class Department(Base):
 
 class User(Base):
     __tablename__ = "users"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String(255), unique=True, nullable=False)
@@ -92,6 +108,7 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    school = relationship("School", back_populates="users")
     student_profile = relationship("Student", uselist=False, back_populates="user", cascade="all, delete-orphan")
     department = relationship("Department", foreign_keys=[department_id], backref="members")
     headed_department = relationship("Department", foreign_keys=[Department.dean_id], back_populates="dean", uselist=False)
@@ -100,6 +117,7 @@ class User(Base):
 
 class MentorAssignment(Base):
     __tablename__ = "mentor_assignments"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     mentor_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -114,6 +132,7 @@ class MentorAssignment(Base):
 
 class Student(Base):
     __tablename__ = "students"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
@@ -161,6 +180,7 @@ class StudentDocument(Base):
 
 class Class(Base):
     __tablename__ = "classes"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     grade = Column(String(20), nullable=False)  # LKG, UKG, 1, 2, ..., 12
@@ -173,6 +193,7 @@ class Class(Base):
 
 class Subject(Base):
     __tablename__ = "subjects"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     code = Column(String(20), unique=True, nullable=False)
@@ -183,6 +204,7 @@ class Subject(Base):
 
 class Classroom(Base):
     __tablename__ = "classrooms"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(50), unique=True, nullable=False)
@@ -196,6 +218,7 @@ class Classroom(Base):
 
 class SyllabusNode(Base):
     __tablename__ = "syllabus_nodes"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     subject_id = Column(String(36), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
@@ -209,6 +232,7 @@ class SyllabusNode(Base):
 
 class Timetable(Base):
     __tablename__ = "timetables"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
@@ -225,6 +249,7 @@ class Timetable(Base):
 
 class Attendance(Base):
     __tablename__ = "attendance"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -240,6 +265,7 @@ class Attendance(Base):
 
 class DailyWorkLog(Base):
     __tablename__ = "daily_work_logs"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -257,6 +283,7 @@ class DailyWorkLog(Base):
 
 class LabAssignment(Base):
     __tablename__ = "lab_assignments"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
@@ -274,6 +301,7 @@ class LabAssignment(Base):
 
 class LabSubmission(Base):
     __tablename__ = "lab_submissions"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     lab_assignment_id = Column(String(36), ForeignKey("lab_assignments.id", ondelete="CASCADE"), nullable=False)
@@ -291,6 +319,7 @@ class LabSubmission(Base):
 
 class EmailLog(Base):
     __tablename__ = "email_logs"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     recipient_email = Column(String(255), nullable=False)
@@ -307,6 +336,7 @@ class EmailLog(Base):
 
 class MentorLog(Base):
     __tablename__ = "mentor_logs"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     mentor_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -321,6 +351,7 @@ class MentorLog(Base):
 
 class FeePayment(Base):
     __tablename__ = "fee_payments"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -337,6 +368,7 @@ class FeePayment(Base):
 
 class ParentStudentMap(Base):
     __tablename__ = "parent_student_map"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     parent_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -352,6 +384,7 @@ class ParentStudentMap(Base):
 
 class LeaveRequest(Base):
     __tablename__ = "leave_requests"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     applicant_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -369,6 +402,7 @@ class LeaveRequest(Base):
 
 class TeacherSubstitution(Base):
     __tablename__ = "teacher_substitutions"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     timetable_id = Column(String(36), ForeignKey("timetables.id", ondelete="CASCADE"), nullable=False)
@@ -385,6 +419,7 @@ class TeacherSubstitution(Base):
 
 class BusRoute(Base):
     __tablename__ = "bus_routes"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     route_name = Column(String(100), nullable=False)
@@ -398,6 +433,7 @@ class BusRoute(Base):
 
 class AcademicCalendarEvent(Base):
     __tablename__ = "academic_calendar_events"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(200), nullable=False)
@@ -414,6 +450,7 @@ class AcademicCalendarEvent(Base):
 
 class SalaryRecord(Base):
     __tablename__ = "salary_records"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     staff_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -434,6 +471,7 @@ class SalaryRecord(Base):
 
 class SchoolEventProposal(Base):
     __tablename__ = "school_event_proposals"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(200), nullable=False)
@@ -454,6 +492,7 @@ class SchoolEventProposal(Base):
 
 class ExamSchedule(Base):
     __tablename__ = "exam_schedules"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     exam_name = Column(String(150), nullable=False)  # e.g., "Term 1 Midterm Exam"
@@ -473,6 +512,7 @@ class ExamSchedule(Base):
 
 class Homework(Base):
     __tablename__ = "homeworks"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
@@ -491,6 +531,7 @@ class Homework(Base):
 
 class Assignment(Base):
     __tablename__ = "assignments"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
@@ -510,6 +551,7 @@ class Assignment(Base):
 
 class StudentQuery(Base):
     __tablename__ = "student_queries"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -530,6 +572,7 @@ class StudentQuery(Base):
 
 class Announcement(Base):
     __tablename__ = "announcements"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     class_id = Column(String(36), ForeignKey("classes.id", ondelete="SET NULL"), nullable=True)  # Null = All Classes
@@ -549,6 +592,7 @@ class Announcement(Base):
 
 class ScanRecord(Base):
     __tablename__ = "scan_records"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     unique_scan_id = Column(String(30), unique=True, index=True, nullable=False)
@@ -573,6 +617,7 @@ class ScanRecord(Base):
 
 class FeeStructure(Base):
     __tablename__ = "fee_structures"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     grade = Column(String(20), nullable=False)
@@ -583,6 +628,7 @@ class FeeStructure(Base):
 
 class FeeTransaction(Base):
     __tablename__ = "fee_transactions"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -599,6 +645,7 @@ class FeeTransaction(Base):
 
 class Payroll(Base):
     __tablename__ = "payroll"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     staff_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -618,6 +665,7 @@ class Payroll(Base):
 
 class HostelRoom(Base):
     __tablename__ = "hostel_rooms"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     block_name = Column(String(50), nullable=False) # e.g., 'Block A', 'Girls Wing'
@@ -630,6 +678,7 @@ class HostelRoom(Base):
 
 class HostelAssignment(Base):
     __tablename__ = "hostel_assignments"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
@@ -641,6 +690,7 @@ class HostelAssignment(Base):
 
 class Outpass(Base):
     __tablename__ = "outpasses"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -661,6 +711,7 @@ class Outpass(Base):
 
 class DepartmentBudget(Base):
     __tablename__ = "department_budgets"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     department_name = Column(String(100), nullable=False) # e.g., 'Academics', 'Hostel', 'Events', 'Infrastructure', 'Technology'
     academic_year = Column(String(20), nullable=False)
@@ -670,6 +721,7 @@ class DepartmentBudget(Base):
 
 class FinancialRequest(Base):
     __tablename__ = "financial_requests"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     requester_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     department_id = Column(String(36), ForeignKey("department_budgets.id", ondelete="SET NULL"), nullable=True)
@@ -685,6 +737,7 @@ class FinancialRequest(Base):
 
 class Vendor(Base):
     __tablename__ = "vendors"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(150), nullable=False)
     category = Column(String(100), nullable=False) # e.g., 'IT Services', 'Food & Beverages', 'Stationery'
@@ -695,6 +748,7 @@ class Vendor(Base):
 
 class Expense(Base):
     __tablename__ = "expenses"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     department_id = Column(String(36), ForeignKey("department_budgets.id", ondelete="SET NULL"), nullable=True)
     vendor_id = Column(String(36), ForeignKey("vendors.id", ondelete="SET NULL"), nullable=True)
@@ -711,6 +765,7 @@ class Expense(Base):
 
 class Scholarship(Base):
     __tablename__ = "scholarships"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(150), nullable=False) # e.g., 'Merit Scholarship', 'Sports Quota'
@@ -728,6 +783,7 @@ class Scholarship(Base):
 
 class HostelAttendance(Base):
     __tablename__ = "hostel_attendance"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     date = Column(Date, nullable=False, default=date.today)
@@ -738,6 +794,7 @@ class HostelAttendance(Base):
 
 class IncidentReport(Base):
     __tablename__ = "incident_reports"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True) # Optional, if it's general
     reported_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
@@ -752,6 +809,7 @@ class IncidentReport(Base):
 
 class VisitorLog(Base):
     __tablename__ = "visitor_logs"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     visitor_name = Column(String(100), nullable=False)
     relation_to_student = Column(String(50), nullable=True)
@@ -768,6 +826,7 @@ class VisitorLog(Base):
 
 class Book(Base):
     __tablename__ = "library_books"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(255), nullable=False)
     author = Column(String(255), nullable=False)
@@ -781,6 +840,7 @@ class Book(Base):
 
 class BookIssue(Base):
     __tablename__ = "library_issues"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     book_id = Column(String(36), ForeignKey("library_books.id"), nullable=False)
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
@@ -795,6 +855,7 @@ class BookIssue(Base):
 
 class BookRequest(Base):
     __tablename__ = "library_requests"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     requested_by = Column(String(36), ForeignKey("users.id"), nullable=False)
     title = Column(String(255), nullable=False)
@@ -807,9 +868,68 @@ class BookRequest(Base):
 
 class DigitalResource(Base):
     __tablename__ = "library_digital_resources"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(String(255), nullable=False)
     url = Column(String(500), nullable=False)
     category = Column(String(100), nullable=True)
     access_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ─── Transport Management Ecosystem ─────────────────────────────
+
+class Vehicle(Base):
+    __tablename__ = "transport_vehicles"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    registration_number = Column(String(50), nullable=False, unique=True)
+    vehicle_type = Column(String(50), default="bus") # bus, van
+    capacity = Column(Integer, nullable=False)
+    insurance_expiry = Column(Date, nullable=True)
+    fitness_expiry = Column(Date, nullable=True)
+    is_active = Column(Boolean, default=True)
+
+class TransportRoute(Base):
+    __tablename__ = "transport_routes"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), nullable=False, unique=True)
+    start_point = Column(String(200), nullable=False)
+    end_point = Column(String(200), nullable=False)
+    total_stops = Column(Integer, default=0)
+
+class TransportStop(Base):
+    __tablename__ = "transport_stops"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    route_id = Column(String(36), ForeignKey("transport_routes.id"), nullable=False)
+    stop_name = Column(String(200), nullable=False)
+    pickup_time = Column(String(20), nullable=True) # e.g., "07:30 AM"
+    drop_time = Column(String(20), nullable=True)
+    monthly_fee = Column(Numeric(10, 2), default=0.0)
+
+    route = relationship("TransportRoute", backref="stops")
+
+class TransportStaff(Base):
+    __tablename__ = "transport_staff"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), nullable=False)
+    role = Column(String(50), default="driver") # driver, conductor
+    license_number = Column(String(100), nullable=True)
+    phone = Column(String(20), nullable=True)
+    assigned_vehicle_id = Column(String(36), ForeignKey("transport_vehicles.id"), nullable=True)
+    
+    vehicle = relationship("Vehicle")
+
+class StudentTransport(Base):
+    __tablename__ = "transport_students"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("users.id"), nullable=False, unique=True)
+    stop_id = Column(String(36), ForeignKey("transport_stops.id"), nullable=False)
+    status = Column(String(50), default="active") # active, inactive
+
+    student = relationship("User")
+    stop = relationship("TransportStop")

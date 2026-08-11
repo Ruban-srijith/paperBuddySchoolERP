@@ -17,13 +17,15 @@ export type UserRole =
   | 'parent'
   | 'finance'
   | 'warden'
-  | 'librarian';
+  | 'librarian'
+  | 'transport';
 
 export interface AuthUser {
   id: string;
   email: string;
   full_name: string;
   role: UserRole;
+  school_id?: string | null;
   department_id?: string | null;
   assigned_grade?: string | null;
   profile_picture?: string | null;
@@ -59,6 +61,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   finance: 'Finance Manager',
   warden: 'Hostel Warden',
   librarian: 'Chief Librarian',
+  transport: 'Transport Admin',
 };
 
 // Role colors for badges
@@ -77,6 +80,7 @@ export const ROLE_COLORS: Record<UserRole, string> = {
   finance: 'from-emerald-500 to-teal-500',
   warden: 'from-fuchsia-500 to-purple-500',
   librarian: 'from-sky-500 to-indigo-500',
+  transport: 'from-blue-400 to-indigo-500',
 };
 
 // Navigation items per role
@@ -275,6 +279,13 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'librarian_issues',
     'librarian_digital',
     'librarian_requests'
+  ],
+  transport: [
+    'transport_dashboard',
+    'transport_fleet',
+    'transport_routes',
+    'transport_staff',
+    'transport_allocations'
   ]
 };
 
@@ -296,6 +307,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email: data.email,
         full_name: data.full_name,
         role: data.role as UserRole,
+        school_id: data.school_id,
         department_id: data.department_id,
         assigned_grade: data.assigned_grade,
       };
@@ -361,6 +373,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               email: res.data.email,
               full_name: res.data.full_name,
               role: res.data.role,
+              school_id: res.data.school_id,
               department_id: res.data.department_id,
               assigned_grade: res.data.assigned_grade,
             };
@@ -390,6 +403,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email: res.data.email,
         full_name: res.data.full_name,
         role: res.data.role,
+        school_id: res.data.school_id,
         department_id: res.data.department_id,
         assigned_grade: res.data.assigned_grade,
       };

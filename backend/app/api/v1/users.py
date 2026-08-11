@@ -50,7 +50,7 @@ async def list_users(
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN, UserRole.DEPT_HEAD)),
 ):
     """List all users with optional filtering."""
-    query = select(User).options(selectinload(User.department))
+    query = select(User).options(selectinload(User.department)).where(User.school_id == current_user.school_id)
 
     if role:
         try:
@@ -94,6 +94,7 @@ async def create_user(
 
     new_user = User(
         id=str(uuid.uuid4()),
+        school_id=current_user.school_id,
         email=req.email,
         full_name=req.full_name,
         role=role_enum,
@@ -136,7 +137,7 @@ async def update_user(
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Update user profile & role (Admin only)."""
-    result = await db.execute(select(User).where(User.id == user_id))
+    result = await db.execute(select(User).where(User.id == user_id, User.school_id == current_user.school_id))
     user = result.scalars().first()
 
     if not user:
@@ -192,7 +193,7 @@ async def get_users_by_role(
     result = await db.execute(
         select(User)
         .options(selectinload(User.department))
-        .where(User.role == role_enum)
+        .where(User.role == role_enum, User.school_id == current_user.school_id)
         .order_by(User.full_name)
     )
     users = result.scalars().all()

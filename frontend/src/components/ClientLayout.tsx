@@ -13,7 +13,7 @@ import {
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
   Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
-  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus, Sun, Moon, ShieldCheck
+  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus, Sun, Moon, ShieldCheck, Bus, MapPin
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -92,6 +92,11 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   librarian_requests:   { href: '/librarian/requests',   label: 'Book Requests',             icon: FileSearch,      color: 'group-hover:text-pink-400' },
   student_library:      { href: '/student/library',      label: 'Digital Library',           icon: Library,         color: 'group-hover:text-sky-400' },
   teacher_library:      { href: '/teacher/library',      label: 'Library & Resources',       icon: Library,         color: 'group-hover:text-sky-400' },
+  transport_dashboard:  { href: '/transport/dashboard',  label: 'Transport Overview',        icon: LayoutDashboard, color: 'group-hover:text-blue-400' },
+  transport_fleet:      { href: '/transport/fleet',      label: 'Fleet Management',          icon: Bus,             color: 'group-hover:text-indigo-400' },
+  transport_routes:     { href: '/transport/routes',     label: 'Routes & Stops',            icon: MapPin,          color: 'group-hover:text-emerald-400' },
+  transport_staff:      { href: '/transport/staff',      label: 'Transport Staff',           icon: Users,           color: 'group-hover:text-amber-400' },
+  transport_allocations:{ href: '/transport/allocations',label: 'Student Allocations',       icon: UserPlus,        color: 'group-hover:text-fuchsia-400' },
 };
 
 function AppShell({ children }: { children: React.ReactNode }) {
@@ -113,11 +118,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }, [checkAuth]);
 
   useEffect(() => {
-    if (hasChecked && pathname !== '/login' && pathname !== '/' && !isAuthenticated) {
+    if (hasChecked && pathname !== '/login' && pathname !== '/' && pathname !== '/register' && !isAuthenticated) {
       router.push('/login');
     }
   }, [pathname, isAuthenticated, hasChecked, router]);
 
+<<<<<<< HEAD
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(nextTheme);
@@ -132,6 +138,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   // Don't show shell on login page or landing page
   if (pathname === '/login' || pathname === '/') {
+=======
+  // Don't show shell on public pages
+  if (pathname === '/login' || pathname === '/' || pathname === '/register') {
+>>>>>>> 46c025f0c42132a6cced8782fdc26a3027fdad21
     return <>{children}</>;
   }
 
@@ -173,10 +183,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col justify-center whitespace-nowrap">
+<<<<<<< HEAD
               <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue dark:text-blue-400">PaperBuddy</span>
               <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 font-medium w-fit">
                 v2.5 Multi-Role
               </span>
+=======
+              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue">PaperBuddy</span>
+>>>>>>> 46c025f0c42132a6cced8782fdc26a3027fdad21
             </div>
             </Link>
           </motion.div>
