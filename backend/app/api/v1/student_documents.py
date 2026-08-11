@@ -28,7 +28,7 @@ async def _get_or_create_student_profile(db: AsyncSession, current_user: User) -
     """Helper to retrieve or construct a linked Student profile for the authenticated user."""
     stmt = select(Student).options(selectinload(Student.school_class)).where(Student.user_id == current_user.id)
     res = await db.execute(stmt)
-    student = res.scalar_one_or_none()
+    student = res.scalars().first()
 
     if not student:
         # Check if student exists by admission/email or create a fallback demo student profile
