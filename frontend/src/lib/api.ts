@@ -12,7 +12,7 @@ const api = axios.create({
 // Interceptor to attach auth token from localStorage
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('pb_token');
+    const token = localStorage.getItem('pb_token') || localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, date
-from sqlalchemy import Column, String, Text, Boolean, Integer, Numeric, Date, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint
+from sqlalchemy import Column, String, Text, Boolean, Integer, Numeric, Float, JSON, Date, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import relationship
 import enum
 from app.db.database import Base
@@ -152,6 +152,31 @@ class Student(Base):
 
     user = relationship("User", back_populates="student_profile")
     school_class = relationship("Class")
+    documents = relationship("StudentDocument", back_populates="student", cascade="all, delete-orphan")
+
+class StudentDocument(Base):
+    __tablename__ = "student_documents"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    student_id = Column(String(36), ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    
+    document_type = Column(String(50), nullable=False)  # 'aadhaar', 'community', 'income', 'tc', 'birth_cert', etc.
+    document_title = Column(String(100), nullable=False)
+    file_url = Column(String(500), nullable=False)
+    
+    masked_doc_number = Column(String(100), nullable=True)     # e.g., 'XXXX-XXXX-9012'
+    encrypted_doc_number = Column(Text, nullable=True)         # Encrypted full identifier
+    
+    verification_status = Column(String(20), default="VERIFIED")  # 'VERIFIED', 'AI_WARNING', 'PENDING'
+    ai_confidence = Column(Float, default=0.95)
+    ai_matched_fields = Column(JSON, nullable=True)            # Dict of matched fields
+    extracted_data = Column(JSON, nullable=True)               # Full extracted payload
+    ai_remarks = Column(Text, nullable=True)
+    
+    uploaded_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    student = relationship("Student", back_populates="documents")
 
 class Class(Base):
     __tablename__ = "classes"

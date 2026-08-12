@@ -33,11 +33,11 @@ interface CalendarEvent {
 }
 
 const CATEGORY_COLORS = {
-  holiday: "bg-rose-500/20 text-rose-300 border-rose-500/40",
-  exam: "bg-amber-500/20 text-amber-300 border-amber-500/40",
-  event: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
-  meeting: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
-  celebration: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+  holiday: "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/50",
+  exam: "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/50",
+  event: "bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/50",
+  meeting: "bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/50",
+  celebration: "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/50",
 };
 
 export default function AcademicCalendarPage() {
