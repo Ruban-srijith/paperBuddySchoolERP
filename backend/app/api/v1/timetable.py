@@ -167,3 +167,54 @@ async def get_all_timetables(
         }
         for e in entries
     ]
+
+@router.get("/class/{grade_section}")
+async def get_class_timetable(
+    grade_section: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get timetable entries for a specific class grade/section (e.g., 10-A, 10, 12-B).
+    """
+    parts = grade_section.split("-")
+    grade = parts[0]
+    section = parts[1] if len(parts) > 1 else ""
+
+    query = (
+        select(Timetable)
+        .options(
+            selectinload(Timetable.school_class),
+            selectinload(Timetable.teacher),
+            selectinload(Timetable.subject),
+            selectinload(Timetable.classroom)
+        )
+    )
+    res = await db.execute(query)
+    entries = res.scalars().all()
+
+    # Filter matching class
+    matching = [
+        e for e in entries
+        if e.school_class and (
+            e.school_class.grade == grade or
+            f"{e.school_class.grade}-{e.school_class.section}" == grade_section
+        )
+    ]
+    target_list = matching if matching else entries
+
+    return [
+        {
+            "id": e.id,
+            "class_id": e.class_id,
+            "class_name": f"{e.school_class.grade}-{e.school_class.section}" if e.school_class else grade_section,
+            "teacher_id": e.teacher_id,
+            "teacher_name": e.teacher.full_name if e.teacher else "Faculty Member",
+            "subject_id": e.subject_id,
+            "subject_name": e.subject.name if e.subject else "Core Subject",
+            "classroom_name": e.classroom.name if e.classroom else "Room 101",
+            "day_of_week": e.day_of_week,
+            "time_slot": e.time_slot
+        }
+        for e in target_list
+    ]
