@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import PageLoader from '@/components/PageLoader';
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -79,25 +80,9 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f19] text-brand-black overflow-x-hidden selection:bg-brand-blue/20 font-sans">
       
-      {/* Lottie Preloader */}
+      {/* Animated Preloader */}
       {showPreloader && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
-          <div className="w-64 h-64 md:w-96 md:h-96">
-            <DotLottieReact
-              src="https://lottie.host/057444ae-9ed4-4565-9c62-0342d6851089/8qWSdLzTv5.lottie"
-              loop
-              autoplay
-            />
-          </div>
-          <motion.h2 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mt-4 text-xl font-bold text-brand-blue tracking-tight"
-          >
-            PaperBuddy
-          </motion.h2>
-        </div>
+        <PageLoader />
       )}
 
       {/* Navbar */}

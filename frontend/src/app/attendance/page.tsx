@@ -43,6 +43,28 @@ export default function AttendancePage() {
 
   const [assignedClassId, setAssignedClassId] = useState<string>("");
 
+  const [summaryData, setSummaryData] = useState<any>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+
+  // Fetch summary data for management
+  useEffect(() => {
+    const fetchSummary = async () => {
+      if (['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal'].includes(user?.role || '')) {
+        setLoadingSummary(true);
+        try {
+          const res = await api.get(`/attendance/summary?date_str=${selectedDate}`);
+          setSummaryData(res.data);
+        } catch (err) {
+          console.error("Failed to fetch summary data", err);
+          toast.error("Failed to load attendance summary");
+        } finally {
+          setLoadingSummary(false);
+        }
+      }
+    };
+    fetchSummary();
+  }, [user, selectedDate]);
+
   // Student Attendance Matrix state (for teachers marking)
   const [students, setStudents] = useState<StudentAttendanceRow[]>([]);
 
@@ -77,26 +99,10 @@ export default function AttendancePage() {
   const isTeacher = user?.role === 'teacher';
   const isStudent = user?.role === 'student';
 
-  // Per-Grade Summary Matrix Data for Management
-  const gradeMatrixData = ALL_GRADES.map((grade, idx) => {
-    const strength = 30 + (idx % 4) * 2;
-    const absent = (idx % 3 === 0) ? 2 : (idx % 2 === 0) ? 1 : 0;
-    const late = (idx % 4 === 0) ? 1 : 0;
-    const present = strength - absent - late;
-    const pct = ((present / strength) * 100).toFixed(1);
-    return {
-      grade,
-      strength,
-      present,
-      absent,
-      late,
-      percentage: parseFloat(pct),
-    };
-  });
-
-  const overallPresent = gradeMatrixData.reduce((acc, g) => acc + g.present, 0);
-  const overallStrength = gradeMatrixData.reduce((acc, g) => acc + g.strength, 0);
-  const overallPct = ((overallPresent / overallStrength) * 100).toFixed(1);
+  const overallPct = summaryData ? summaryData.overall_student_attendance : 0;
+  const overallPresent = summaryData ? summaryData.overall_present : 0;
+  const overallStrength = summaryData ? summaryData.overall_strength : 0;
+  const gradeMatrixData = summaryData ? summaryData.grade_matrix_data : [];
 
   const toggleStatus = (student_id: string, newStatus: "present" | "absent" | "late") => {
     setStudents((prev) =>
@@ -180,20 +186,24 @@ export default function AttendancePage() {
 
               <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
                 <div className="text-xs text-gray-600">Staff & Faculty Present</div>
-                <div className="text-2xl font-bold text-cyan-600">65 / 68</div>
-                <div className="text-[11px] text-gray-600">95.6% faculty on duty • 3 on approved leave</div>
+                <div className="text-2xl font-bold text-cyan-600">
+                  {summaryData ? summaryData.staff_duty_attendance.present_on_campus : 0} / {summaryData ? summaryData.staff_duty_attendance.total_teachers : 0}
+                </div>
+                <div className="text-[11px] text-gray-600">
+                  {summaryData ? summaryData.staff_duty_attendance.approved_duty_leave : 0} on approved leave
+                </div>
               </div>
 
               <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
                 <div className="text-xs text-gray-600">Total Classes Active</div>
-                <div className="text-2xl font-bold text-brand-blue">28 Classes</div>
-                <div className="text-[11px] text-gray-600">14 Grades × 2 Sections (Sec A & B)</div>
+                <div className="text-2xl font-bold text-brand-blue">{summaryData ? summaryData.total_classes_active : 0} Classes</div>
+                <div className="text-[11px] text-gray-600">Classes with records today</div>
               </div>
 
               <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
                 <div className="text-xs text-gray-600">Low Attendance Alerts</div>
-                <div className="text-2xl font-bold text-amber-400">0 Classes</div>
-                <div className="text-[11px] text-emerald-600 font-medium">All classes above 90% threshold</div>
+                <div className="text-2xl font-bold text-amber-400">{summaryData ? summaryData.low_attendance_alerts : 0} Classes</div>
+                <div className="text-[11px] text-emerald-600 font-medium">Classes below 90% threshold</div>
               </div>
             </div>
 
@@ -212,7 +222,12 @@ export default function AttendancePage() {
                 </span>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-gray-200">
+              <div className="relative overflow-x-auto rounded-xl border border-gray-200">
+                {loadingSummary && (
+                  <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+                  </div>
+                )}
                 <table className="w-full text-left text-xs">
                   <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
                     <tr>
@@ -226,7 +241,12 @@ export default function AttendancePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {gradeMatrixData.map((row) => (
+                    {gradeMatrixData.length === 0 && !loadingSummary && (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-gray-500 font-medium">No attendance data found for this date.</td>
+                      </tr>
+                    )}
+                    {gradeMatrixData.map((row: any) => (
                       <tr key={row.grade} className="hover:bg-gray-50/40 transition-colors">
                         <td className="p-3.5 font-bold text-brand-black flex items-center gap-2">
                           <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs">
@@ -271,7 +291,9 @@ export default function AttendancePage() {
                   <div className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5">
                     <UserCheck className="w-4 h-4" /> Present on Campus
                   </div>
-                  <div className="text-xl font-bold text-brand-black">65 Faculty Members</div>
+                  <div className="text-xl font-bold text-brand-black">
+                    {summaryData ? summaryData.staff_duty_attendance.present_on_campus : 0} Faculty Members
+                  </div>
                   <div className="text-[11px] text-gray-600">All periods covered • Zero unassigned slots</div>
                 </div>
 
@@ -279,7 +301,9 @@ export default function AttendancePage() {
                   <div className="text-xs text-amber-400 font-semibold flex items-center gap-1.5">
                     <Clock className="w-4 h-4" /> Approved Duty Leave
                   </div>
-                  <div className="text-xl font-bold text-brand-black">3 Faculty Members</div>
+                  <div className="text-xl font-bold text-brand-black">
+                    {summaryData ? summaryData.staff_duty_attendance.approved_duty_leave : 0} Faculty Members
+                  </div>
                   <div className="text-[11px] text-gray-600">Substitutes successfully allocated</div>
                 </div>
 
@@ -287,8 +311,10 @@ export default function AttendancePage() {
                   <div className="text-xs text-brand-blue font-semibold flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" /> Syllabus Work Logs
                   </div>
-                  <div className="text-xl font-bold text-brand-black">62 / 65 Submitted</div>
-                  <div className="text-[11px] text-gray-600">95.4% submission compliance today</div>
+                  <div className="text-xl font-bold text-brand-black">
+                    {summaryData ? summaryData.staff_duty_attendance.syllabus_work_logs : 0} / {summaryData ? summaryData.staff_duty_attendance.total_teachers : 0} Submitted
+                  </div>
+                  <div className="text-[11px] text-gray-600">Log submission compliance today</div>
                 </div>
               </div>
             </div>

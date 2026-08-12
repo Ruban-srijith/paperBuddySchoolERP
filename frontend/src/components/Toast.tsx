@@ -34,7 +34,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const showToast = useCallback((type: ToastType, message: string, title?: string, duration = 3500) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const newToast: ToastMessage = { id, type, title, message, duration };
+    
+    let safeMessage = message;
+    if (typeof message === 'string' && message.length > 150) {
+      safeMessage = message.substring(0, 150) + "... (See console for full details)";
+      console.error("Full toast error:", message);
+    }
+    
+    const newToast: ToastMessage = { id, type, title, message: safeMessage, duration };
 
     setToasts((prev) => [...prev, newToast]);
 

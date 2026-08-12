@@ -189,7 +189,7 @@ async def assign_class_toppers(
         return {"message": "Class toppers assigned successfully"}
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error occurred while assigning class toppers. Please check if you have valid student IDs.")
 
 @router.get("/toppers")
 async def get_class_toppers(
@@ -213,6 +213,8 @@ async def get_class_toppers(
     # Group by grade
     grouped = {}
     for t in toppers:
+        if not t.school_class:
+            continue
         g = t.school_class.grade
         if g not in grouped:
             grouped[g] = []
@@ -766,60 +768,66 @@ async def get_teachers_workload(
     )),
 ):
     """Retrieve syllabus completion progress, periods, and workload per teacher."""
-    return [
-        {
-            "teacher_id": "t1111111-1111-1111-1111-111111111111",
-            "teacher_name": "Dr. Sarah Connor",
-            "department": "Science & Mathematics",
-            "assigned_classes": ["10-A", "10-B", "9-A"],
-            "subjects": ["Mathematics", "Advanced Calculus"],
-            "weekly_periods": 24,
-            "max_periods_cap": 28,
-            "syllabus_completed_pct": 74.5,
-            "target_pct": 70.0,
-            "status": "On Track",
-            "has_lab_component": False,
-        },
-        {
-            "teacher_id": "t2222222-2222-2222-2222-222222222222",
-            "teacher_name": "Prof. Alan Turing",
-            "department": "Science",
-            "assigned_classes": ["10-A", "11-A", "12-A"],
-            "subjects": ["Physics"],
-            "weekly_periods": 22,
-            "max_periods_cap": 28,
-            "syllabus_completed_pct": 68.0,
-            "target_pct": 70.0,
-            "status": "Slight Lag (2%)",
-            "has_lab_component": True,
-        },
-        {
-            "teacher_id": "t3333333-3333-3333-3333-333333333333",
-            "teacher_name": "Dr. Marie Curie",
-            "department": "Science",
-            "assigned_classes": ["10-A", "10-B", "12-B"],
-            "subjects": ["Chemistry"],
-            "weekly_periods": 26,
-            "max_periods_cap": 28,
-            "syllabus_completed_pct": 82.0,
-            "target_pct": 70.0,
-            "status": "Ahead of Schedule",
-            "has_lab_component": True,
-        },
-        {
-            "teacher_id": "t4444444-4444-4444-4444-444444444444",
-            "teacher_name": "Alex Mercer",
-            "department": "Computer Science",
-            "assigned_classes": ["9-A", "10-A", "11-A", "12-A"],
-            "subjects": ["Computer Science", "AI & Robotics"],
-            "weekly_periods": 25,
-            "max_periods_cap": 28,
-            "syllabus_completed_pct": 78.5,
-            "target_pct": 70.0,
-            "status": "On Track",
-            "has_lab_component": True,
-        }
-    ]
+    teachers_res = await db.execute(
+        select(User)
+        .options(selectinload(User.department))
+        .where(User.role == UserRole.TEACHER)
+    )
+    teachers = teachers_res.scalars().all()
+    
+    workload_data = []
+    
+    for t in teachers:
+        tt_res = await db.execute(
+            select(Timetable)
+            .options(selectinload(Timetable.school_class), selectinload(Timetable.subject), selectinload(Timetable.classroom))
+            .where(Timetable.teacher_id == t.id)
+        )
+        timetables = tt_res.scalars().all()
+        
+        assigned_classes = set()
+        subjects = set()
+        subject_ids = set()
+        has_lab_component = False
+        weekly_periods = len(timetables)
+        
+        for tt in timetables:
+            if tt.school_class:
+                assigned_classes.add(f"{tt.school_class.grade}-{tt.school_class.section}")
+            if tt.subject:
+                subjects.add(tt.subject.name)
+                subject_ids.add(tt.subject.id)
+            if tt.classroom and tt.classroom.is_lab:
+                has_lab_component = True
+                
+        syllabus_completed_pct = 0.0
+        if subject_ids:
+            nodes_res = await db.execute(
+                select(SyllabusNode).where(SyllabusNode.subject_id.in_(subject_ids))
+            )
+            nodes = nodes_res.scalars().all()
+            if nodes:
+                completed = sum(1 for n in nodes if n.is_completed)
+                syllabus_completed_pct = round((completed / len(nodes)) * 100, 1)
+                
+        target_pct = 50.0 
+        status = "On Track" if syllabus_completed_pct >= target_pct else "Behind Schedule"
+        
+        workload_data.append({
+            "teacher_id": t.id,
+            "teacher_name": t.full_name,
+            "department": t.department.name if t.department else "Academic",
+            "assigned_classes": sorted(list(assigned_classes)),
+            "subjects": sorted(list(subjects)),
+            "weekly_periods": weekly_periods,
+            "max_periods_cap": 30, 
+            "syllabus_completed_pct": syllabus_completed_pct,
+            "target_pct": target_pct,
+            "status": status,
+            "has_lab_component": has_lab_component,
+        })
+        
+    return workload_data
 
 
 @router.get("/teachers-directory")
