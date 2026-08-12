@@ -23,7 +23,12 @@ interface DeptItem {
   name: string;
 }
 
-const ALL_ROLES: UserRole[] = ['correspondent', 'principal', 'vice_principal', 'teacher', 'mentor', 'student'];
+const ALL_ROLES: UserRole[] = [
+  'super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 
+  'dean', 'dept_head', 'teacher', 'mentor', 'student', 
+  'finance', 'warden', 'librarian', 'transport'
+];
+
 const ALL_GRADES = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 function UsersPageContent() {
@@ -111,7 +116,7 @@ function UsersPageContent() {
             </div>
             User Management
           </h1>
-          <p className="text-sm text-gray-600">Manage users across all 9 roles — {users.length} total users</p>
+          <p className="text-sm text-gray-600">Manage users across all {ALL_ROLES.length} roles — {users.length} total users</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}

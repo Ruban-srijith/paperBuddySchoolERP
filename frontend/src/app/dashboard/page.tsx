@@ -682,6 +682,16 @@ function DashboardContent() {
                   <p className="text-xs text-gray-500 leading-relaxed">Post notices, circulars, and test alerts to specific classes.</p>
                 </div>
               </Link>
+
+              <Link href="/assign-toppers" className="group">
+                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-fuchsia-500/50 hover:bg-gray-50 transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/30 flex items-center justify-center text-fuchsia-400 group-hover:scale-110 transition-transform">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-base font-bold text-brand-black group-hover:text-fuchsia-600 transition-colors">Assign Class Toppers</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">Assign the academic toppers for your assigned class.</p>
+                </div>
+              </Link>
             </>
           )}
 

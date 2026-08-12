@@ -7,7 +7,7 @@ from app.core.config import settings
 logger = logging.getLogger("db")
 
 # Use DATABASE_URL environment variable or fallback to sqlite for standalone running
-db_url = os.getenv("DATABASE_URL", settings.SQLITE_DATABASE_URL)
+db_url = settings.DATABASE_URL
 if db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
