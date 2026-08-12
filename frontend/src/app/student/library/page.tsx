@@ -22,10 +22,10 @@ export default function StudentLibrary() {
             <div className="text-3xl font-bold text-emerald-600">2</div>
             <div className="text-xs text-gray-500 mt-2">Max allowed: 4</div>
           </div>
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-rose-900/50 bg-rose-900/10">
-            <div className="text-rose-400 text-sm font-medium mb-1">Total Fines</div>
-            <div className="text-3xl font-bold text-brand-black">₹0.00</div>
-            <div className="text-xs text-rose-300 mt-2">No pending dues</div>
+          <div className="bg-rose-50 dark:bg-rose-950/30 rounded-[24px] border border-rose-200 dark:border-rose-800/50 shadow-sm p-5 transition-colors">
+            <div className="text-rose-700 dark:text-rose-300 text-sm font-semibold mb-1">Total Fines</div>
+            <div className="text-3xl font-bold text-rose-900 dark:text-rose-100">₹0.00</div>
+            <div className="text-xs text-rose-600 dark:text-rose-400 mt-2">No pending dues</div>
           </div>
           <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200">
             <div className="text-gray-600 text-sm font-medium mb-1">Books Read (This Year)</div>
