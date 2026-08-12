@@ -208,6 +208,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   teacher: [
     'dashboard',
+    'assign_toppers',
     'my_class',
     'class-fees',
     'teacher-requests',

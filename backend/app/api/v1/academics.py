@@ -24,7 +24,7 @@ from app.db.database import get_db
 from app.db.models import (
     User, Student, Class, Subject, Classroom, Timetable,
     SyllabusNode, Attendance, FeePayment, Homework, Assignment,
-    ExamSchedule, StudentQuery, Announcement, UserRole
+    ExamSchedule, StudentQuery, Announcement, UserRole, ClassTopper
 )
 from app.core.auth import get_current_user, require_role
 
@@ -85,7 +85,7 @@ async def get_class_detail(
 
     student_list = [
         {
-            "id": s.id,
+            "id": s.user_id,
             "full_name": s.full_name,
             "admission_number": s.admission_number,
             "email": s.user.email if s.user else "-",
@@ -125,6 +125,72 @@ async def get_class_detail(
 # 2. CLASS TOPPERS LIST (PER-GRADE)
 # ─────────────────────────────────────────────────────────────
 
+class TopperInput(BaseModel):
+    student_id: str
+    rank: int
+    total_marks: Optional[int] = None
+    gpa: float
+    percentage: float
+    top_subjects: List[str]
+    attendance_pct: float
+
+class AssignToppersRequest(BaseModel):
+    class_id: str
+    term: str = "Term 1 Final"
+    toppers: List[TopperInput]
+
+@router.post("/toppers")
+async def assign_class_toppers(
+    req: AssignToppersRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Assign toppers for a specific class (Teachers only)."""
+    if current_user.role != UserRole.TEACHER:
+        raise HTTPException(status_code=403, detail="Only teachers can assign toppers")
+
+    # Verify if teacher is assigned to this class
+    class_query = await db.execute(select(Class).where(Class.id == req.class_id))
+    cls = class_query.scalar_one_or_none()
+    if not cls:
+        raise HTTPException(status_code=404, detail="Class not found")
+    
+    if cls.class_teacher_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only assign toppers for your own class")
+
+    try:
+        # Delete existing toppers for this class and term
+        existing_query = await db.execute(
+            select(ClassTopper).where(
+                ClassTopper.class_id == req.class_id, 
+                ClassTopper.term == req.term
+            )
+        )
+        existing_toppers = existing_query.scalars().all()
+        for et in existing_toppers:
+            await db.delete(et)
+        
+        # Insert new toppers
+        for t in req.toppers:
+            new_topper = ClassTopper(
+                class_id=req.class_id,
+                student_id=t.student_id,
+                rank=t.rank,
+                total_marks=t.total_marks,
+                gpa=t.gpa,
+                percentage=t.percentage,
+                top_subjects=t.top_subjects,
+                attendance_pct=t.attendance_pct,
+                term=req.term
+            )
+            db.add(new_topper)
+        
+        await db.commit()
+        return {"message": "Class toppers assigned successfully"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
 @router.get("/toppers")
 async def get_class_toppers(
     grade: Optional[str] = None,
@@ -132,40 +198,56 @@ async def get_class_toppers(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Retrieve top performing students per grade."""
-    grades = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
-    if grade:
-        grades = [grade]
+    """Retrieve top performing students per grade from database."""
+    query = select(ClassTopper).options(
+        selectinload(ClassTopper.student).selectinload(User.student_profile),
+        selectinload(ClassTopper.school_class)
+    ).where(ClassTopper.term == term)
+    
+    if grade and grade != "all":
+        query = query.join(Class).where(Class.grade == grade)
+        
+    result = await db.execute(query)
+    toppers = result.scalars().all()
 
-    toppers_data = []
-    sample_names = [
-        ("Ananya Sharma", 99.2, "A+", "Maths: 100, Sci: 99, Eng: 98"),
-        ("Kishor Kumar", 98.6, "A+", "Maths: 98, Sci: 100, CS: 99"),
-        ("Rohan Iyer", 97.8, "A+", "Maths: 97, Sci: 98, Social: 99"),
-        ("Pooja Reddy", 96.5, "A", "Maths: 95, Sci: 97, Eng: 98"),
-        ("Siddharth Roy", 95.9, "A", "Maths: 96, Sci: 95, CS: 97"),
-    ]
+    # Group by grade
+    grouped = {}
+    for t in toppers:
+        g = t.school_class.grade
+        if g not in grouped:
+            grouped[g] = []
+        
+        adm_no = "N/A"
+        if t.student and t.student.student_profile:
+            adm_no = t.student.student_profile.admission_number
 
-    for g in grades:
-        grade_toppers = []
-        for rank, (name, pct, gpa, subjects) in enumerate(sample_names, start=1):
-            grade_toppers.append({
-                "rank": rank,
-                "student_name": f"{name} ({g})",
-                "admission_number": f"ADM-{g}-{rank:03d}",
-                "grade": g,
-                "section": "A" if rank % 2 != 0 else "B",
-                "percentage": pct - (rank * 0.4),
-                "gpa": gpa,
-                "term": term,
-                "subject_breakdown": subjects,
-                "attendance_rate": 98.0 - (rank * 0.5),
-            })
-        toppers_data.append({
+        grouped[g].append({
+            "rank": t.rank,
+            "student_name": t.student.full_name if t.student else "Unknown",
+            "admission_number": adm_no,
             "grade": g,
-            "toppers": grade_toppers,
+            "section": t.school_class.section,
+            "total_marks": t.total_marks if t.total_marks else 0,
+            "percentage": float(t.percentage) if t.percentage else 0.0,
+            "gpa": float(t.gpa) if t.gpa else 0.0,
+            "term": t.term,
+            "subject_breakdown": ", ".join(t.top_subjects) if t.top_subjects else "",
+            "top_subjects": t.top_subjects if t.top_subjects else [],
+            "attendance_rate": float(t.attendance_pct) if t.attendance_pct else 0.0,
         })
 
+    # Sort each grade's toppers by rank
+    for g in grouped:
+        grouped[g].sort(key=lambda x: x["rank"])
+
+    # Format output as expected by frontend
+    toppers_data = []
+    for g, t_list in grouped.items():
+        toppers_data.append({
+            "grade": g,
+            "toppers": t_list
+        })
+        
     return toppers_data
 
 

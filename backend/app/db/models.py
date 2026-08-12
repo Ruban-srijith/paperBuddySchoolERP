@@ -2,8 +2,9 @@ import uuid
 from datetime import datetime, date
 from sqlalchemy import Column, String, Text, Boolean, Integer, Numeric, Float, JSON, Date, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import relationship
+import uuid
 import enum
-from app.db.database import Base
+from .database import Base
 
 class UserRole(str, enum.Enum):
     SUPER_ADMIN = "super_admin"
@@ -933,3 +934,33 @@ class StudentTransport(Base):
 
     student = relationship("User")
     stop = relationship("TransportStop")
+
+# =====================================================================
+# Academics Models
+# =====================================================================
+
+class ClassTopper(Base):
+    __tablename__ = "class_toppers"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    rank = Column(Integer, nullable=False)
+    total_marks = Column(Integer, nullable=True)
+    gpa = Column(Numeric(5, 2), nullable=True)
+    percentage = Column(Numeric(5, 2), nullable=True)
+    top_subjects = Column(JSON, nullable=True)
+    attendance_pct = Column(Numeric(5, 2), nullable=True)
+    term = Column(String(100), nullable=True, default="Term 1 Final")
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint('class_id', 'student_id', 'term', name='uq_class_student_term_topper'),)
+
+    school_class = relationship("Class")
+    student = relationship("User", foreign_keys=[student_id])
+
+
+
+
+
