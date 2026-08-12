@@ -76,73 +76,25 @@ function MentorshipContent() {
 
   const isManagement = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'dean', 'dept_head'].includes(user.role);
 
-  const getMockMentees = (): MenteeInsight[] => {
-    return Array.from({ length: 6 }).map((_, i) => ({
-      student_id: `stu_${i}`,
-      student_name: `Student ${11 + i}`,
-      email: `student${11 + i}@school.edu`,
-      grade: `Grade ${Math.floor(Math.random() * 5) + 8}`,
-      section: ["A", "B", "C"][i % 3],
-      attendance_rate: Math.floor(Math.random() * 20) + 80,
-      portion_progress: Math.floor(Math.random() * 40) + 50,
-      submitted_labs_count: Math.floor(Math.random() * 5) + 2,
-      pending_labs_count: Math.floor(Math.random() * 3),
-      latest_mentor_notes: i % 2 === 0 ? [{
-        id: `note_${i}`,
-        mentor_name: "Mentor Guide",
-        category: "academic",
-        notes: "Student is progressing well but needs to focus more on upcoming lab assessments.",
-        created_at: new Date(Date.now() - 86400000).toISOString()
-      }] : []
-    }));
-  };
-
   const fetchMentees = async () => {
     setLoading(true);
     try {
       const res = await api.get("/mentorship/mentees");
-      if (res.data && res.data.length > 0) {
-        setMentees(res.data);
-      } else {
-        setMentees(getMockMentees());
-      }
+      setMentees(res.data || []);
     } catch (err) {
-      setMentees(getMockMentees());
+      console.error("Failed to fetch mentees", err);
+      setMentees([]);
     }
     setLoading(false);
-  };
-
-  const getMockTeachers = (): TeacherWorkloadItem[] => {
-    const depts = ["Science", "Maths", "English", "Computer Science"];
-    return Array.from({ length: 6 }).map((_, i) => {
-      const target = 100;
-      const completed = Math.floor(Math.random() * 40) + 40;
-      return {
-        teacher_id: `tch_${i}`,
-        teacher_name: `Faculty Member ${i + 1}`,
-        department: depts[i % depts.length],
-        assigned_classes: [`Grade ${10 + (i % 3)} A`, `Grade ${10 + (i % 3)} B`],
-        subjects: [`${depts[i % depts.length]} 101`],
-        weekly_periods: Math.floor(Math.random() * 10) + 15,
-        max_periods_cap: 30,
-        syllabus_completed_pct: completed,
-        target_pct: target,
-        status: completed < 50 ? "Behind Schedule" : "On Track",
-        has_lab_component: i % 2 === 0
-      };
-    });
   };
 
   const fetchTeachers = async () => {
     try {
       const res = await api.get("/academics/teachers-workload");
-      if (res.data && res.data.length > 0) {
-        setTeachers(res.data);
-      } else {
-        setTeachers(getMockTeachers());
-      }
+      setTeachers(res.data || []);
     } catch (err) {
-      setTeachers(getMockTeachers());
+      console.error("Failed to fetch teachers workload", err);
+      setTeachers([]);
     }
   };
 
@@ -324,8 +276,13 @@ function MentorshipContent() {
       ═══════════════════════════════════════════════════════ */}
       {activeTab === "teachers" && isManagement && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {teachers.map((t) => (
+          {teachers.length === 0 ? (
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8 text-center text-gray-500 text-sm rounded-2xl">
+              No faculty workload data available.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {teachers.map((t) => (
               <div
                 key={t.teacher_id}
                 onClick={() => setSelectedTeacher(t)}
@@ -356,8 +313,9 @@ function MentorshipContent() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Teacher Drill-down Modal */}
           {selectedTeacher && (

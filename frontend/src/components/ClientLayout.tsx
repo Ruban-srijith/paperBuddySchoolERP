@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
+import PageLoader from '@/components/PageLoader';
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -143,14 +144,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   // If not authenticated and not on login, show brief loading while redirecting
   if (!hasChecked || (!isAuthenticated || !user)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EEF2F6] dark:bg-[#0b0f19]">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-brand-blue/30 border-t-brand-blue animate-spin mx-auto"></div>
-          <p className="text-gray-500 dark:text-slate-400 text-sm">Loading application...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   const navItems = ROLE_NAV_ITEMS[user.role] || ['dashboard'];
@@ -159,13 +153,13 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#EEF2F6] dark:bg-[#0b0f19] text-[#131313] dark:text-slate-100 transition-colors duration-200">
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#EEF2F6] dark:bg-[#0b0f19] text-[#131313] dark:text-slate-100 transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="h-16 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800/80 shadow-sm sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between transition-colors duration-200">
+      <header className="h-16 flex-none bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800/80 shadow-sm px-4 md:px-6 flex items-center justify-between transition-colors duration-200 z-50">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setShowMobileMenu(true)}
@@ -289,17 +283,17 @@ function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <div className="flex flex-1 relative">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Mobile Sidebar Overlay Backdrop */}
         {showMobileMenu && (
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setShowMobileMenu(false)}
           ></div>
         )}
 
         {/* Left Sidebar — Dynamic by Role */}
-        <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 p-4 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:max-h-[calc(100vh-4rem)] ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside className={`absolute lg:relative z-40 lg:z-10 w-64 h-full bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 p-4 flex flex-col justify-between overflow-y-auto transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="space-y-6">
             <div className="flex items-center justify-between px-3">
               <div className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
@@ -375,7 +369,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 overflow-y-auto max-h-[calc(100vh-4rem)]">
+        <main className="flex-1 w-full p-4 md:p-6 overflow-y-auto">
           {children}
         </main>
       </div>
