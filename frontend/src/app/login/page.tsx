@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { GraduationCap, Eye, EyeOff, ChevronRight, ArrowLeft, BookOpen, Users, BarChart3, Globe, Shield, Building2 } from 'lucide-react';
 import api from '@/lib/api';
+import PageLoader from '@/components/PageLoader';
 
 const containerVariants = {
   hidden: { opacity: 0, scale: 0.95, y: 20 },
@@ -48,20 +49,25 @@ export default function LoginPage() {
   const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
   const [isSuccessMorphing, setIsSuccessMorphing] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
     checkAuth();
     setHasChecked(true);
     fetchSchools();
+    
+    // Simulate a brief reload effect
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
   }, [checkAuth]);
 
   const fetchSchools = async () => {
     try {
       const res = await api.get('/schools/public');
       setSchools(res.data);
-      if (res.data && res.data.length > 0) {
-        setSelectedSchool(res.data[0]);
-      }
+      // Removed automatic selection to force user to pick a school
     } catch (err) {
       console.error("Failed to fetch schools", err);
     } finally {
@@ -71,6 +77,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (hasChecked && isAuthenticated) {
+      // already authenticated on mount -> redirect to dashboard
+      // Next.js router is fine here, or you can use window.location
       router.push('/dashboard');
     }
   }, [isAuthenticated, hasChecked, router]);
@@ -81,7 +89,7 @@ export default function LoginPage() {
     if (success) {
       setIsSuccessMorphing(true);
       setTimeout(() => {
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       }, 600);
     }
   };
@@ -94,7 +102,7 @@ export default function LoginPage() {
     if (success) {
       setIsSuccessMorphing(true);
       setTimeout(() => {
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       }, 600);
     }
   };
@@ -107,12 +115,12 @@ export default function LoginPage() {
     { label: 'Vice-Principal', email: 'vp@school.edu' },
     { label: 'Dean', email: 'dean.science@school.edu' },
     { label: 'Dept Head', email: 'head.physics@school.edu' },
-    { label: 'Teacher', email: 'sarah.connor@school.edu' },
-    { label: 'Student', email: 'kishor.k@school.edu' },
+    { label: 'Teacher', email: 'tea1@school.edu' },
+    { label: 'Student', email: 'stu1@school.edu' },
     { label: 'Parent', email: 'parent.kishor@school.edu' },
-    { label: 'Finance', email: 'finance@school.edu' },
-    { label: 'Warden', email: 'warden@school.edu' },
-    { label: 'Librarian', email: 'librarian@school.edu' },
+    { label: 'Finance', email: 'fin@school.edu' },
+    { label: 'Warden', email: 'hostel@school.edu' },
+    { label: 'Librarian', email: 'lib@school.edu' },
     { label: 'Mentor', email: 'mentor.10a@school.edu' },
     { label: 'Transport', email: 'transport@school.edu', password: 'password123' },
   ];
@@ -120,7 +128,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8F9FD] dark:bg-[#0b0f19] p-4 font-sans overflow-hidden transition-colors duration-300">
       
-      {/* Background Animated Elements */}
+      {isPageLoading ? (
+        <PageLoader />
+      ) : (
+        <>
+          {/* Background Animated Elements */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div 
           animate={{ rotate: 360 }}
@@ -192,11 +204,21 @@ export default function LoginPage() {
         className="w-full max-w-md bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[40px] shadow-2xl overflow-hidden relative flex flex-col pt-12 pb-8 px-8 min-h-[750px] border border-white dark:border-slate-800 z-10 transition-colors duration-300"
       >
         
-        {/* Back Button */}
-        <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-brand-blue dark:text-blue-400 hover:opacity-80 transition-opacity">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back
-        </Link>
+        {/* Back / Change School Button */}
+        {selectedSchool ? (
+          <button 
+            onClick={() => setSelectedSchool(null)} 
+            className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-brand-blue dark:text-blue-400 hover:opacity-80 transition-opacity"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Change School
+          </button>
+        ) : (
+          <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-xs font-semibold text-brand-blue dark:text-blue-400 hover:opacity-80 transition-opacity">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back
+          </Link>
+        )}
 
         <div className="flex-1 flex flex-col justify-center max-w-xs mx-auto w-full mt-8">
           {/* Logo & Branding */}
@@ -374,6 +396,7 @@ export default function LoginPage() {
 
         </div>
       </motion.div>
+      </>)}
     </div>
   );
 }

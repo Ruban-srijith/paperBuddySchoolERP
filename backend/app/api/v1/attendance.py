@@ -5,12 +5,112 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+from sqlalchemy import func
 from app.db.database import get_db
-from app.db.models import Attendance, DailyWorkLog, SyllabusNode, AttendanceStatus, User, UserRole, Timetable
+from app.db.models import Attendance, DailyWorkLog, SyllabusNode, AttendanceStatus, User, UserRole, Timetable, Student, Class, LeaveRequest
 from app.schemas.attendance import BatchAttendanceRequest, WorkLogCreateRequest, WorkLogResponse
 from app.core.auth import get_current_user, require_role
 
 router = APIRouter(tags=["Attendance & Daily Work Logs"])
+
+@router.get("/attendance/summary")
+async def get_attendance_summary(
+    date_str: str = None,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(
+        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
+    )),
+):
+    """Get institutional attendance summary matrix."""
+    target_date = datetime.strptime(date_str, "%Y-%m-%d").date() if date_str else date.today()
+    
+    # 1. Staff duty attendance
+    teachers_count_res = await db.execute(select(func.count(User.id)).where(User.role == UserRole.TEACHER))
+    total_teachers = teachers_count_res.scalar_one()
+
+    leave_query = select(func.count(LeaveRequest.id)).join(User, LeaveRequest.applicant_id == User.id).where(
+        User.role == UserRole.TEACHER,
+        LeaveRequest.status == "approved",
+        LeaveRequest.start_date <= target_date,
+        LeaveRequest.end_date >= target_date
+    )
+    leave_count_res = await db.execute(leave_query)
+    teachers_on_leave = leave_count_res.scalar_one()
+
+    logs_query = select(func.count(func.distinct(DailyWorkLog.teacher_id))).where(
+        DailyWorkLog.date == target_date
+    )
+    logs_count_res = await db.execute(logs_query)
+    teachers_submitted_logs = logs_count_res.scalar_one()
+
+    # 2. Student attendance per grade
+    grades_order = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    
+    q = (
+        select(Student.id, Class.grade, Attendance.status)
+        .join(Class, Student.class_id == Class.id)
+        .outerjoin(Attendance, (Attendance.student_id == Student.user_id) & (Attendance.date == target_date))
+    )
+    res = await db.execute(q)
+    rows = res.all()
+
+    grade_stats = {g: {"strength": 0, "present": 0, "absent": 0, "late": 0} for g in grades_order}
+    overall_present = 0
+    overall_strength = 0
+    
+    for row in rows:
+        student_id, grade, status = row
+        if grade not in grade_stats:
+            grade_stats[grade] = {"strength": 0, "present": 0, "absent": 0, "late": 0}
+            
+        grade_stats[grade]["strength"] += 1
+        overall_strength += 1
+        
+        if status == AttendanceStatus.PRESENT:
+            grade_stats[grade]["present"] += 1
+            overall_present += 1
+        elif status == AttendanceStatus.LATE:
+            grade_stats[grade]["late"] += 1
+            overall_present += 1 
+        elif status == AttendanceStatus.ABSENT:
+            grade_stats[grade]["absent"] += 1
+            
+    grade_matrix_data = []
+    for g in grades_order:
+        stats = grade_stats.get(g, {"strength": 0, "present": 0, "absent": 0, "late": 0})
+        strength = stats["strength"]
+        present = stats["present"] + stats["late"] 
+        pct = (present / strength * 100) if strength > 0 else 0
+        grade_matrix_data.append({
+            "grade": g,
+            "strength": strength,
+            "present": stats["present"],
+            "absent": stats["absent"] + (strength - present - stats["absent"]), 
+            "late": stats["late"],
+            "percentage": round(pct, 1)
+        })
+
+    classes_count_res = await db.execute(select(func.count(Class.id)))
+    total_classes = classes_count_res.scalar_one()
+
+    low_attendance_alerts = sum(1 for g in grade_matrix_data if g["strength"] > 0 and g["percentage"] < 90)
+
+    overall_pct = (overall_present / overall_strength * 100) if overall_strength > 0 else 0
+
+    return {
+        "overall_student_attendance": round(overall_pct, 1),
+        "overall_present": overall_present,
+        "overall_strength": overall_strength,
+        "staff_duty_attendance": {
+            "total_teachers": total_teachers,
+            "present_on_campus": total_teachers - teachers_on_leave,
+            "approved_duty_leave": teachers_on_leave,
+            "syllabus_work_logs": teachers_submitted_logs
+        },
+        "total_classes_active": total_classes,
+        "low_attendance_alerts": low_attendance_alerts,
+        "grade_matrix_data": grade_matrix_data
+    }
 
 @router.post("/attendance/batch")
 async def batch_mark_attendance(

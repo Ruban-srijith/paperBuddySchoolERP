@@ -60,14 +60,14 @@ async def get_assigned_mentees(
         attendance_rows = att_res.scalars().all()
         total_att = len(attendance_rows)
         present_att = sum(1 for a in attendance_rows if a.status.value in ["present", "late"])
-        att_rate = round((present_att / total_att * 100.0), 1) if total_att > 0 else 88.5  # default baseline
+        att_rate = round((present_att / total_att * 100.0), 1) if total_att > 0 else 0.0
 
         # Portion Progress %
         nodes_res = await db.execute(select(SyllabusNode))
         all_nodes = nodes_res.scalars().all()
         tot_nodes = len(all_nodes)
         comp_nodes = sum(1 for n in all_nodes if n.is_completed)
-        portion_pct = round((comp_nodes / tot_nodes * 100.0), 1) if tot_nodes > 0 else 65.0
+        portion_pct = round((comp_nodes / tot_nodes * 100.0), 1) if tot_nodes > 0 else 0.0
 
         # Lab Submissions
         labs_res = await db.execute(
