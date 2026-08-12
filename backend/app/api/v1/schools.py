@@ -9,8 +9,8 @@ import uuid
 
 router = APIRouter(prefix="/schools", tags=["Schools"])
 
-@router.get("", response_model=list[SchoolResponse])
-async def get_schools(db: AsyncSession = Depends(get_db)):
+@router.get("/public", response_model=list[SchoolResponse])
+async def get_schools_public(db: AsyncSession = Depends(get_db)):
     """Get a list of all registered schools."""
     result = await db.execute(select(School))
     return result.scalars().all()

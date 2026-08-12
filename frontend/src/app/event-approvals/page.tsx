@@ -141,12 +141,12 @@ export default function EventApprovalsPage() {
           {events.map((ev) => (
             <div
               key={ev.id}
-              className={`bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border transition-all space-y-4 ${
+              className={`rounded-[24px] border border-gray-100 dark:border-gray-800 shadow-sm p-6 transition-all space-y-4 ${
                 ev.status === 'pending'
-                  ? 'border-amber-500/40 bg-gray-50/50 hover:border-amber-500/60'
+                  ? 'bg-white dark:bg-[#151d30] border-amber-500/40 hover:border-amber-500/60'
                   : ev.status === 'approved'
-                  ? 'border-emerald-500/30 bg-emerald-950/10'
-                  : 'border-rose-500/30 bg-rose-950/10'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30'
+                  : 'bg-rose-50 dark:bg-rose-950/20 border-rose-500/30'
               }`}
             >
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
@@ -196,13 +196,13 @@ export default function EventApprovalsPage() {
                 )}
               </div>
 
-              <p className="text-xs text-gray-700 leading-relaxed bg-gray-950/40 p-3.5 rounded-xl border border-gray-200">
+              <p className="text-xs text-gray-700 leading-relaxed bg-gray-50 dark:bg-gray-950/40 p-3.5 rounded-xl border border-gray-200 dark:border-gray-800">
                 {ev.description}
               </p>
 
               {/* Event Metadata Bar */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-slate-800/50 border border-gray-200 dark:border-gray-700 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-brand-blue flex-shrink-0" />
                   <div>
                     <div className="text-[10px] text-gray-600">Event Date</div>
@@ -210,7 +210,7 @@ export default function EventApprovalsPage() {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-slate-800/50 border border-gray-200 dark:border-gray-700 flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <div>
                     <div className="text-[10px] text-gray-600">Budget Requested</div>
@@ -218,7 +218,7 @@ export default function EventApprovalsPage() {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-slate-800/50 border border-gray-200 dark:border-gray-700 flex items-center gap-2">
                   <Users className="w-4 h-4 text-cyan-600 flex-shrink-0" />
                   <div>
                     <div className="text-[10px] text-gray-600">Capacity / Headcount</div>
@@ -226,7 +226,7 @@ export default function EventApprovalsPage() {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-50/70 border border-gray-200 flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-gray-50/70 dark:bg-slate-800/50 border border-gray-200 dark:border-gray-700 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
                   <div>
                     <div className="text-[10px] text-gray-600">Campus Venue</div>

@@ -77,7 +77,7 @@ export default function LandingPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-brand-black overflow-x-hidden selection:bg-brand-blue/20 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f19] text-brand-black overflow-x-hidden selection:bg-brand-blue/20 font-sans">
       
       {/* Lottie Preloader */}
       {showPreloader && (
@@ -105,7 +105,7 @@ export default function LandingPage() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm"
+        className="sticky top-0 z-50 w-full bg-white/80 dark:bg-[#0b0f19]/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 shadow-sm"
       >
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full">
           <div className="flex items-center gap-3 shrink-0">
