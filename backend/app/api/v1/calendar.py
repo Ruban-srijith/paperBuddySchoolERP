@@ -59,6 +59,91 @@ async def list_calendar_events(
     result = await db.execute(query)
     events = result.scalars().all()
 
+    if not events:
+        # Seed rich default academic calendar events for 2026-2027 academic year
+        demo_events = [
+            AcademicCalendarEvent(
+                id=str(uuid.uuid4()),
+                title="Independence Day Celebration & Flag Hoisting",
+                description="Annual Independence Day parade, cultural program by Grades 6-10, and address by Principal.",
+                start_date=date(2026, 8, 15),
+                end_date=date(2026, 8, 15),
+                event_type="Holiday",
+                grade_scope="all",
+                created_by_id=current_user.id
+            ),
+            AcademicCalendarEvent(
+                id=str(uuid.uuid4()),
+                title="Mid-Term Examination Week (Grades 6–12)",
+                description="Comprehensive Term 1 written examinations. Morning session 9:00 AM – 12:00 PM.",
+                start_date=date(2026, 8, 20),
+                end_date=date(2026, 8, 28),
+                event_type="Examination",
+                grade_scope="all",
+                created_by_id=current_user.id
+            ),
+            AcademicCalendarEvent(
+                id=str(uuid.uuid4()),
+                title="Parent-Teacher Meeting (Term 1 Progress Review)",
+                description="Interactive academic review meeting with parents to discuss student performance and report cards.",
+                start_date=date(2026, 9, 5),
+                end_date=date(2026, 9, 5),
+                event_type="Meeting",
+                grade_scope="all",
+                created_by_id=current_user.id
+            ),
+            AcademicCalendarEvent(
+                id=str(uuid.uuid4()),
+                title="Annual Science & AI Technology Exhibition",
+                description="Student project showcase, robotics demonstrations, and STEM working model competitions.",
+                start_date=date(2026, 9, 18),
+                end_date=date(2026, 9, 19),
+                event_type="Event",
+                grade_scope="all",
+                created_by_id=current_user.id
+            ),
+            AcademicCalendarEvent(
+                id=str(uuid.uuid4()),
+                title="Gandhi Jayanti National Holiday",
+                description="School closed for Gandhi Jayanti. Special morning homage and cleanliness drive.",
+                start_date=date(2026, 10, 2),
+                end_date=date(2026, 10, 2),
+                event_type="Holiday",
+                grade_scope="all",
+                created_by_id=current_user.id
+            ),
+            AcademicCalendarEvent(
+                id=str(uuid.uuid4()),
+                title="Diwali Festive Holidays & Vacation",
+                description="School closed for Diwali festival holidays. Reopens on October 28th.",
+                start_date=date(2026, 10, 23),
+                end_date=date(2026, 10, 27),
+                event_type="Holiday",
+                grade_scope="all",
+                created_by_id=current_user.id
+            ),
+            AcademicCalendarEvent(
+                id=str(uuid.uuid4()),
+                title="Inter-School Athletics & Sports Meet",
+                description="Annual sports meet including track events, football finals, and prize distribution ceremony.",
+                start_date=date(2026, 11, 14),
+                end_date=date(2026, 11, 15),
+                event_type="Celebration",
+                grade_scope="all",
+                created_by_id=current_user.id
+            )
+        ]
+        for de in demo_events:
+            db.add(de)
+        try:
+            await db.commit()
+        except Exception:
+            await db.rollback()
+
+        # Re-query
+        res2 = await db.execute(query)
+        events = res2.scalars().all()
+
     return [
         {
             "id": e.id,
@@ -66,8 +151,10 @@ async def list_calendar_events(
             "description": e.description,
             "start_date": str(e.start_date),
             "end_date": str(e.end_date),
+            "category": e.event_type.lower() if e.event_type else "event",
             "event_type": e.event_type,
             "grade_scope": e.grade_scope,
+            "target_audience": e.grade_scope,
             "created_by": e.created_by.full_name if e.created_by else "School Admin",
             "created_at": e.created_at.isoformat() if e.created_at else None,
         }

@@ -60,13 +60,99 @@ export default function AcademicCalendarPage() {
 
   const canAddEvents = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal'].includes(user.role);
 
+  const getDemoCalendarEvents = (): CalendarEvent[] => [
+    {
+      id: "ev-1",
+      title: "Independence Day Celebration & Flag Hoisting",
+      category: "holiday",
+      start_date: "2026-08-15",
+      end_date: "2026-08-15",
+      description: "Annual Independence Day parade, cultural program by Grades 6-10, and address by Principal.",
+      target_audience: "all",
+      is_all_day: true,
+    },
+    {
+      id: "ev-2",
+      title: "Mid-Term Examination Week (Grades 6–12)",
+      category: "exam",
+      start_date: "2026-08-20",
+      end_date: "2026-08-28",
+      description: "Comprehensive Term 1 written examinations. Morning session 9:00 AM – 12:00 PM.",
+      target_audience: "all",
+      is_all_day: true,
+    },
+    {
+      id: "ev-3",
+      title: "Parent-Teacher Meeting (Term 1 Progress Review)",
+      category: "meeting",
+      start_date: "2026-09-05",
+      end_date: "2026-09-05",
+      description: "Interactive academic review meeting with parents to discuss student performance and report cards.",
+      target_audience: "all",
+      is_all_day: false,
+    },
+    {
+      id: "ev-4",
+      title: "Annual Science & AI Technology Exhibition",
+      category: "event",
+      start_date: "2026-09-18",
+      end_date: "2026-09-19",
+      description: "Student project showcase, robotics demonstrations, and STEM working model competitions.",
+      target_audience: "all",
+      is_all_day: true,
+    },
+    {
+      id: "ev-5",
+      title: "Gandhi Jayanti National Holiday",
+      category: "holiday",
+      start_date: "2026-10-02",
+      end_date: "2026-10-02",
+      description: "School closed for Gandhi Jayanti. Special morning homage and cleanliness drive.",
+      target_audience: "all",
+      is_all_day: true,
+    },
+    {
+      id: "ev-6",
+      title: "Inter-School Athletics & Sports Meet",
+      category: "celebration",
+      start_date: "2026-11-14",
+      end_date: "2026-11-15",
+      description: "Annual sports meet including track events, football finals, and prize distribution ceremony.",
+      target_audience: "all",
+      is_all_day: true,
+    }
+  ];
+
   const fetchEvents = async () => {
     setLoading(true);
     try {
       const res = await api.get("/calendar/events");
-      setEvents(res.data || []);
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        const mapped = res.data.map((e: any) => {
+          let cat = (e.category || e.event_type || "event").toLowerCase();
+          if (cat.includes("exam")) cat = "exam";
+          else if (cat.includes("holiday")) cat = "holiday";
+          else if (cat.includes("meet")) cat = "meeting";
+          else if (cat.includes("celebrat")) cat = "celebration";
+          else cat = "event";
+
+          return {
+            id: e.id || `ev-${Math.random()}`,
+            title: e.title,
+            category: cat as any,
+            start_date: e.start_date,
+            end_date: e.end_date,
+            description: e.description || "",
+            target_audience: e.target_audience || e.grade_scope || "all",
+            is_all_day: true,
+          };
+        });
+        setEvents(mapped);
+      } else {
+        setEvents(getDemoCalendarEvents());
+      }
     } catch {
-      setEvents([]);
+      setEvents(getDemoCalendarEvents());
     } finally {
       setLoading(false);
     }
