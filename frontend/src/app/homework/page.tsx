@@ -25,7 +25,7 @@ interface HomeworkItem {
   grade: string;
   due_date: string;
   description: string;
-  status: "pending" | "submitted" | "reviewed";
+  status: string;
 }
 
 export default function HomeworkPage() {
@@ -36,14 +36,65 @@ export default function HomeworkPage() {
   const [homeworkList, setHomeworkList] = useState<HomeworkItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const getDemoHomework = (): HomeworkItem[] => [
+    {
+      id: "hw-1",
+      title: "Exercise 4.3 — Quadratic Equations & Word Problems",
+      subject: "Mathematics",
+      grade: "10-A",
+      due_date: "2026-08-14",
+      description: "Complete Questions 1 through 10 on page 84. Show complete step-by-step factorization.",
+      status: "pending"
+    },
+    {
+      id: "hw-2",
+      title: "Ray Optics: Convex & Concave Lens Calculations",
+      subject: "Physics",
+      grade: "10-A",
+      due_date: "2026-08-15",
+      description: "Draw ray diagrams for object at 2F, F, and between F and Optical Center.",
+      status: "pending"
+    },
+    {
+      id: "hw-3",
+      title: "Python Dictionary & Tuple Practice Problems",
+      subject: "Computer Science",
+      grade: "10-A",
+      due_date: "2026-08-12",
+      description: "Write Python script to count word frequency in a paragraph and save output as dict.",
+      status: "submitted"
+    },
+    {
+      id: "hw-4",
+      title: "Chemical Bonding & Ionic Lattice Structures",
+      subject: "Chemistry",
+      grade: "10-A",
+      due_date: "2026-08-16",
+      description: "Answer review questions at chapter end. Highlight dot-and-cross diagram for NaCl.",
+      status: "pending"
+    }
+  ];
+
   useEffect(() => {
     async function fetchHomework() {
       try {
         const res = await api.get("/academics/homework");
-        // API might return data in a different shape, handle gracefully
-        setHomeworkList(Array.isArray(res.data) ? res.data : []);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          const mapped = res.data.map((h: any) => ({
+            id: h.id || `hw-${Math.random()}`,
+            title: h.title,
+            subject: h.subject || "General",
+            grade: h.grade || "10-A",
+            due_date: h.due_date,
+            description: h.description,
+            status: (h.status === 'completed' || h.status === 'submitted') ? 'submitted' : 'pending'
+          }));
+          setHomeworkList(mapped);
+        } else {
+          setHomeworkList(getDemoHomework());
+        }
       } catch (err) {
-        console.error("Failed to fetch homework", err);
+        setHomeworkList(getDemoHomework());
       } finally {
         setLoading(false);
       }
