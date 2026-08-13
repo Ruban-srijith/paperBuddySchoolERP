@@ -199,7 +199,7 @@ function DashboardContent() {
             ) : isTeacher ? (
               <>Welcome, <span className="text-brand-blue">{user.full_name}</span></>
             ) : (
-              <>Welcome to <span className="text-brand-blue">PaperBuddy</span></>
+              <>Welcome to <span className="text-brand-blue">Genesis ERP</span></>
             )}
           </h1>
           <p className="text-gray-300 text-sm leading-relaxed">
