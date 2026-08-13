@@ -170,10 +170,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Link href="/" className="flex items-center space-x-2 md:space-x-3">
             <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center flex-shrink-0">
-              <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain" />
+              <img src="/logo.png" alt="Genesis ERP Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col justify-center whitespace-nowrap">
-              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue dark:text-blue-400">PaperBuddy</span>
+              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue dark:text-blue-400">Genesis ERP</span>
               <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 font-medium w-fit">
                 v2.5 Multi-Role
               </span>

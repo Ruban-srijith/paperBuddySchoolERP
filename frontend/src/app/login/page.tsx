@@ -108,16 +108,11 @@ export default function LoginPage() {
   };
 
   const quickLogins = [
-    { label: 'Super Admin', email: 'superadmin@school.edu' },
-    { label: 'Admin', email: 'admin@school.edu' },
     { label: 'Correspondent', email: 'correspondent@school.edu' },
     { label: 'Principal', email: 'principal@school.edu' },
     { label: 'Vice-Principal', email: 'vp@school.edu' },
-    { label: 'Dean', email: 'dean.science@school.edu' },
-    { label: 'Dept Head', email: 'head.physics@school.edu' },
     { label: 'Teacher', email: 'sarah.connor@school.edu' },
     { label: 'Student', email: 'kishor.k@school.edu' },
-    { label: 'Parent', email: 'parent.kishor@school.edu' },
     { label: 'Finance', email: 'finance@school.edu' },
     { label: 'Warden', email: 'warden@school.edu' },
     { label: 'Librarian', email: 'librarian@school.edu' },
@@ -228,7 +223,7 @@ export default function LoginPage() {
               transition={{ type: "spring", stiffness: 300, damping: 15 }}
               className="w-20 h-20 flex items-center justify-center"
             >
-              <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain drop-shadow-md" />
+              <img src="/logo.png" alt="Genesis ERP Logo" className="w-full h-full object-contain drop-shadow-md" />
             </motion.div>
             <div className="text-center">
               <h1 className="text-[24px] font-extrabold text-[#111827] dark:text-slate-100 tracking-tight">

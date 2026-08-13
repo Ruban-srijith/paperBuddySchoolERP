@@ -422,7 +422,7 @@ export default function ProfilePage() {
                   </h2>
                   <textarea 
                     rows={3} 
-                    defaultValue="Dr. Alan Grant, Principal&#10;PaperBuddy International School&#10;Excellence in Education" 
+                    defaultValue="Dr. Alan Grant, Principal&#10;Genesis ERP International School&#10;Excellence in Education" 
                     className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500 mb-3" 
                   />
                   <button onClick={() => showToast("Signature saved.")} className="px-6 py-2 bg-gray-100 hover:bg-gray-700 text-brand-black rounded-lg transition-colors text-sm">Save Signature</button>

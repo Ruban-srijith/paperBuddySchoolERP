@@ -17,7 +17,7 @@ export default function PageLoader() {
         transition={{ delay: 0.5 }}
         className="mt-4 text-xl font-bold text-brand-blue tracking-tight"
       >
-        PaperBuddy
+        Genesis ERP
       </motion.h2>
     </div>
   );
