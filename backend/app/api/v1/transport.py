@@ -82,7 +82,7 @@ async def create_vehicle(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN))
 ):
-    vehicle = Vehicle(**req.dict())
+    vehicle = Vehicle(**req.model_dump())
     db.add(vehicle)
     await db.commit()
     await db.refresh(vehicle)
@@ -100,7 +100,7 @@ async def update_vehicle(
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
         
-    update_data = req.dict(exclude_unset=True)
+    update_data = req.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(vehicle, key, value)
         
@@ -147,7 +147,7 @@ async def create_route(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN))
 ):
-    route = TransportRoute(**req.dict())
+    route = TransportRoute(**req.model_dump())
     db.add(route)
     await db.commit()
     await db.refresh(route)
@@ -166,7 +166,7 @@ async def create_stop(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN))
 ):
-    stop = TransportStop(**req.dict())
+    stop = TransportStop(**req.model_dump())
     db.add(stop)
     await db.commit()
     await db.refresh(stop)
@@ -193,7 +193,7 @@ async def create_staff(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN))
 ):
-    staff = TransportStaff(**req.dict())
+    staff = TransportStaff(**req.model_dump())
     db.add(staff)
     await db.commit()
     await db.refresh(staff)
@@ -211,7 +211,7 @@ async def update_staff(
     if not staff:
         raise HTTPException(status_code=404, detail="Staff not found")
         
-    update_data = req.dict(exclude_unset=True)
+    update_data = req.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(staff, key, value)
         
@@ -232,7 +232,7 @@ async def allocate_student(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN))
 ):
-    allocation = StudentTransport(**req.dict())
+    allocation = StudentTransport(**req.model_dump())
     db.add(allocation)
     await db.commit()
     await db.refresh(allocation)
