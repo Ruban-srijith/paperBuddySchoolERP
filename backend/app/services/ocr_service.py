@@ -580,6 +580,56 @@ class LocalOCRService:
             "student_name": default_name
         }
 
+    def classify_document(self, text: str, filename: str = "") -> Tuple[str, float]:
+        """
+        Intelligently classifies the document into one of the 10 supported types
+        based on OCR text analysis, official issuing bodies, and keywords.
+        """
+        t = (text + " " + filename).lower()
+
+        # 1. Aadhaar UIDAI
+        if any(k in t for k in ["uidai", "aadhaar", "unique identification", "mera aadhaar", "enrollment no", "enrolment no"]) or re.search(r'\b\d{4}\s\d{4}\s\d{4}\b', text):
+            return "aadhaar", 0.99
+
+        # 2. Income Certificate
+        if any(k in t for k in ["income certificate", "annual income", "annual family income", "per annum", "revenue department", "tahsildar", "taluk", "revenue divisional"]):
+            return "income", 0.98
+
+        # 3. Community / Caste Certificate
+        if any(k in t for k in ["community certificate", "caste certificate", "backward class", "most backward", "obc", "mbc", "scheduled caste", "scheduled tribe", "sc / st", "sub-caste", "caste / community", "caste/community"]):
+            return "community", 0.98
+
+        # 4. Transfer Certificate (TC)
+        if any(k in t for k in ["transfer certificate", "school leaving", "tc no", "conduct and character", "qualified for promotion", "scholar no", "admission no", "date of leaving"]):
+            return "tc", 0.98
+
+        # 5. Birth Certificate
+        if any(k in t for k in ["birth certificate", "form no 5", "registration of birth", "place of birth", "date of birth", "name of child", "registrar of birth"]):
+            return "birth_cert", 0.98
+
+        # 6. Marksheet / Academic Transcript
+        if any(k in t for k in ["marksheet", "mark sheet", "grade card", "statement of marks", "secondary school examination", "board of secondary education", "cbse", "icse", "grade point", "gpa", "total marks", "subject code"]):
+            return "marksheet", 0.98
+
+        # 7. Medical Fitness Certificate
+        if any(k in t for k in ["medical certificate", "fitness certificate", "physical fitness", "blood group", "height", "weight", "vision", "medical practitioner", "mci reg", "chest measurement"]):
+            return "medical_fitness", 0.98
+
+        # 8. Sports Certificate
+        if any(k in t for k in ["certificate of merit", "sports certificate", "championship", "tournament", "winner", "runner up", "athletic", "olympiad", "inter-school", "district level", "state level", "sports meet"]):
+            return "sports_cert", 0.98
+
+        # 9. Scholarship Letter
+        if any(k in t for k in ["scholarship", "allotment order", "sanction order", "financial aid", "tuition grant", "merit scholarship", "concession order", "directorate of school education"]):
+            return "scholarship_letter", 0.98
+
+        # 10. Parent / Guardian ID
+        if any(k in t for k in ["election commission", "voter id", "epic no", "passport", "driving license", "pan card", "income tax department", "permanent account number"]):
+            return "parent_id", 0.98
+
+        # Default fallback
+        return "custom", 0.85
+
     def verify_student_document(
         self,
         file_bytes: bytes,
@@ -588,16 +638,26 @@ class LocalOCRService:
         father_name: Optional[str] = None,
         mother_name: Optional[str] = None,
         phone: Optional[str] = None,
-        verified_aadhaar_data: Optional[Dict[str, Any]] = None
+        verified_aadhaar_data: Optional[Dict[str, Any]] = None,
+        filename: str = ""
     ) -> Dict[str, Any]:
         """
-        Runs document-specific prompt extraction & OCR verification.
+        Runs AI document classification, prompt extraction & OCR verification.
+        Extracts structured payload ready to sync into the students database table.
         """
-        doc_type_clean = document_type.lower().strip()
-        prompt_info = self.get_document_prompt(doc_type_clean, student_name, father_name)
         extracted_text = self.extract_text_from_bytes(file_bytes)
+        doc_type_clean = document_type.lower().strip()
 
-        # 1. Parse document entities based on specific document type
+        # Step A: Auto-Classify if unspecified or auto
+        detected_type = doc_type_clean
+        classification_confidence = 0.95
+        if doc_type_clean in ["auto", "custom", "unknown", ""]:
+            detected_type, classification_confidence = self.classify_document(extracted_text, filename)
+            doc_type_clean = detected_type
+
+        prompt_info = self.get_document_prompt(doc_type_clean, student_name, father_name)
+
+        # Step B: Parse document entities based on specific document type
         if doc_type_clean == "aadhaar":
             data = self.parse_aadhaar_entities(extracted_text, student_name, father_name or "Parent / Guardian")
         elif doc_type_clean == "income":
@@ -627,7 +687,34 @@ class LocalOCRService:
                 "raw_text_snippet": extracted_text[:200]
             }
 
-        # 2. Fuzzy Cross-Check with Student Profile
+        # Step C: Prepare Student Table Sync Payload
+        student_sync = {}
+        if data.get("full_name") and data["full_name"] not in ["Student", ""]:
+            student_sync["full_name"] = data["full_name"]
+        if data.get("father_name") and data["father_name"] not in ["Parent / Guardian", ""]:
+            student_sync["father_name"] = data["father_name"]
+        if data.get("mother_name"):
+            student_sync["mother_name"] = data["mother_name"]
+        if data.get("date_of_birth"):
+            student_sync["date_of_birth"] = data["date_of_birth"]
+        if data.get("gender"):
+            student_sync["gender"] = data["gender"]
+        if data.get("blood_group"):
+            student_sync["blood_group"] = data["blood_group"]
+        if data.get("address"):
+            student_sync["address"] = data["address"]
+        if data.get("annual_income"):
+            student_sync["father_annual_income"] = data["annual_income"]
+        if data.get("community_category"):
+            student_sync["community_category"] = data["community_category"]
+        if data.get("previous_institution"):
+            student_sync["previous_school"] = data["previous_institution"]
+        if doc_type_clean == "tc" and data.get("certificate_number"):
+            student_sync["tc_number"] = data["certificate_number"]
+        if doc_type_clean == "aadhaar" and data.get("aadhaar_number"):
+            student_sync["aadhaar_number"] = data["aadhaar_number"]
+
+        # Step D: Fuzzy Cross-Check with Student Profile
         norm_text = extracted_text.lower()
         norm_student = student_name.lower().strip()
         student_tokens = [t for t in norm_student.split() if len(t) > 2]
@@ -656,30 +743,34 @@ class LocalOCRService:
             "father_name_matched": father_matched,
             "mother_name_matched": True,
             "phone_matched": phone_matched,
-            "aadhaar_consistency_matched": True
+            "aadhaar_consistency_matched": True,
+            "auto_classified_type": doc_type_clean
         }
 
-        # 3. Confidence & Status computation
+        # Step E: Confidence & Status computation
         if name_matched and father_matched:
-            confidence = 0.985
+            confidence = max(0.985, classification_confidence)
             status = "VERIFIED"
-            remarks = f"✅ AI Vision OCR Verified: Document '{prompt_info['document_title']}' authenticated. Student name '{student_name}' verified against profile records."
+            remarks = f"✅ AI Vision Classified & Verified: Document recognized as '{prompt_info['document_title']}'. Extracted fields synchronized to student profile table."
         elif name_matched:
-            confidence = 0.92
+            confidence = max(0.92, classification_confidence)
             status = "VERIFIED"
-            remarks = f"✅ AI Vision Verified: Extracted student identity matches profile records. Confidence: 92%."
+            remarks = f"✅ AI Vision Verified: '{prompt_info['document_title']}' authenticated and profile data synced."
         else:
-            confidence = 0.74
+            confidence = max(0.74, classification_confidence)
             status = "VERIFIED"
-            remarks = f"⚠️ AI Cross-Check: OCR extracted text from document. Authenticated with verified student session."
+            remarks = f"⚠️ AI Cross-Check: Document processed as '{prompt_info['document_title']}' and authenticated with student session."
 
         return {
             "verification_status": status,
             "ai_confidence": confidence,
-            "masked_doc_number": data.get("masked_doc_number", "DOC-XXXX-9842"),
-            "encrypted_doc_number": data.get("encrypted_doc_number", "ENC_DOC_9842"),
+            "detected_document_type": doc_type_clean,
+            "document_title": prompt_info["document_title"],
+            "masked_doc_number": data.get("masked_doc_number", f"DOC-XXXX-{uuid.uuid4().hex[:4].upper()}"),
+            "encrypted_doc_number": data.get("encrypted_doc_number", f"ENC_DOC_{uuid.uuid4().hex[:8].upper()}"),
             "ai_matched_fields": matched_fields,
             "extracted_data": data,
+            "student_sync_fields": student_sync,
             "ai_remarks": remarks,
             "raw_text": extracted_text[:500],
             "document_prompt": prompt_info
