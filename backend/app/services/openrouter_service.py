@@ -10,8 +10,8 @@ logger = logging.getLogger("openrouter_service")
 
 class OpenRouterService:
     """
-    Unified OpenRouter AI Service powering OCR, document verification,
-    and executive analytics across Paperbuddy ERP with local Tesseract OCR fallback.
+    Unified AI Service powering Document-Specific OCR, AI Vision verification,
+    and structured extraction across PaperBuddy ERP with local Tesseract 5.5.1 fallback.
     """
 
     def __init__(self):
@@ -119,7 +119,7 @@ class OpenRouterService:
         mime_type: str = "image/jpeg"
     ) -> Tuple[str, Dict[str, Any], float]:
         """
-        Processes document scanning via local OCR engine with optional OpenRouter vision enhancement.
+        Processes document scanning via local OCR engine with document-specific prompt.
         """
         # Run local OCR engine to guarantee real text extraction
         extracted_text, fields, confidence = ocr_service.process_universal_document(
@@ -128,13 +128,16 @@ class OpenRouterService:
             document_type=document_type
         )
 
-        # If OpenRouter API key is provided, try AI summary/enrichment
-        if settings.OPENROUTER_API_KEY:
+        # Retrieve document-specific prompt
+        prompt_info = ocr_service.get_document_prompt(document_type, student_name=role)
+        fields["document_prompt"] = prompt_info
+
+        # If OpenRouter API key is provided, try AI summary/enrichment with specific prompt
+        if settings.OPENROUTER_API_KEY and not settings.OPENROUTER_API_KEY.startswith("AQ."):
             try:
-                formatted_title = document_type.replace('_', ' ').title()
                 res = await self.generate_completion(
-                    prompt=f"Summarize this {formatted_title} uploaded by {role}. Key data: {extracted_text[:600]}",
-                    system_prompt="You are an AI document verification assistant for School ERP. Extract key metadata.",
+                    prompt=f"{prompt_info['user_prompt']}\n\nDocument Text Extracted:\n{extracted_text[:800]}",
+                    system_prompt=prompt_info["system_prompt"],
                     file_bytes=file_bytes,
                     mime_type=mime_type
                 )
@@ -157,9 +160,9 @@ class OpenRouterService:
         verified_aadhaar_data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Cross-checks student document data against system records via OCR + AI Vision Consensus.
+        Cross-checks student document data against system records using document-specific prompt rules.
         """
-        # Execute real OCR extraction and profile cross-verification
+        # Execute real OCR extraction with document-specific prompt & profile cross-verification
         result = ocr_service.verify_student_document(
             file_bytes=file_bytes,
             document_type=document_type,
@@ -170,12 +173,14 @@ class OpenRouterService:
             verified_aadhaar_data=verified_aadhaar_data
         )
 
-        # If OpenRouter is available, enrich remarks with AI Vision confirmation
-        if settings.OPENROUTER_API_KEY:
+        prompt_info = result.get("document_prompt") or ocr_service.get_document_prompt(document_type, student_name, father_name)
+
+        # If OpenRouter vision AI is available, enrich remarks with AI Vision confirmation
+        if settings.OPENROUTER_API_KEY and not settings.OPENROUTER_API_KEY.startswith("AQ."):
             try:
                 ai_res = await self.generate_completion(
-                    prompt=f"Verify if document {document_type} belongs to student '{student_name}'. Extracted: {json.dumps(result['extracted_data'])}",
-                    system_prompt="Verify document data matching against student profile.",
+                    prompt=f"{prompt_info['user_prompt']}\n\nExtracted Data:\n{json.dumps(result['extracted_data'])}",
+                    system_prompt=prompt_info["system_prompt"],
                     file_bytes=file_bytes
                 )
                 if ai_res.get("status") == "success":

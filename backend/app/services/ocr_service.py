@@ -2,6 +2,7 @@ import io
 import os
 import re
 import uuid
+import json
 import logging
 from typing import Dict, Any, Tuple, Optional, List
 from datetime import datetime
@@ -12,7 +13,6 @@ import pypdf
 logger = logging.getLogger("ocr_service")
 
 # Configure tesseract binary path
-# Priority: TESSERACT_CMD env var → OS-specific auto-detection → system PATH
 _tesseract_configured = False
 
 _tesseract_env = os.getenv("TESSERACT_CMD", "")
@@ -22,14 +22,10 @@ if _tesseract_env and os.path.exists(_tesseract_env):
 
 if not _tesseract_configured:
     _candidates = [
-        # macOS Homebrew (Apple Silicon & Intel)
         "/opt/homebrew/bin/tesseract",
         "/usr/local/bin/tesseract",
-        # Linux
         "/usr/bin/tesseract",
-        # Windows — Chocolatey install
         r"C:\ProgramData\chocolatey\bin\tesseract.exe",
-        # Windows — official installer default paths
         r"C:\Program Files\Tesseract-OCR\tesseract.exe",
         r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
     ]
@@ -40,26 +36,146 @@ if not _tesseract_configured:
             break
 
 if not _tesseract_configured:
-    logger.warning(
-        "Tesseract OCR binary not found in standard locations. "
-        "Install it with: 'choco install tesseract' (Windows) or "
-        "'brew install tesseract' (macOS) or 'apt install tesseract-ocr' (Ubuntu). "
-        "Or set the TESSERACT_CMD environment variable to its full path."
-    )
+    logger.warning("Tesseract OCR binary not found in standard locations.")
+
+
+# ─────────────────────────────────────────────────────────────
+# DOCUMENT-SPECIFIC PROMPTS & EXTRACTION RULES
+# ─────────────────────────────────────────────────────────────
+
+DOCUMENT_PROMPTS = {
+    "aadhaar": {
+        "title": "Aadhaar Identity Card (UIDAI)",
+        "system_prompt": (
+            "You are an expert Government Identity Verification AI specializing in Indian Aadhaar Cards (UIDAI). "
+            "Your task is to analyze the document, locate official UIDAI security seals, extract the 12-digit UID number, "
+            "Full Name, Father/Husband/Guardian Name (C/O or S/O or D/O), Date of Birth, Gender, and Residential Address. "
+            "Cross-verify extracted identity fields with profile records and output structured JSON."
+        ),
+        "user_prompt_template": (
+            "Analyze this Aadhaar Card image/PDF for student '{student_name}' (Father: '{father_name}').\n"
+            "Extract:\n"
+            "1. 12-Digit UID (format: XXXX XXXX XXXX or masked XXXX-XXXX-last4)\n"
+            "2. Full Name as printed on card\n"
+            "3. Father/Husband/Guardian Name\n"
+            "4. Date of Birth (DD/MM/YYYY) and Gender (MALE/FEMALE/TRANSGENDER)\n"
+            "5. Full Residential Address & PIN Code\n"
+            "6. Name matching score against '{student_name}'"
+        ),
+        "expected_keys": ["aadhaar_number", "masked_doc_number", "full_name", "father_name", "date_of_birth", "gender", "address", "issuing_authority"]
+    },
+    "income": {
+        "title": "Father's Annual Income Certificate",
+        "system_prompt": (
+            "You are an expert Financial Verification AI specializing in Government Revenue & Income Certificates. "
+            "Extract the certified Annual Family Income amount (in INR), Certificate/Application Number, "
+            "Father's/Guardian's Name, Applicant Name, Validity Academic Year, and Issuing Revenue Authority (e.g. Tahsildar)."
+        ),
+        "user_prompt_template": (
+            "Analyze this Annual Income Certificate for student '{student_name}' (Father: '{father_name}').\n"
+            "Extract:\n"
+            "1. Certified Annual Income figure (e.g. ₹ 1,80,000 / Annum)\n"
+            "2. Certificate / Application / Ref Number\n"
+            "3. Father's / Guardian's Full Name\n"
+            "4. Validity Academic Year (e.g. 2026-2027)\n"
+            "5. Issuing Revenue Officer / Tahsildar / District"
+        ),
+        "expected_keys": ["annual_income", "certificate_number", "masked_doc_number", "father_name", "validity_year", "issuing_authority"]
+    },
+    "community": {
+        "title": "Community / Caste Certificate",
+        "system_prompt": (
+            "You are an expert Government Caste & Category Verification AI. "
+            "Extract the verified Caste Category (strictly classified as OBC / Backward Class, MBC, SC, ST, EWS, or General), "
+            "specific Sub-caste / Community name, Certificate Number, Student Full Name, Father's Name, and Issuing Tahsildar."
+        ),
+        "user_prompt_template": (
+            "Analyze this Community/Caste Certificate for student '{student_name}'.\n"
+            "Extract:\n"
+            "1. Verified Category (OBC / Backward Class, MBC, SC, ST, EWS, General)\n"
+            "2. Specific Sub-caste name\n"
+            "3. Certificate / Ref Number\n"
+            "4. Student Name & Father's Name\n"
+            "5. Issuing Tahsildar / Zonal Revenue Authority"
+        ),
+        "expected_keys": ["community_category", "sub_caste", "certificate_number", "masked_doc_number", "full_name", "father_name", "issuing_authority"]
+    },
+    "tc": {
+        "title": "Transfer Certificate (TC)",
+        "system_prompt": (
+            "You are an Academic Verification AI specializing in School Transfer Certificates (TC). "
+            "Extract Certificate Number, Previous Institution / School Name, Student Admission / EMIS Number, "
+            "Standard / Class Last Studied, Date of Leaving, Reason for Leaving, and Conduct / Character."
+        ),
+        "user_prompt_template": (
+            "Analyze this Transfer Certificate (TC) for student '{student_name}'.\n"
+            "Extract:\n"
+            "1. TC Certificate Number & Admission/EMIS Number\n"
+            "2. Previous School / Institution Name\n"
+            "3. Standard / Grade Last Studied\n"
+            "4. Date of Leaving & Reason for Transfer\n"
+            "5. Conduct and Character Evaluation"
+        ),
+        "expected_keys": ["certificate_number", "masked_doc_number", "previous_institution", "class_last_studied", "conduct_character", "date_of_leaving"]
+    },
+    "birth_cert": {
+        "title": "Birth Certificate",
+        "system_prompt": (
+            "You are a Vital Statistics Verification AI specializing in Government Birth Certificates. "
+            "Extract Birth Registration Number, Child Full Name, Date of Birth (DD/MM/YYYY), Gender, "
+            "Place of Birth (Hospital/City), Father's Name, Mother's Name, and Municipal / Gram Panchayat Authority."
+        ),
+        "user_prompt_template": (
+            "Analyze this Birth Certificate for child '{student_name}'.\n"
+            "Extract:\n"
+            "1. Birth Registration Number\n"
+            "2. Child Full Name\n"
+            "3. Date of Birth (DOB) & Place of Birth\n"
+            "4. Father's Name & Mother's Name\n"
+            "5. Issuing Municipal Health Officer / Registrar Authority"
+        ),
+        "expected_keys": ["registration_number", "masked_doc_number", "date_of_birth", "place_of_birth", "full_name", "father_name", "mother_name", "issuing_authority"]
+    },
+    "generic": {
+        "title": "School ERP Verification Document",
+        "system_prompt": "You are a School Operations Document Verification AI. Extract all key identifying details, dates, reference numbers, and textual metadata.",
+        "user_prompt_template": "Analyze this scanned document for '{student_name}'. Extract document title, reference numbers, dates, and relevant fields.",
+        "expected_keys": ["document_title", "masked_doc_number", "extracted_text_summary"]
+    }
+}
 
 
 class LocalOCRService:
     """
     Robust local OCR engine using Tesseract 5.x, Pillow image enhancement,
-    PyPDF text parsing, and regex/NLP entity extraction.
+    PyPDF text parsing, and document-specific prompt extraction.
     """
+
+    def get_document_prompt(self, document_type: str, student_name: str, father_name: Optional[str] = None) -> Dict[str, str]:
+        """
+        Retrieves the exact document-specific system prompt and user extraction prompt.
+        """
+        doc_type_clean = document_type.lower().strip()
+        config = DOCUMENT_PROMPTS.get(doc_type_clean, DOCUMENT_PROMPTS["generic"])
+        
+        system_prompt = config["system_prompt"]
+        user_prompt = config["user_prompt_template"].format(
+            student_name=student_name or "Student",
+            father_name=father_name or "Parent / Guardian"
+        )
+        
+        return {
+            "document_title": config["title"],
+            "system_prompt": system_prompt,
+            "user_prompt": user_prompt,
+            "expected_keys": config["expected_keys"]
+        }
 
     def preprocess_image(self, image: Image.Image) -> Image.Image:
         """
         Enhance image contrast, resolution, and grayscale for maximum Tesseract OCR accuracy.
         """
         try:
-            # Handle alpha channel
             if image.mode in ('RGBA', 'LA', 'P'):
                 background = Image.new('RGB', image.size, (255, 255, 255))
                 if image.mode == 'P':
@@ -69,13 +185,11 @@ class LocalOCRService:
             elif image.mode != 'RGB':
                 image = image.convert('RGB')
 
-            # Upscale low-res scans
             w, h = image.size
             if max(w, h) < 1600:
                 factor = 1600 / max(w, h)
                 image = image.resize((int(w * factor), int(h * factor)), Image.Resampling.LANCZOS)
 
-            # Convert to grayscale and apply contrast normalization
             gray = ImageOps.grayscale(image)
             enhanced = ImageOps.autocontrast(gray, cutoff=2)
             return enhanced
@@ -111,19 +225,14 @@ class LocalOCRService:
             custom_config = r'--oem 3 --psm 6'
             text = pytesseract.image_to_string(processed, config=custom_config)
             if not text.strip():
-                # Try default PSM
                 text = pytesseract.image_to_string(processed)
             return text.strip()
         except Exception as e:
             logger.error(f"Pytesseract image extraction failed: {e}")
             return ""
 
-    def parse_aadhaar_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
-        """
-        Extracts Aadhaar specific entities: UID number, Name, Father's Name, DOB, Gender, Address.
-        """
-        # 1. Extract 12-digit Aadhaar Number
-        # Matches patterns like 1234 5678 9012 or 1234-5678-9012 or 123456789012
+    def parse_aadhaar_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
+        """Extracts Aadhaar specific entities."""
         aadhaar_pattern = r'\b([2-9]\d{3})[\s\-]?(\d{4})[\s\-]?(\d{4})\b'
         aadhaar_match = re.search(aadhaar_pattern, text)
         if aadhaar_match:
@@ -136,23 +245,19 @@ class LocalOCRService:
             encrypted_number = f"ENC_AADHAAR_9842_{uuid.uuid4().hex[:6].upper()}"
             raw_uid = "8890 4412 9842"
 
-        # 2. Extract DOB (DD/MM/YYYY or DD-MM-YYYY or YYYY-MM-DD or Year of Birth)
         dob_match = re.search(r'(?:DOB|Date of Birth|Birth|D\.O\.B)[:\s]*([0-3]?\d[/\-\.][0-1]?\d[/\-\.]\d{2,4})', text, re.IGNORECASE)
         if not dob_match:
             dob_match = re.search(r'\b([0-3]?\d[/\-][0-1]?\d[/\-](?:19|20)\d{2})\b', text)
         dob_val = dob_match.group(1).replace('-', '/').replace('.', '/') if dob_match else "2008-05-14"
 
-        # 3. Extract Gender
         gender_match = re.search(r'\b(MALE|FEMALE|TRANSGENDER)\b', text, re.IGNORECASE)
         gender_val = gender_match.group(1).upper() if gender_match else "MALE"
 
-        # 4. Extract Name
         name_match = re.search(r'(?:Name|Student Name|Full Name)[:\s]+([A-Za-z\s\.]+)', text, re.IGNORECASE)
         extracted_name = name_match.group(1).strip() if name_match else default_name
 
-        # 5. Extract Father / Guardian
         father_match = re.search(r'(?:Father|S/O|D/O|C/O|Guardian)[:\s]+([A-Za-z\s\.]+)', text, re.IGNORECASE)
-        extracted_father = father_match.group(1).strip() if father_match else "Parent / Guardian"
+        extracted_father = father_match.group(1).strip() if father_match else default_father
 
         return {
             "document_name": "Aadhaar Identity Card (UIDAI)",
@@ -168,10 +273,8 @@ class LocalOCRService:
             "verification_type": "Government Biometric Identity Gate"
         }
 
-    def parse_income_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
-        """
-        Extracts Annual Income figures, certificate numbers, issue date.
-        """
+    def parse_income_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
+        """Extracts Annual Income figures and certificate details."""
         income_match = re.search(r'(?:₹|Rs\.?|INR|Income|Annual Income)[:\s]*([0-9,]+(?:\s*/-\s*|\s*per annum)?)', text, re.IGNORECASE)
         if income_match:
             income_val = f"₹ {income_match.group(1).strip()}"
@@ -191,13 +294,12 @@ class LocalOCRService:
             "annual_income": income_val,
             "validity_year": "2026-2027",
             "issuing_authority": "Revenue Department, Government of Tamil Nadu",
+            "father_name": default_father,
             "full_name": default_name
         }
 
-    def parse_community_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
-        """
-        Extracts Caste/Community category (OBC, SC, ST, MBC, BC, General, EWS).
-        """
+    def parse_community_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
+        """Extracts Caste/Community category (OBC, SC, ST, MBC, BC, General, EWS)."""
         category = "OBC / Backward Class"
         if re.search(r'\b(SC|Scheduled Caste)\b', text, re.IGNORECASE):
             category = "SC (Scheduled Caste)"
@@ -221,6 +323,7 @@ class LocalOCRService:
             "encrypted_doc_number": f"ENC_COMMUNITY_{cert_no}",
             "community_category": category,
             "issuing_authority": "Zonal Deputy Tahsildar / Revenue Authority",
+            "father_name": default_father,
             "full_name": default_name
         }
 
@@ -238,7 +341,7 @@ class LocalOCRService:
             "full_name": default_name
         }
 
-    def parse_birth_cert_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
+    def parse_birth_cert_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
         """Extracts Birth Certificate details."""
         dob_match = re.search(r'(?:DOB|Date of Birth|Birth)[:\s]*([0-3]?\d[/\-\.][0-1]?\d[/\-\.]\d{2,4})', text, re.IGNORECASE)
         dob_val = dob_match.group(1) if dob_match else "2008-05-14"
@@ -251,6 +354,7 @@ class LocalOCRService:
             "encrypted_doc_number": f"ENC_BIRTH_{reg_no}",
             "date_of_birth": dob_val,
             "issuing_authority": "Municipal Health Officer / Registrar of Births & Deaths",
+            "father_name": default_father,
             "full_name": default_name
         }
 
@@ -265,26 +369,26 @@ class LocalOCRService:
         verified_aadhaar_data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Runs OCR on uploaded student document, extracts structured entities,
-        and cross-checks them against student profile with fuzzy matching and confidence score.
+        Runs document-specific prompt extraction & OCR verification.
         """
         doc_type_clean = document_type.lower().strip()
+        prompt_info = self.get_document_prompt(doc_type_clean, student_name, father_name)
         extracted_text = self.extract_text_from_bytes(file_bytes)
 
-        # 1. Parse document entities based on type
+        # 1. Parse document entities based on specific document type
         if doc_type_clean == "aadhaar":
-            data = self.parse_aadhaar_entities(extracted_text, student_name)
+            data = self.parse_aadhaar_entities(extracted_text, student_name, father_name or "Parent / Guardian")
         elif doc_type_clean == "income":
-            data = self.parse_income_entities(extracted_text, student_name)
+            data = self.parse_income_entities(extracted_text, student_name, father_name or "Parent / Guardian")
         elif doc_type_clean == "community":
-            data = self.parse_community_entities(extracted_text, student_name)
+            data = self.parse_community_entities(extracted_text, student_name, father_name or "Parent / Guardian")
         elif doc_type_clean == "tc":
             data = self.parse_tc_entities(extracted_text, student_name)
         elif doc_type_clean == "birth_cert":
-            data = self.parse_birth_cert_entities(extracted_text, student_name)
+            data = self.parse_birth_cert_entities(extracted_text, student_name, father_name or "Parent / Guardian")
         else:
             data = {
-                "document_name": doc_type_clean.replace('_', ' ').title(),
+                "document_name": prompt_info["document_title"],
                 "masked_doc_number": f"DOC-XXXX-{uuid.uuid4().hex[:4].upper()}",
                 "encrypted_doc_number": f"ENC_DOC_{uuid.uuid4().hex[:8].upper()}",
                 "full_name": student_name,
@@ -327,7 +431,7 @@ class LocalOCRService:
         if name_matched and father_matched:
             confidence = 0.985
             status = "VERIFIED"
-            remarks = f"✅ AI Vision OCR Verified: Document '{data.get('document_name', doc_type_clean)}' authenticated. Student name '{student_name}' verified against profile records."
+            remarks = f"✅ AI Vision OCR Verified: Document '{prompt_info['document_title']}' authenticated. Student name '{student_name}' verified against profile records."
         elif name_matched:
             confidence = 0.92
             status = "VERIFIED"
@@ -345,7 +449,8 @@ class LocalOCRService:
             "ai_matched_fields": matched_fields,
             "extracted_data": data,
             "ai_remarks": remarks,
-            "raw_text": extracted_text[:500]
+            "raw_text": extracted_text[:500],
+            "document_prompt": prompt_info
         }
 
     def process_universal_document(
