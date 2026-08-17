@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
 class MentorLogCreate(BaseModel):
     student_id: str
-    category: str = Field("academic", example="academic") # academic, behavioral, general
-    notes: str = Field(..., example="Discussed study schedule for upcoming Physics midterms.")
+    category: str = Field("academic", json_schema_extra={"example": "academic"}) # academic, behavioral, general
+    notes: str = Field(..., json_schema_extra={"example": "Discussed study schedule for upcoming Physics midterms."})
 
 class MentorLogResponse(BaseModel):
     id: str
@@ -17,8 +17,7 @@ class MentorLogResponse(BaseModel):
     notes: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MenteeHolisticInsight(BaseModel):
     student_id: str

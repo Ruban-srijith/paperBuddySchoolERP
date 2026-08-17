@@ -2,7 +2,7 @@
 JWT Authentication & RBAC core module.
 Provides token creation/verification and FastAPI dependencies for route protection.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -26,14 +26,15 @@ security = HTTPBearer(auto_error=False)
 
 def create_access_token(user_id: str, role: str, email: str, school_id: Optional[str] = None) -> str:
     """Create a signed JWT token with user info in payload."""
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
         "sub": user_id,
         "role": role,
         "email": email,
         "school_id": school_id,
         "exp": expire,
-        "iat": datetime.utcnow(),
+        "iat": now,
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

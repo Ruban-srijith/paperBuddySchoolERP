@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from sqlalchemy import Column, String, Text, Boolean, Integer, Numeric, Float, JSON, Date, DateTime, ForeignKey, Enum as SQLEnum, UniqueConstraint
 from sqlalchemy.orm import relationship
 import uuid
@@ -71,8 +71,8 @@ class School(Base):
     name = Column(String(255), nullable=False)
     address = Column(Text, nullable=True)
     contact_email = Column(String(255), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     users = relationship("User", back_populates="school", cascade="all, delete-orphan")
 
@@ -83,8 +83,8 @@ class Department(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(100), unique=True, nullable=False)
     code = Column(String(20), unique=True, nullable=False)
-    dean_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    dean_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL", use_alter=True, name="fk_department_dean"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     dean = relationship("User", foreign_keys=[dean_id], back_populates="headed_department")
 
@@ -106,8 +106,8 @@ class User(Base):
     age = Column(Integer, nullable=True)
     profile_picture = Column(Text, nullable=True)  # Store Base64 strings or URLs
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     school = relationship("School", back_populates="users")
     student_profile = relationship("Student", uselist=False, back_populates="user", cascade="all, delete-orphan")
@@ -123,7 +123,7 @@ class MentorAssignment(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     mentor_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     class_id = Column(String(36), ForeignKey("classes.id", ondelete="CASCADE"), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (UniqueConstraint('mentor_id', 'class_id', name='uq_mentor_class'),)
 
@@ -149,7 +149,7 @@ class Student(Base):
     address = Column(Text, nullable=True)
     is_bus_user = Column(Boolean, default=False)
     is_hostel_user = Column(Boolean, default=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="student_profile")
     school_class = relationship("Class")
@@ -174,8 +174,8 @@ class StudentDocument(Base):
     extracted_data = Column(JSON, nullable=True)               # Full extracted payload
     ai_remarks = Column(Text, nullable=True)
     
-    uploaded_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    uploaded_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     student = relationship("Student", back_populates="documents")
 
@@ -275,7 +275,7 @@ class DailyWorkLog(Base):
     syllabus_node_id = Column(String(36), ForeignKey("syllabus_nodes.id", ondelete="SET NULL"), nullable=True)
     date = Column(Date, nullable=False, default=date.today)
     summary = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     teacher = relationship("User")
     school_class = relationship("Class")
@@ -294,7 +294,7 @@ class LabAssignment(Base):
     description = Column(Text, nullable=True)
     file_url = Column(Text, nullable=True)
     due_date = Column(DateTime(timezone=True), nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     school_class = relationship("Class")
     subject = relationship("Subject")
@@ -332,7 +332,7 @@ class EmailLog(Base):
     status = Column(SQLEnum(EmailStatus), nullable=False, default=EmailStatus.QUEUED)
     retry_count = Column(Integer, nullable=False, default=0)
     sent_at = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
 class MentorLog(Base):
@@ -344,7 +344,7 @@ class MentorLog(Base):
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     category = Column(String(50), nullable=False, default="academic")  # academic, behavioral, general
     notes = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     mentor = relationship("User", foreign_keys=[mentor_id])
     student = relationship("User", foreign_keys=[student_id])
@@ -362,7 +362,7 @@ class FeePayment(Base):
     transaction_id = Column(String(100), unique=True, nullable=False)
     receipt_number = Column(String(100), unique=True, nullable=False)
     status = Column(String(20), nullable=False, default="paid")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     student = relationship("User", foreign_keys=[student_id])
 
@@ -375,7 +375,7 @@ class ParentStudentMap(Base):
     parent_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     relationship_type = Column(String(50), nullable=False, default="Parent")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (UniqueConstraint('parent_id', 'student_id', name='uq_parent_student'),)
 
@@ -395,7 +395,7 @@ class LeaveRequest(Base):
     reason = Column(Text, nullable=False)
     status = Column(String(20), nullable=False, default="pending")  # pending, approved, rejected
     approved_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     applicant = relationship("User", foreign_keys=[applicant_id])
     approver = relationship("User", foreign_keys=[approved_by])
@@ -411,7 +411,7 @@ class TeacherSubstitution(Base):
     substitute_teacher_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     date = Column(Date, nullable=False, default=date.today)
     status = Column(String(20), nullable=False, default="assigned")  # assigned, completed
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     timetable = relationship("Timetable")
     original_teacher = relationship("User", foreign_keys=[original_teacher_id])
@@ -429,7 +429,7 @@ class BusRoute(Base):
     bus_number = Column(String(50), nullable=False)
     current_location = Column(String(150), nullable=False, default="School Main Gate")
     status = Column(String(20), nullable=False, default="in_transit")  # in_transit, arrived, scheduled
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
 class AcademicCalendarEvent(Base):
@@ -444,7 +444,7 @@ class AcademicCalendarEvent(Base):
     event_type = Column(String(50), nullable=False, default="Academic")  # Holiday, Examination, Event, Academic, Meeting
     grade_scope = Column(String(50), nullable=False, default="all")  # "all", "LKG", "10", etc.
     created_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     created_by = relationship("User", foreign_keys=[created_by_id])
 
@@ -464,7 +464,7 @@ class SalaryRecord(Base):
     status = Column(String(20), nullable=False, default="pending")  # pending, approved, rejected
     approved_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     remarks = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     staff = relationship("User", foreign_keys=[staff_id])
     approved_by = relationship("User", foreign_keys=[approved_by_id])
@@ -485,7 +485,7 @@ class SchoolEventProposal(Base):
     status = Column(String(20), nullable=False, default="pending")  # pending, approved, rejected
     approved_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     feedback = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     organizer = relationship("User", foreign_keys=[organizer_id])
     approved_by = relationship("User", foreign_keys=[approved_by_id])
@@ -505,7 +505,7 @@ class ExamSchedule(Base):
     max_marks = Column(Integer, default=100)
     classroom_id = Column(String(36), ForeignKey("classrooms.id", ondelete="SET NULL"), nullable=True)
     hall_allotment = Column(String(100), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     subject = relationship("Subject")
     classroom = relationship("Classroom")
@@ -523,7 +523,7 @@ class Homework(Base):
     description = Column(Text, nullable=False)
     assigned_date = Column(Date, nullable=False, default=date.today)
     due_date = Column(Date, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     school_class = relationship("Class")
     subject = relationship("Subject")
@@ -543,7 +543,7 @@ class Assignment(Base):
     max_points = Column(Integer, default=100)
     due_date = Column(DateTime(timezone=True), nullable=False)
     attachment_url = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     school_class = relationship("Class")
     subject = relationship("Subject")
@@ -563,7 +563,7 @@ class StudentQuery(Base):
     question_or_reason = Column(Text, nullable=False)
     response = Column(Text, nullable=True)
     status = Column(String(20), nullable=False, default="pending")  # pending, answered, approved, rejected
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     student = relationship("User", foreign_keys=[student_id])
     teacher = relationship("User", foreign_keys=[teacher_id])
@@ -581,7 +581,7 @@ class Announcement(Base):
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
     priority = Column(String(20), default="normal")  # normal, high, urgent
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     author = relationship("User", foreign_keys=[author_id])
     school_class = relationship("Class")
@@ -609,8 +609,8 @@ class ScanRecord(Base):
     linked_object_id = Column(String(36), nullable=True)
     verified_by_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     verified_at = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     uploaded_by = relationship("User", foreign_keys=[uploaded_by_id])
     verified_by = relationship("User", foreign_keys=[verified_by_id])
@@ -636,7 +636,7 @@ class FeeTransaction(Base):
     fee_structure_id = Column(String(36), ForeignKey("fee_structures.id", ondelete="SET NULL"), nullable=True)
     amount_paid = Column(Numeric(10, 2), nullable=False)
     payment_method = Column(String(50), nullable=False) # 'cash', 'card', 'upi'
-    transaction_date = Column(DateTime(timezone=True), default=datetime.utcnow)
+    transaction_date = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     receipt_number = Column(String(100), unique=True, nullable=False)
     processed_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
@@ -701,7 +701,7 @@ class Outpass(Base):
     actual_return_time = Column(DateTime(timezone=True), nullable=True)
     status = Column(String(20), nullable=False, default="pending") # 'pending', 'approved', 'rejected', 'active', 'completed'
     approved_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     student = relationship("User", foreign_keys=[student_id])
     approver = relationship("User", foreign_keys=[approved_by])
@@ -718,7 +718,7 @@ class DepartmentBudget(Base):
     academic_year = Column(String(20), nullable=False)
     allocated_amount = Column(Numeric(12, 2), nullable=False, default=0)
     utilized_amount = Column(Numeric(12, 2), nullable=False, default=0)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 class FinancialRequest(Base):
     __tablename__ = "financial_requests"
@@ -731,7 +731,7 @@ class FinancialRequest(Base):
     amount = Column(Numeric(12, 2), nullable=False)
     status = Column(String(50), nullable=False, default="pending") # pending, approved_by_finance, approved_by_correspondent, rejected
     priority = Column(String(20), default="normal") # normal, high, urgent
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     requester = relationship("User", foreign_keys=[requester_id])
     department = relationship("DepartmentBudget")
@@ -745,7 +745,7 @@ class Vendor(Base):
     contact_email = Column(String(100), nullable=True)
     contact_phone = Column(String(20), nullable=True)
     active_contract = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 class Expense(Base):
     __tablename__ = "expenses"
@@ -773,7 +773,7 @@ class Scholarship(Base):
     discount_amount = Column(Numeric(10, 2), nullable=False, default=0) # Flat deduction per fee structure calculation
     is_active = Column(Boolean, default=True)
     granted_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     student = relationship("User", foreign_keys=[student_id])
     granter = relationship("User", foreign_keys=[granted_by])
@@ -803,7 +803,7 @@ class IncidentReport(Base):
     category = Column(String(50), nullable=False) # Discipline, Health, Maintenance, Security
     description = Column(Text, nullable=False)
     status = Column(String(50), default="Open") # Open, Under Investigation, Resolved
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     student = relationship("User", foreign_keys=[student_id])
     reporter = relationship("User", foreign_keys=[reported_by])
@@ -816,7 +816,7 @@ class VisitorLog(Base):
     relation_to_student = Column(String(50), nullable=True)
     student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
     purpose = Column(String(200), nullable=False)
-    check_in = Column(DateTime(timezone=True), default=datetime.utcnow)
+    check_in = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     check_out = Column(DateTime(timezone=True), nullable=True)
     logged_by = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     
@@ -837,7 +837,7 @@ class Book(Base):
     available_copies = Column(Integer, default=1)
     is_digital = Column(Boolean, default=False)
     digital_url = Column(String(500), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 class BookIssue(Base):
     __tablename__ = "library_issues"
@@ -845,7 +845,7 @@ class BookIssue(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     book_id = Column(String(36), ForeignKey("library_books.id"), nullable=False)
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
-    issue_date = Column(DateTime, default=datetime.utcnow)
+    issue_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     due_date = Column(DateTime, nullable=False)
     return_date = Column(DateTime, nullable=True)
     fine_amount = Column(Numeric(10, 2), default=0.0)
@@ -863,7 +863,7 @@ class BookRequest(Base):
     author = Column(String(255), nullable=True)
     reason = Column(Text, nullable=True)
     status = Column(String(50), default="pending") # pending, approved, rejected, ordered
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     
     requester = relationship("User")
 
@@ -875,7 +875,7 @@ class DigitalResource(Base):
     url = Column(String(500), nullable=False)
     category = Column(String(100), nullable=True)
     access_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 # ─── Transport Management Ecosystem ─────────────────────────────
@@ -953,7 +953,7 @@ class ClassTopper(Base):
     top_subjects = Column(JSON, nullable=True)
     attendance_pct = Column(Numeric(5, 2), nullable=True)
     term = Column(String(100), nullable=True, default="Term 1 Final")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (UniqueConstraint('class_id', 'student_id', 'term', name='uq_class_student_term_topper'),)
 

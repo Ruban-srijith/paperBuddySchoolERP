@@ -1,10 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
 class DepartmentCreateRequest(BaseModel):
-    name: str = Field(..., example="Science")
-    code: str = Field(..., example="SCI")
+    name: str = Field(..., json_schema_extra={"example": "Science"})
+    code: str = Field(..., json_schema_extra={"example": "SCI"})
     dean_id: Optional[str] = None
 
 class DepartmentUpdateRequest(BaseModel):
@@ -21,5 +21,4 @@ class DepartmentResponse(BaseModel):
     teacher_count: int = 0
     created_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

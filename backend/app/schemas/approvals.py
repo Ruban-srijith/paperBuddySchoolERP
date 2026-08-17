@@ -1,15 +1,15 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import date, datetime
 
 class LeaveRequestCreate(BaseModel):
-    leave_type: str = Field("Casual", example="Casual")  # Casual, Medical, Academic
-    start_date: date = Field(..., example="2026-08-01")
-    end_date: date = Field(..., example="2026-08-03")
-    reason: str = Field(..., example="Attending educational conference.")
+    leave_type: str = Field("Casual", json_schema_extra={"example": "Casual"})  # Casual, Medical, Academic
+    start_date: date = Field(..., json_schema_extra={"example": "2026-08-01"})
+    end_date: date = Field(..., json_schema_extra={"example": "2026-08-03"})
+    reason: str = Field(..., json_schema_extra={"example": "Attending educational conference."})
 
 class LeaveApprovalAction(BaseModel):
-    status: str = Field(..., example="approved")  # approved, rejected
+    status: str = Field(..., json_schema_extra={"example": "approved"})  # approved, rejected
 
 class LeaveRequestResponse(BaseModel):
     id: str
@@ -24,5 +24,4 @@ class LeaveRequestResponse(BaseModel):
     approved_by_name: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

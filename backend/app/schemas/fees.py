@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
 class FeePaymentCreate(BaseModel):
-    title: str = Field("Term 1 Tuition & Operations Fee", example="Term 1 Tuition Fee")
-    amount: float = Field(..., example=450.00)
-    payment_method: str = Field("Card", example="Card") # Card, UPI, Net Banking
+    title: str = Field("Term 1 Tuition & Operations Fee", json_schema_extra={"example": "Term 1 Tuition Fee"})
+    amount: float = Field(..., json_schema_extra={"example": 450.00})
+    payment_method: str = Field("Card", json_schema_extra={"example": "Card"}) # Card, UPI, Net Banking
     fee_structure_id: Optional[str] = Field(None)
     student_id: Optional[str] = Field(None)
 
@@ -21,8 +21,7 @@ class FeePaymentResponse(BaseModel):
     status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class RazorpayOrderRequest(BaseModel):
     amount: float
