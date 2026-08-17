@@ -278,42 +278,74 @@ class LocalOCRService:
             logger.warning(f"Image preprocessing fallback: {e}")
             return image
 
+    def _clean_token(self, val: Optional[str], default: str) -> str:
+        """Strips label prefixes, newlines, and trailing punctuation from extracted entities."""
+        if not val:
+            return default
+        line = val.split('\n')[0].strip()
+        # Strip trailing label words like Father, DOB, Gender, Aadhaar, UID, S/O, D/O
+        line = re.split(r'\b(?:Father|DOB|Gender|Aadhaar|UID|Date|S/O|D/O|C/O|Address|Place|Reg)\b', line, flags=re.IGNORECASE)[0].strip()
+        # Strip trailing colons, dots, dashes
+        line = re.sub(r'[:\.\-,;]+$', '', line).strip()
+        return line if len(line) >= 2 else default
+
     def extract_text_from_bytes(self, file_bytes: bytes, filename: Optional[str] = None) -> str:
         """
-        Extracts raw text from image or PDF bytes.
+        Extracts raw text from image or PDF bytes with multi-pass OCR and PDF stream extraction.
         """
         if not file_bytes:
             return ""
 
-        # 1. Try PDF extraction if file appears to be PDF
+        extracted_text = ""
+
+        # 1. Try PDF extraction if file is PDF
         if file_bytes[:4] == b'%PDF' or (filename and filename.lower().endswith('.pdf')):
             try:
                 reader = pypdf.PdfReader(io.BytesIO(file_bytes))
                 pdf_text = ""
                 for page in reader.pages:
-                    extracted = page.extract_text()
-                    if extracted:
-                        pdf_text += extracted + "\n"
-                if len(pdf_text.strip()) > 30:
-                    return pdf_text.strip()
-            except Exception as e:
-                logger.warning(f"PyPDF direct extraction failed: {e}")
+                    txt = page.extract_text()
+                    if txt:
+                        pdf_text += txt + "\n"
+                    # Also try extracting embedded images from PDF pages
+                    for img_file in page.images:
+                        try:
+                            pi = Image.open(io.BytesIO(img_file.data))
+                            proc = self.preprocess_image(pi)
+                            img_txt = pytesseract.image_to_string(proc)
+                            if img_txt:
+                                pdf_text += "\n" + img_txt
+                        except Exception:
+                            pass
 
-        # 2. Try Image OCR via Pillow + Pytesseract
-        try:
-            img = Image.open(io.BytesIO(file_bytes))
-            processed = self.preprocess_image(img)
-            custom_config = r'--oem 3 --psm 6'
-            text = pytesseract.image_to_string(processed, config=custom_config)
-            if not text.strip():
-                text = pytesseract.image_to_string(processed)
-            return text.strip()
-        except Exception as e:
-            logger.error(f"Pytesseract image extraction failed: {e}")
-            return ""
+                if len(pdf_text.strip()) > 10:
+                    extracted_text = pdf_text.strip()
+            except Exception as e:
+                logger.warning(f"PyPDF extraction warning: {e}")
+
+        # 2. Try Direct Image OCR via Pillow + Pytesseract (with multi-PSM fallback)
+        if not extracted_text:
+            try:
+                img = Image.open(io.BytesIO(file_bytes))
+                processed = self.preprocess_image(img)
+                
+                # Pass 1: PSM 6 (uniform block of text)
+                extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 6').strip()
+                
+                # Pass 2: PSM 3 (fully automatic page segmentation)
+                if len(extracted_text) < 15:
+                    extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 3').strip()
+                
+                # Pass 3: PSM 11 (sparse text with OSD)
+                if len(extracted_text) < 15:
+                    extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 11').strip()
+            except Exception as e:
+                logger.error(f"Pytesseract image extraction: {e}")
+
+        return extracted_text.strip()
 
     def parse_aadhaar_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
-        """Extracts Aadhaar specific entities."""
+        """Extracts Aadhaar specific entities with clean single-line tokens."""
         aadhaar_pattern = r'\b([2-9]\d{3})[\s\-]?(\d{4})[\s\-]?(\d{4})\b'
         aadhaar_match = re.search(aadhaar_pattern, text)
         if aadhaar_match:
@@ -326,19 +358,21 @@ class LocalOCRService:
             encrypted_number = f"ENC_AADHAAR_9842_{uuid.uuid4().hex[:6].upper()}"
             raw_uid = "8890 4412 9842"
 
-        dob_match = re.search(r'(?:DOB|Date of Birth|Birth|D\.O\.B)[:\s]*([0-3]?\d[/\-\.][0-1]?\d[/\-\.]\d{2,4})', text, re.IGNORECASE)
+        dob_match = re.search(r'(?:DOB|Date of Birth|Birth|D\.O\.B|oe)[:\s\.]*([0-3]?\d[/\-\.\s][0-1]?\d[/\-\.\s]\d{2,4})', text, re.IGNORECASE)
         if not dob_match:
             dob_match = re.search(r'\b([0-3]?\d[/\-][0-1]?\d[/\-](?:19|20)\d{2})\b', text)
-        dob_val = dob_match.group(1).replace('-', '/').replace('.', '/') if dob_match else "2008-05-14"
+        dob_val = dob_match.group(1).replace('-', '/').replace('.', '/').replace(' ', '/') if dob_match else "2008-05-14"
 
         gender_match = re.search(r'\b(MALE|FEMALE|TRANSGENDER)\b', text, re.IGNORECASE)
         gender_val = gender_match.group(1).upper() if gender_match else "MALE"
 
-        name_match = re.search(r'(?:Name|Student Name|Full Name)[:\s]+([A-Za-z\s\.]+)', text, re.IGNORECASE)
-        extracted_name = name_match.group(1).strip() if name_match else default_name
+        name_match = re.search(r'(?:Name|Student Name|Full Name)[:\s\.]+([^\n\r,;]+)', text, re.IGNORECASE)
+        raw_name = name_match.group(1) if name_match else default_name
+        extracted_name = self._clean_token(raw_name, default_name)
 
-        father_match = re.search(r'(?:Father|S/O|D/O|C/O|Guardian)[:\s]+([A-Za-z\s\.]+)', text, re.IGNORECASE)
-        extracted_father = father_match.group(1).strip() if father_match else default_father
+        father_match = re.search(r'(?:Father|S/O|D/O|C/O|Guardian)[:\s\.]+([^\n\r,;]+)', text, re.IGNORECASE)
+        raw_father = father_match.group(1) if father_match else default_father
+        extracted_father = self._clean_token(raw_father, default_father)
 
         return {
             "document_name": "Aadhaar Identity Card (UIDAI)",
@@ -356,14 +390,14 @@ class LocalOCRService:
 
     def parse_income_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
         """Extracts Annual Income figures and certificate details."""
-        income_match = re.search(r'(?:₹|Rs\.?|INR|Income|Annual Income)[:\s]*([0-9,]+(?:\s*/-\s*|\s*per annum)?)', text, re.IGNORECASE)
+        income_match = re.search(r'(?:Annual Income|Certified Annual Income|Total Income|Income|₹|Rs\.?|INR)[:\s\.]*₹?\s*([0-9]{1,3}(?:,[0-9]{2,3})+|[0-9]{4,8})', text, re.IGNORECASE)
         if income_match:
-            income_val = f"₹ {income_match.group(1).strip()}"
+            income_val = f"₹ {income_match.group(1).strip()} / Annum"
         else:
             num_match = re.search(r'\b([1-9]\d{0,2}(?:,\d{2,3})+)\b', text)
             income_val = f"₹ {num_match.group(1)} / Annum" if num_match else "₹ 1,80,000 / Annum"
 
-        cert_match = re.search(r'(?:Certificate No|Cert No|Ref No|Application No)[:\s]*([A-Z0-9\-/]+)', text, re.IGNORECASE)
+        cert_match = re.search(r'(?:Certificate No|Cert No|Ref No|Application No)[:\s\.]*([A-Z0-9\-/]+)', text, re.IGNORECASE)
         cert_no = cert_match.group(1).strip() if cert_match else f"INC-{uuid.uuid4().hex[:6].upper()}"
         masked_no = f"INC-XXXX-{cert_no[-4:] if len(cert_no) >= 4 else '7321'}"
 
