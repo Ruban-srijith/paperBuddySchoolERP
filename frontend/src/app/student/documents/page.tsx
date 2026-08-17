@@ -6,7 +6,8 @@ import api from "@/lib/api";
 import {
   FileCheck2, ShieldCheck, Lock, UploadCloud, Eye, AlertTriangle,
   CheckCircle2, Sparkles, User, FileText, DollarSign, Award, RefreshCw, Key,
-  FileSearch, Check, Info
+  FileSearch, Check, Info, GraduationCap, HeartPulse, Trophy, CreditCard,
+  Layers, Terminal, HelpCircle
 } from "lucide-react";
 
 interface StudentDocument {
@@ -20,6 +21,12 @@ interface StudentDocument {
   ai_matched_fields?: Record<string, boolean>;
   extracted_data?: Record<string, any>;
   ai_remarks?: string;
+  document_prompt?: {
+    document_title?: string;
+    system_prompt?: string;
+    user_prompt?: string;
+    expected_keys?: string[];
+  };
   uploaded_at: string;
 }
 
@@ -44,6 +51,7 @@ export default function StudentDocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
 
   // Unmask Modal State
   const [unmaskModalDoc, setUnmaskModalDoc] = useState<StudentDocument | null>(null);
@@ -98,8 +106,8 @@ export default function StudentDocumentsPage() {
     setErrorMessage(null);
 
     const formData = new FormData();
-    formData.append("document_type", documentType);
     formData.append("file", file);
+    formData.append("document_type", documentType);
 
     try {
       const res = await api.post("/student-documents/upload", formData, {
@@ -109,95 +117,162 @@ export default function StudentDocumentsPage() {
         await fetchDocuments();
       }
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || "Error processing document via Tesseract OCR engine.");
+      setErrorMessage(err.response?.data?.detail || "Upload or OCR verification failed. Please try again.");
     } finally {
       setUploadingType(null);
     }
   };
 
-  const handleUnmaskSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!unmaskModalDoc) return;
+  const handleUnmask = async () => {
+    if (!unmaskModalDoc || !secretKey) return;
     setUnmasking(true);
     setUnmaskError(null);
-
     try {
-      const res = await api.post("/student-documents/unmask", {
-        document_id: unmaskModalDoc.id,
+      const res = await api.post(`/student-documents/${unmaskModalDoc.id}/unmask`, {
         secret_key: secretKey
       });
-      if (res.data) {
-        setUnmaskedResult(res.data.unmasked_doc_number);
+      if (res.data && res.data.unmasked_document_number) {
+        setUnmaskedResult(res.data.unmasked_document_number);
       }
     } catch (err: any) {
-      setUnmaskError(err.response?.data?.detail || "Invalid PIN or security key (e.g. 1234 or school@123).");
+      setUnmaskError(err.response?.data?.detail || "Invalid administrative secret key.");
     } finally {
       setUnmasking(false);
     }
   };
 
-  const getDoc = (type: string) => data?.uploaded_documents.find(d => d.document_type === type);
+  const getDoc = (type: string) => {
+    return data?.uploaded_documents.find(d => d.document_type.toLowerCase() === type.toLowerCase());
+  };
+
+  // 10 Comprehensive Supported Documents
+  const documentConfigs = [
+    {
+      category: "identity",
+      type: "aadhaar",
+      title: "Aadhaar Identity Card (UIDAI)",
+      description: "Extracts 12-digit UID, DOB, and biometric clearance. (Step 1 Mandatory Gate)",
+      icon: <ShieldCheck className="w-5 h-5 text-indigo-500" />,
+      isGate: true
+    },
+    {
+      category: "identity",
+      type: "birth_cert",
+      title: "Birth Certificate",
+      description: "Official Date of Birth proof issued by Municipal/Govt authority.",
+      icon: <FileCheck2 className="w-5 h-5 text-amber-500" />
+    },
+    {
+      category: "identity",
+      type: "parent_id",
+      title: "Parent / Guardian Photo ID",
+      description: "Parent Voter ID (EPIC) / Passport for family record validation.",
+      icon: <CreditCard className="w-5 h-5 text-blue-500" />
+    },
+    {
+      category: "academic",
+      type: "tc",
+      title: "Transfer Certificate (TC)",
+      description: "Previous institution record, EMIS number, and conduct evaluation.",
+      icon: <FileText className="w-5 h-5 text-sky-500" />
+    },
+    {
+      category: "academic",
+      type: "marksheet",
+      title: "Academic Marksheet & Grade Card",
+      description: "CBSE / State Board examination roll number, percentage, and grade status.",
+      icon: <GraduationCap className="w-5 h-5 text-indigo-500" />
+    },
+    {
+      category: "financial",
+      type: "income",
+      title: "Father's Annual Income Certificate",
+      description: "Extracts certified annual family income figure for fee concessions.",
+      icon: <DollarSign className="w-5 h-5 text-emerald-500" />
+    },
+    {
+      category: "financial",
+      type: "scholarship_letter",
+      title: "Scholarship Allotment Order",
+      description: "National / State Merit Scholarship sanction letter and grant amount.",
+      icon: <Award className="w-5 h-5 text-teal-500" />
+    },
+    {
+      category: "financial",
+      type: "community",
+      title: "Community / Caste Certificate",
+      description: "Extracts verified BC / MBC / SC / ST / EWS category & Tahsildar seal.",
+      icon: <Award className="w-5 h-5 text-purple-500" />
+    },
+    {
+      category: "health_sports",
+      type: "medical_fitness",
+      title: "Medical Fitness & Blood Group",
+      description: "Blood group verification and certified physical clearance for school activities.",
+      icon: <HeartPulse className="w-5 h-5 text-rose-500" />
+    },
+    {
+      category: "health_sports",
+      type: "sports_cert",
+      title: "Sports & Co-curricular Award",
+      description: "District / State / National athletic championship and Olympiad certificate.",
+      icon: <Trophy className="w-5 h-5 text-amber-500" />
+    }
+  ];
+
+  const filteredDocs = documentConfigs.filter(cfg => {
+    if (cfg.isGate) return false; // Handled in dedicated Step 1 Gate
+    if (activeCategory === "all") return true;
+    return cfg.category === activeCategory;
+  });
 
   return (
-    <ProtectedRoute allowedRoles={["student", "super_admin", "admin", "parent"]}>
-      <div className="max-w-6xl mx-auto space-y-6 pb-12">
-        {/* Header */}
-        <header className="flex justify-between items-start">
+    <ProtectedRoute allowedRoles={["student", "super_admin", "admin"]}>
+      <div className="space-y-6 max-w-7xl mx-auto pb-12">
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-3">
-              <ShieldCheck className="w-8 h-8 text-sky-500" />
-              Student Profile Documents & AI OCR Hub
-            </h1>
-            <p className="text-gray-600 dark:text-slate-400 mt-1 text-sm">
-              Tesseract 5.5.1 Automated OCR Extraction & Cross-Verification Engine
-            </p>
-          </div>
-          <button
-            onClick={fetchDocuments}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </header>
-
-        {errorMessage && (
-          <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 p-4 rounded-2xl flex items-center gap-3 text-rose-800 dark:text-rose-200 text-sm font-medium">
-            <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400" />
-            <span>{errorMessage}</span>
-          </div>
-        )}
-
-        {/* Student Baseline Identity Card */}
-        {data && (
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-2 font-semibold text-gray-800 dark:text-slate-200">
-                <User className="w-5 h-5 text-sky-500" />
-                <span>Verified Profile Baseline Identity</span>
-              </div>
-              <span className="text-xs px-3 py-1 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-medium rounded-full border border-sky-200 dark:border-sky-800/50">
-                {data.student_profile.class_name}
+            <div className="flex items-center gap-2">
+              <span className="p-2 bg-brand-blue/10 text-brand-blue dark:bg-blue-500/10 dark:text-blue-400 rounded-xl">
+                <ShieldCheck className="w-6 h-6" />
               </span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="text-gray-500 dark:text-slate-400 text-xs block">Student Name</span>
-                <span className="font-bold text-gray-900 dark:text-slate-100">{data.student_profile.full_name}</span>
-              </div>
-              <div>
-                <span className="text-gray-500 dark:text-slate-400 text-xs block">Admission Number</span>
-                <span className="font-mono font-semibold text-indigo-600 dark:text-indigo-400">{data.student_profile.admission_number}</span>
-              </div>
-              <div>
-                <span className="text-gray-500 dark:text-slate-400 text-xs block">Father's Name</span>
-                <span className="font-medium text-gray-800 dark:text-slate-200">{data.student_profile.father_name}</span>
-              </div>
-              <div>
-                <span className="text-gray-500 dark:text-slate-400 text-xs block">Guardian Phone</span>
-                <span className="font-medium text-gray-800 dark:text-slate-200">{data.student_profile.guardian_phone}</span>
+                <h1 className="text-2xl font-black text-gray-900 dark:text-slate-100 tracking-tight">
+                  Student Document Verification Hub
+                </h1>
+                <p className="text-xs text-gray-500 dark:text-slate-400">
+                  AI OCR Consensus Engine powered by Local Tesseract 5.5.1 + Document-Tailored Vision Prompts
+                </p>
               </div>
             </div>
+          </div>
+
+          {/* Student Profile Quick Badge */}
+          {data?.student_profile && (
+            <div className="flex items-center gap-3 bg-gray-50 dark:bg-slate-800/80 px-4 py-2.5 rounded-2xl border border-gray-200/60 dark:border-slate-700/60">
+              <div className="w-9 h-9 rounded-xl bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 flex items-center justify-center font-bold text-sm">
+                <User className="w-5 h-5" />
+              </div>
+              <div className="text-xs">
+                <span className="font-bold text-gray-900 dark:text-slate-100 block">
+                  {data.student_profile.full_name} ({data.student_profile.admission_number})
+                </span>
+                <span className="text-gray-500 dark:text-slate-400">
+                  {data.student_profile.class_name} • Father: {data.student_profile.father_name}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ERROR BANNER */}
+        {errorMessage && (
+          <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 rounded-2xl text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              <span>{errorMessage}</span>
+            </div>
+            <button onClick={() => setErrorMessage(null)} className="font-bold text-rose-600">✕</button>
           </div>
         )}
 
@@ -216,7 +291,7 @@ export default function StudentDocumentsPage() {
                   <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Aadhaar Card Verification</h2>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-slate-400 mt-0.5">
-                  Must be verified first to unlock Community, Income, TC & other certificate uploads.
+                  Must be verified first to unlock Marksheets, Community, Income, TC & other certificates.
                 </p>
               </div>
             </div>
@@ -262,7 +337,7 @@ export default function StudentDocumentsPage() {
                   className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors"
                 >
                   <FileSearch className="w-4 h-4 text-indigo-500" />
-                  View OCR Details
+                  View Prompt & OCR
                 </button>
 
                 <button
@@ -319,107 +394,75 @@ export default function StudentDocumentsPage() {
           )}
         </div>
 
-        {/* STEP 2: UNLOCKED SECONDARY & DYNAMIC DOCUMENTS */}
+        {/* STEP 2: CATEGORIZED SECONDARY DOCUMENTS */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-purple-500" />
-              Step 2: Profile & Verification Documents
-            </h2>
-            {!data?.is_aadhaar_verified && (
-              <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-                <Lock className="w-3.5 h-3.5" /> Locked until Aadhaar is verified
-              </span>
-            )}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-purple-500" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">
+                Step 2: Profile, Academic & Verified Documents
+              </h2>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex items-center gap-1.5 p-1 bg-gray-100 dark:bg-slate-800 rounded-2xl text-xs font-semibold">
+              {[
+                { id: "all", label: "All (9)" },
+                { id: "academic", label: "Academic" },
+                { id: "financial", label: "Financial" },
+                { id: "identity", label: "Civil & ID" },
+                { id: "health_sports", label: "Health & Sports" }
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`px-3 py-1.5 rounded-xl transition-all ${
+                    activeCategory === cat.id
+                      ? "bg-white dark:bg-slate-900 text-brand-blue dark:text-blue-400 shadow-sm"
+                      : "text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* 1. Father's Annual Income Certificate */}
-            <DocumentCard
-              title="Father's Annual Income Certificate"
-              description="Extracts annual income figure for scholarship & fee relief verification."
-              docType="income"
-              doc={getDoc("income")}
-              icon={<DollarSign className="w-5 h-5 text-emerald-500" />}
-              isUnlocked={data?.is_aadhaar_verified ?? false}
-              isUploading={uploadingType === "income"}
-              onUpload={file => handleFileUpload("income", file)}
-              onPreview={doc => setPreviewDoc(doc)}
-              onUnmask={doc => {
-                setUnmaskModalDoc(doc);
-                setSecretKey("");
-                setUnmaskedResult(null);
-                setUnmaskError(null);
-              }}
-            />
-
-            {/* 2. Community / Caste Certificate */}
-            <DocumentCard
-              title="Community / Caste Certificate"
-              description="Extracts BC/MBC/SC/ST category and Tahsildar issue details."
-              docType="community"
-              doc={getDoc("community")}
-              icon={<Award className="w-5 h-5 text-purple-500" />}
-              isUnlocked={data?.is_aadhaar_verified ?? false}
-              isUploading={uploadingType === "community"}
-              onUpload={file => handleFileUpload("community", file)}
-              onPreview={doc => setPreviewDoc(doc)}
-              onUnmask={doc => {
-                setUnmaskModalDoc(doc);
-                setSecretKey("");
-                setUnmaskedResult(null);
-                setUnmaskError(null);
-              }}
-            />
-
-            {/* 3. Transfer Certificate (TC) */}
-            <DocumentCard
-              title="Transfer Certificate (TC)"
-              description="Previous institution record and conduct verification."
-              docType="tc"
-              doc={getDoc("tc")}
-              icon={<FileText className="w-5 h-5 text-sky-500" />}
-              isUnlocked={data?.is_aadhaar_verified ?? false}
-              isUploading={uploadingType === "tc"}
-              onUpload={file => handleFileUpload("tc", file)}
-              onPreview={doc => setPreviewDoc(doc)}
-              onUnmask={doc => {
-                setUnmaskModalDoc(doc);
-                setSecretKey("");
-                setUnmaskedResult(null);
-                setUnmaskError(null);
-              }}
-            />
-
-            {/* 4. Birth Certificate */}
-            <DocumentCard
-              title="Birth Certificate"
-              description="Official Date of Birth proof issued by Municipal/Govt authority."
-              docType="birth_cert"
-              doc={getDoc("birth_cert")}
-              icon={<FileCheck2 className="w-5 h-5 text-amber-500" />}
-              isUnlocked={data?.is_aadhaar_verified ?? false}
-              isUploading={uploadingType === "birth_cert"}
-              onUpload={file => handleFileUpload("birth_cert", file)}
-              onPreview={doc => setPreviewDoc(doc)}
-              onUnmask={doc => {
-                setUnmaskModalDoc(doc);
-                setSecretKey("");
-                setUnmaskedResult(null);
-                setUnmaskError(null);
-              }}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredDocs.map(cfg => {
+              const doc = getDoc(cfg.type);
+              return (
+                <DocumentCard
+                  key={cfg.type}
+                  title={cfg.title}
+                  description={cfg.description}
+                  docType={cfg.type}
+                  doc={doc}
+                  icon={cfg.icon}
+                  isUnlocked={data?.is_aadhaar_verified ?? false}
+                  isUploading={uploadingType === cfg.type}
+                  onUpload={file => handleFileUpload(cfg.type, file)}
+                  onPreview={d => setPreviewDoc(d)}
+                  onUnmask={d => {
+                    setUnmaskModalDoc(d);
+                    setSecretKey("");
+                    setUnmaskedResult(null);
+                    setUnmaskError(null);
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
 
-        {/* OCR PREVIEW MODAL */}
+        {/* OCR PREVIEW & PROMPT MODAL */}
         {previewDoc && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-2 font-bold text-gray-900 dark:text-slate-100">
+                <div className="flex items-center gap-2 font-bold text-gray-900 dark:text-slate-100 text-base">
                   <Sparkles className="w-5 h-5 text-indigo-500" />
-                  <span>OCR Engine Extracted Details</span>
+                  <span>OCR Engine & Document Prompt Audit</span>
                 </div>
                 <button
                   onClick={() => setPreviewDoc(null)}
@@ -430,90 +473,123 @@ export default function StudentDocumentsPage() {
               </div>
 
               <div className="space-y-3 text-xs">
-                <div className="p-3 bg-gray-50 dark:bg-slate-800/80 rounded-xl space-y-1">
+                {/* Header card */}
+                <div className="p-3.5 bg-gray-50 dark:bg-slate-800/80 rounded-2xl space-y-1">
                   <div className="font-bold text-gray-900 dark:text-slate-100 text-sm">{previewDoc.document_title}</div>
-                  <div className="text-gray-500 dark:text-slate-400 font-mono">Doc ID: {previewDoc.masked_doc_number || previewDoc.id}</div>
-                  <div className="text-emerald-600 dark:text-emerald-400 font-semibold pt-1">
-                    AI Confidence Score: {Math.round((previewDoc.ai_confidence || 0.98) * 100)}% ({previewDoc.verification_status})
+                  <div className="text-gray-500 dark:text-slate-400 font-mono">Document Masked ID: {previewDoc.masked_doc_number || previewDoc.id}</div>
+                  <div className="text-emerald-600 dark:text-emerald-400 font-semibold pt-1 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
+                    AI Verification Confidence: {Math.round((previewDoc.ai_confidence || 0.985) * 100)}% ({previewDoc.verification_status})
                   </div>
                 </div>
 
-                <div className="border border-gray-200 dark:border-slate-800 rounded-xl p-3 space-y-1.5">
-                  <span className="font-bold text-gray-700 dark:text-slate-300 block">Structured Entities Extracted:</span>
-                  <pre className="bg-gray-900 text-emerald-400 p-3 rounded-lg text-[11px] font-mono overflow-x-auto max-h-40">
-                    {JSON.stringify(previewDoc.extracted_data || {}, null, 2)}
-                  </pre>
+                {/* Document-Specific Prompt Inspector */}
+                <div className="border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-2xl p-4 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-indigo-900 dark:text-indigo-200 text-xs">
+                    <Terminal className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <span>Applied Document Prompt & Extraction Strategy</span>
+                  </div>
+                  <div className="space-y-1 text-[11px] text-gray-700 dark:text-slate-300">
+                    <p className="font-semibold text-indigo-700 dark:text-indigo-300">System Instruction:</p>
+                    <p className="bg-white/80 dark:bg-slate-900/80 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/60 font-mono leading-relaxed">
+                      {previewDoc.document_prompt?.system_prompt || "You are an expert Document Verification AI specializing in school operations and government identification records."}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl text-indigo-800 dark:text-indigo-200">
+                {/* Structured Extracted Data */}
+                <div className="border border-gray-200 dark:border-slate-800 rounded-2xl p-4 space-y-2">
+                  <span className="font-bold text-gray-800 dark:text-slate-200 block text-xs">Structured Entities Extracted:</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {Object.entries(previewDoc.extracted_data || {}).map(([k, v]) => (
+                      <div key={k} className="p-2 bg-gray-50 dark:bg-slate-800 rounded-xl">
+                        <span className="text-gray-400 capitalize text-[10px] block">{k.replace(/_/g, " ")}</span>
+                        <span className="font-semibold text-gray-800 dark:text-slate-200 font-mono text-[11px] break-words">
+                          {typeof v === "object" ? JSON.stringify(v) : String(v)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Remarks */}
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-800 dark:text-emerald-200">
                   <span className="font-bold block mb-0.5">Verification Remarks:</span>
                   <span>{previewDoc.ai_remarks}</span>
                 </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setPreviewDoc(null)}
+                  className="px-5 py-2 bg-brand-blue text-white font-bold rounded-xl text-xs"
+                >
+                  Close Audit View
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* UNMASK SENSITIVE NUMBER MODAL */}
+        {/* UNMASK SECRET MODAL */}
         {unmaskModalDoc && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
-                <div className="flex items-center gap-2 font-bold text-gray-900 dark:text-slate-100">
-                  <Key className="w-5 h-5 text-indigo-500" />
-                  <span>Unmask Full Document Number</span>
-                </div>
-                <button
-                  onClick={() => setUnmaskModalDoc(null)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 text-lg font-bold"
-                >
-                  ✕
-                </button>
+              <div className="flex items-center gap-2 font-bold text-gray-900 dark:text-slate-100">
+                <Key className="w-5 h-5 text-indigo-500" />
+                <span>Administrative UID Unmasking</span>
               </div>
-
-              <p className="text-xs text-gray-600 dark:text-slate-400">
-                For security, enter your account password or unique PIN to unmask{" "}
-                <span className="font-bold text-gray-900 dark:text-slate-100">{unmaskModalDoc.document_title}</span>.
+              <p className="text-xs text-gray-500 dark:text-slate-400">
+                Government UIDAI compliance requires secret key authorization to decrypt the raw 12-digit UID for {unmaskModalDoc.document_title}.
               </p>
 
-              {unmaskError && (
-                <div className="bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs p-3 rounded-xl border border-rose-200 dark:border-rose-800">
-                  {unmaskError}
-                </div>
-              )}
-
               {unmaskedResult ? (
-                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-2xl text-center space-y-1">
-                  <span className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold block">Unmasked Number</span>
-                  <div className="text-xl font-mono font-bold text-emerald-900 dark:text-emerald-100">{unmaskedResult}</div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block pt-1">Verified with Session Security Key</span>
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-1">
+                  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 block">Decrypted Government UID:</span>
+                  <span className="text-xl font-black font-mono text-emerald-900 dark:text-emerald-100 tracking-wider">
+                    {unmaskedResult}
+                  </span>
                 </div>
               ) : (
-                <form onSubmit={handleUnmaskSubmit} className="space-y-4">
+                <div className="space-y-3">
                   <div>
                     <label className="text-xs font-semibold text-gray-700 dark:text-slate-300 block mb-1">
-                      Security PIN / Account Password
+                      Administrative Secret Key
                     </label>
                     <input
                       type="password"
-                      placeholder="Enter PIN (e.g. 1234 or school@123)"
+                      placeholder="Enter verification secret key..."
                       value={secretKey}
                       onChange={e => setSecretKey(e.target.value)}
-                      required
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                     />
                   </div>
 
+                  {unmaskError && (
+                    <span className="text-xs text-rose-500 font-medium block">
+                      {unmaskError}
+                    </span>
+                  )}
+
                   <button
-                    type="submit"
-                    disabled={unmasking}
-                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md flex items-center justify-center gap-2"
+                    onClick={handleUnmask}
+                    disabled={unmasking || !secretKey}
+                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"
                   >
-                    {unmasking ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-                    Authenticate & Unmask
+                    {unmasking ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                    Authorize & Reveal UID
                   </button>
-                </form>
+                </div>
               )}
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setUnmaskModalDoc(null)}
+                  className="px-4 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 font-semibold text-xs rounded-xl"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -548,87 +624,102 @@ function DocumentCard({
   onUnmask
 }: DocumentCardProps) {
   return (
-    <div className={`border rounded-2xl p-5 shadow-sm transition-all ${
-      !isUnlocked
-        ? "bg-gray-50/70 dark:bg-slate-900/40 border-gray-200 dark:border-slate-800 opacity-60 pointer-events-none"
-        : "bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-800"
-    }`}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gray-100 dark:bg-slate-800 rounded-xl">{icon}</div>
-          <div>
-            <h3 className="font-bold text-gray-900 dark:text-slate-100 text-sm">{title}</h3>
-            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-1">{description}</p>
+    <div
+      className={`border rounded-3xl p-5 flex flex-col justify-between transition-all ${
+        !isUnlocked
+          ? "bg-gray-50/60 dark:bg-slate-900/30 border-gray-200/50 dark:border-slate-800/40 opacity-75"
+          : doc
+          ? "bg-white dark:bg-slate-900 border-emerald-200/60 dark:border-emerald-900/40 shadow-sm"
+          : "bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 shadow-sm"
+      }`}
+    >
+      <div className="space-y-2">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-xl">
+              {icon}
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-gray-900 dark:text-slate-100">{title}</h3>
+              <span className="text-[10px] font-mono text-gray-400 uppercase">{docType}</span>
+            </div>
           </div>
+
+          {doc ? (
+            <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] rounded-full border border-emerald-500/20">
+              Verified
+            </span>
+          ) : !isUnlocked ? (
+            <span className="px-2 py-0.5 bg-gray-200 dark:bg-slate-800 text-gray-500 text-[10px] rounded-full flex items-center gap-1">
+              <Lock className="w-3 h-3" /> Locked
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] rounded-full font-medium">
+              Pending
+            </span>
+          )}
         </div>
 
-        {doc ? (
-          <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] rounded-lg border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1 shrink-0">
-            <CheckCircle2 className="w-3.5 h-3.5" /> AI Verified
-          </span>
-        ) : (
-          <span className="px-2.5 py-1 bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-medium text-[11px] rounded-lg shrink-0">
-            Pending
-          </span>
+        <p className="text-xs text-gray-500 dark:text-slate-400 leading-relaxed">{description}</p>
+
+        {doc && (
+          <div className="p-2.5 bg-gray-50 dark:bg-slate-800/60 rounded-xl space-y-1 text-xs">
+            <div className="flex items-center justify-between text-gray-700 dark:text-slate-300 font-mono text-[11px]">
+              <span>ID: {doc.masked_doc_number || "Verified"}</span>
+              <span className="text-emerald-600 font-bold">{Math.round((doc.ai_confidence || 0.98) * 100)}% Match</span>
+            </div>
+            <div className="text-[11px] text-gray-500 dark:text-slate-400 line-clamp-1">{doc.ai_remarks}</div>
+          </div>
         )}
       </div>
 
-      {doc ? (
-        <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-3 text-xs space-y-2 mt-2">
-          <div className="flex items-center justify-between text-gray-700 dark:text-slate-300 font-mono">
-            <span>Doc No: {doc.masked_doc_number || "COMM-XXXX-4512"}</span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onPreview(doc)}
-                className="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px] font-semibold flex items-center gap-1"
-              >
-                <FileSearch className="w-3.5 h-3.5" /> Details
-              </button>
-              <button
-                onClick={() => onUnmask(doc)}
-                className="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px] font-semibold flex items-center gap-1"
-              >
-                <Eye className="w-3.5 h-3.5" /> Unmask
-              </button>
-            </div>
-          </div>
-          {doc.extracted_data?.annual_income && (
-            <div className="text-emerald-600 dark:text-emerald-400 font-semibold">
-              Extracted Income: {doc.extracted_data.annual_income}
-            </div>
-          )}
-          {doc.extracted_data?.community_category && (
-            <div className="text-purple-600 dark:text-purple-400 font-semibold">
-              Category: {doc.extracted_data.community_category}
-            </div>
-          )}
-          <p className="text-[11px] text-gray-500 dark:text-slate-400 border-t border-gray-200/50 dark:border-slate-700/50 pt-1.5">
-            {doc.ai_remarks}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
-          <span className="text-xs text-gray-500 dark:text-slate-400">PDF / PNG / JPG</span>
-          <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow transition-colors">
+      <div className="pt-4 mt-2 border-t border-gray-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+        {doc ? (
+          <>
+            <button
+              onClick={() => onPreview(doc)}
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+            >
+              <FileSearch className="w-3.5 h-3.5 text-indigo-500" />
+              Prompt & OCR
+            </button>
+
+            <label className="cursor-pointer px-3 py-1.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors">
+              <UploadCloud className="w-3.5 h-3.5" />
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                className="hidden"
+                disabled={isUploading}
+                onChange={e => e.target.files?.[0] && onUpload(e.target.files[0])}
+              />
+            </label>
+          </>
+        ) : isUnlocked ? (
+          <label className="w-full flex items-center justify-center gap-2 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer transition-colors">
             {isUploading ? (
               <>
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Verifying...
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Processing OCR...
               </>
             ) : (
               <>
-                <UploadCloud className="w-3.5 h-3.5" /> Upload File
+                <UploadCloud className="w-3.5 h-3.5" /> Upload Document
               </>
             )}
             <input
               type="file"
               accept="image/*,.pdf"
               className="hidden"
-              disabled={isUploading || !isUnlocked}
+              disabled={isUploading}
               onChange={e => e.target.files?.[0] && onUpload(e.target.files[0])}
             />
           </label>
-        </div>
-      )}
+        ) : (
+          <button disabled className="w-full py-2 bg-gray-200 dark:bg-slate-800 text-gray-400 font-semibold text-xs rounded-xl cursor-not-allowed flex items-center justify-center gap-1">
+            <Lock className="w-3.5 h-3.5" /> Verify Aadhaar First
+          </button>
+        )}
+      </div>
     </div>
   );
 }
