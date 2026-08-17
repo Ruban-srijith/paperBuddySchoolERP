@@ -32,6 +32,7 @@ const fadeLeftVariant = {
 // Map nav item keys to their config
 const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge?: string; color: string }> = {
   dashboard:            { href: '/dashboard',                     label: 'Dashboard Overview',         icon: LayoutDashboard, color: 'group-hover:text-indigo-400' },
+  scans:                { href: '/scans',                         label: 'Universal OCR Scanner',      icon: FileSearch,      color: 'group-hover:text-amber-400', badge: 'OCR' },
   student_documents:    { href: '/student/documents',            label: 'Profile Documents',         icon: ShieldCheck,     color: 'group-hover:text-sky-400', badge: 'AI' },
   admin_documents:      { href: '/admin/documents',              label: 'Document Audit Panel',      icon: ShieldCheck,     color: 'group-hover:text-indigo-400', badge: 'AI' },
   salary_approvals:     { href: '/salary-approvals',     label: 'Salary Approvals',          icon: DollarSign,      color: 'group-hover:text-emerald-400' },

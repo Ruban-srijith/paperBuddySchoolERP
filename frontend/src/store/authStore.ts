@@ -87,6 +87,7 @@ export const ROLE_COLORS: Record<UserRole, string> = {
 export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   super_admin: [
     'dashboard',
+    'scans',
     'admin_documents',
     'salary_approvals',
     'event_approvals',
@@ -106,6 +107,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   correspondent: [
     'dashboard',
+    'scans',
     'admin_documents',
     'salary_approvals',
     'event_approvals',
@@ -127,6 +129,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   admin: [
     'dashboard',
+    'scans',
     'admin_documents',
     'pending_approvals',
     'workload',
@@ -147,6 +150,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   principal: [
     'dashboard',
+    'scans',
     'admin_documents',
     'pending_approvals',
     'workload',
@@ -168,6 +172,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   vice_principal: [
     'dashboard',
+    'scans',
     'timetable',
     'classroom_allocation',
     'workload',
@@ -187,6 +192,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   dean: [
     'dashboard',
+    'scans',
     'timetable',
     'classroom_allocation',
     'workload',
@@ -199,6 +205,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   dept_head: [
     'dashboard',
+    'scans',
     'timetable',
     'workload',
     'calendar',
@@ -208,6 +215,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   teacher: [
     'dashboard',
+    'scans',
     'assign_toppers',
     'my_class',
     'class-fees',
@@ -228,12 +236,14 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   mentor: [
     'dashboard',
+    'scans',
     'mentorship',
     'attendance',
     'portion'
   ],
   student: [
     'dashboard',
+    'scans',
     'student_documents',
     'timetable',
     'attendance',
@@ -254,6 +264,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   finance: [
     'dashboard',
+    'scans',
     'finance_approvals',
     'budgets',
     'vendors',
@@ -266,6 +277,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   warden: [
     'dashboard',
+    'scans',
     'hostel_rooms',
     'outpasses',
     'hostel_attendance',
@@ -276,6 +288,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
   librarian: [
     'librarian_dashboard',
+    'scans',
     'librarian_inventory',
     'librarian_issues',
     'librarian_digital',
