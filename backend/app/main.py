@@ -38,11 +38,18 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware — origins controlled via ALLOWED_ORIGINS env variable
-# Default: http://localhost:3000 (dev). Set in .env for production.
+# CORS middleware — support all local dev origins and production env
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.get_cors_origins(),
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000"
+    ] + settings.get_cors_origins(),
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

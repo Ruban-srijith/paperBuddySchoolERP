@@ -144,6 +144,8 @@ export default function LoginPage() {
     { label: '👔 Admin', email: 'admin@school.edu' },
     { label: '🎓 Principal', email: 'principal@school.edu' },
     { label: '💼 Correspondent', email: 'correspondent@school.edu' },
+    { label: '🏛️ VP', email: 'vp@school.edu' },
+    { label: '🔬 Dean', email: 'dean.science@school.edu' },
     { label: '👨‍👧 Parent', email: 'parent.kishor@school.edu' },
     { label: '💰 Finance', email: 'finance@school.edu' },
     { label: '🏠 Warden', email: 'warden@school.edu' },
@@ -264,7 +266,7 @@ export default function LoginPage() {
                       <Sparkles className="w-3 h-3 text-amber-500" /> Instant 1-Click Demo Logins
                     </p>
                     <div className="flex flex-wrap justify-center gap-1.5 max-w-sm">
-                      {quickLogins.slice(0, 6).map((ql) => (
+                      {quickLogins.map((ql) => (
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
