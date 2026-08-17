@@ -4,7 +4,7 @@ import httpx
 async def test():
     async with httpx.AsyncClient(base_url="http://127.0.0.1:8000/api/v1") as client:
         # First login to get token
-        res = await client.post("/auth/login", json={"email": "transport@school.edu", "password": "password123"})
+        res = await client.post("/auth/login", json={"email": "transport@school.edu", "password": "school@123"})
         if res.status_code != 200:
             print("Login failed:", res.json())
             return
