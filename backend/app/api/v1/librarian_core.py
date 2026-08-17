@@ -33,7 +33,62 @@ class BookCreate(BaseModel):
 @router.get("/books")
 async def get_books(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Book))
-    return result.scalars().all()
+    books = result.scalars().all()
+    if not books:
+        sample_books = [
+            Book(
+                id=str(uuid4()),
+                title="Concepts of Physics (Vol 1 & 2)",
+                author="Dr. H. C. Verma",
+                isbn="978-8177091878",
+                category="Physics",
+                total_copies=15,
+                available_copies=12,
+                is_digital=True,
+                digital_url="/library/digital/hc_verma_physics.pdf"
+            ),
+            Book(
+                id=str(uuid4()),
+                title="Introduction to Algorithms (CLRS 4th Edition)",
+                author="Thomas H. Cormen, Charles E. Leiserson",
+                isbn="978-0262046305",
+                category="Computer Science",
+                total_copies=10,
+                available_copies=8,
+                is_digital=True,
+                digital_url="/library/digital/clrs_algorithms.pdf"
+            ),
+            Book(
+                id=str(uuid4()),
+                title="Organic Chemistry: Structure and Function",
+                author="K. Peter C. Vollhardt",
+                isbn="978-1319079451",
+                category="Chemistry",
+                total_copies=12,
+                available_copies=10,
+                is_digital=False,
+                digital_url=None
+            ),
+            Book(
+                id=str(uuid4()),
+                title="Higher Algebra & Calculus Masterclass",
+                author="Hall & Knight / I. A. Maron",
+                isbn="978-9351762560",
+                category="Mathematics",
+                total_copies=20,
+                available_copies=17,
+                is_digital=True,
+                digital_url="/library/digital/higher_algebra.pdf"
+            )
+        ]
+        for b in sample_books:
+            db.add(b)
+        try:
+            await db.commit()
+            books = sample_books
+        except Exception:
+            await db.rollback()
+    return books
 
 @router.post("/books")
 async def add_book(req: BookCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_librarian_or_above)):

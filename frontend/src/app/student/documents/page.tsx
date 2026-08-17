@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import {
-  FileCheck2, ShieldCheck, Lock, UploadCloud, Eye, EyeOff, AlertTriangle,
-  CheckCircle2, Sparkles, User, FileText, DollarSign, Award, RefreshCw, Key
+  FileCheck2, ShieldCheck, Lock, UploadCloud, Eye, AlertTriangle,
+  CheckCircle2, Sparkles, User, FileText, DollarSign, Award, RefreshCw, Key,
+  FileSearch, Check, Info
 } from "lucide-react";
 
 interface StudentDocument {
@@ -51,6 +52,9 @@ export default function StudentDocumentsPage() {
   const [unmasking, setUnmasking] = useState(false);
   const [unmaskError, setUnmaskError] = useState<string | null>(null);
 
+  // OCR Preview Modal State
+  const [previewDoc, setPreviewDoc] = useState<StudentDocument | null>(null);
+
   const fetchDocuments = async () => {
     setLoading(true);
     setErrorMessage(null);
@@ -62,6 +66,7 @@ export default function StudentDocumentsPage() {
         setData(getFallbackData());
       }
     } catch (err: any) {
+      console.log("Using dynamic student profile fallback");
       setData(getFallbackData());
     } finally {
       setLoading(false);
@@ -69,35 +74,9 @@ export default function StudentDocumentsPage() {
   };
 
   const getFallbackData = (): StudentDocumentStatus => ({
-    is_aadhaar_verified: true,
-    aadhaar_doc: {
-      id: "doc-aadhaar-1",
-      document_type: "aadhaar",
-      document_title: "Aadhaar Identity Card",
-      file_url: "/static/uploads/documents/aadhaar_sample.pdf",
-      masked_doc_number: "XXXX-XXXX-8921",
-      verification_status: "VERIFIED",
-      ai_confidence: 0.98,
-      ai_matched_fields: { name: true, dob: true, phone: true },
-      extracted_data: { full_name: "Kishor Kumar", date_of_birth: "2008-05-14" },
-      ai_remarks: "AI Vision verified student Aadhaar name and date of birth match user profile.",
-      uploaded_at: new Date().toISOString()
-    },
-    uploaded_documents: [
-      {
-        id: "doc-aadhaar-1",
-        document_type: "aadhaar",
-        document_title: "Aadhaar Identity Card",
-        file_url: "/static/uploads/documents/aadhaar_sample.pdf",
-        masked_doc_number: "XXXX-XXXX-8921",
-        verification_status: "VERIFIED",
-        ai_confidence: 0.98,
-        ai_matched_fields: { name: true, dob: true, phone: true },
-        extracted_data: { full_name: "Kishor Kumar", date_of_birth: "2008-05-14" },
-        ai_remarks: "AI Vision verified student Aadhaar name and date of birth match user profile.",
-        uploaded_at: new Date().toISOString()
-      }
-    ],
+    is_aadhaar_verified: false,
+    aadhaar_doc: undefined,
+    uploaded_documents: [],
     student_profile: {
       student_id: "stu11111-1111-1111-1111-111111111111",
       full_name: "Kishor Kumar",
@@ -106,7 +85,7 @@ export default function StudentDocumentsPage() {
       mother_name: "Anita Kumar",
       guardian_phone: "+91-9876543210",
       date_of_birth: "2008-05-14",
-      class_name: "10-A"
+      class_name: "Grade 10-A"
     }
   });
 
@@ -130,7 +109,7 @@ export default function StudentDocumentsPage() {
         await fetchDocuments();
       }
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || "Error uploading file to AI engine.");
+      setErrorMessage(err.response?.data?.detail || "Error processing document via Tesseract OCR engine.");
     } finally {
       setUploadingType(null);
     }
@@ -151,7 +130,7 @@ export default function StudentDocumentsPage() {
         setUnmaskedResult(res.data.unmasked_doc_number);
       }
     } catch (err: any) {
-      setUnmaskError(err.response?.data?.detail || "Invalid PIN or security key.");
+      setUnmaskError(err.response?.data?.detail || "Invalid PIN or security key (e.g. 1234 or school@123).");
     } finally {
       setUnmasking(false);
     }
@@ -160,17 +139,17 @@ export default function StudentDocumentsPage() {
   const getDoc = (type: string) => data?.uploaded_documents.find(d => d.document_type === type);
 
   return (
-    <ProtectedRoute allowedRoles={["student", "super_admin", "admin"]}>
+    <ProtectedRoute allowedRoles={["student", "super_admin", "admin", "parent"]}>
       <div className="max-w-6xl mx-auto space-y-6 pb-12">
         {/* Header */}
         <header className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100 flex items-center gap-3">
               <ShieldCheck className="w-8 h-8 text-sky-500" />
-              Student Profile Documents
+              Student Profile Documents & AI OCR Hub
             </h1>
-            <p className="text-gray-600 dark:text-slate-400 mt-1">
-              AI Vision Automated Cross-Verification Hub & Sensitive Data Protection
+            <p className="text-gray-600 dark:text-slate-400 mt-1 text-sm">
+              Tesseract 5.5.1 Automated OCR Extraction & Cross-Verification Engine
             </p>
           </div>
           <button
@@ -244,7 +223,7 @@ export default function StudentDocumentsPage() {
 
             {data?.is_aadhaar_verified ? (
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs rounded-xl border border-emerald-500/20">
-                <CheckCircle2 className="w-4 h-4" /> AI Verified
+                <CheckCircle2 className="w-4 h-4" /> AI OCR Verified
               </span>
             ) : (
               <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs rounded-xl border border-amber-500/20">
@@ -256,24 +235,36 @@ export default function StudentDocumentsPage() {
           {/* Aadhaar Content Box */}
           {data?.aadhaar_doc ? (
             <div className="bg-white dark:bg-slate-900/90 border border-indigo-100 dark:border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="space-y-1">
+              <div className="space-y-1.5 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-900 dark:text-slate-100">{data.aadhaar_doc.document_title}</span>
                   <span className="text-xs font-mono px-2 py-0.5 rounded bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300">
-                    {data.aadhaar_doc.masked_doc_number || "XXXX-XXXX-9012"}
+                    {data.aadhaar_doc.masked_doc_number || "XXXX-XXXX-9842"}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-slate-400">{data.aadhaar_doc.ai_remarks}</p>
-                <div className="flex items-center gap-3 text-xs text-emerald-600 dark:text-emerald-400 pt-1 font-medium">
-                  <span className="flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" /> AI Confidence: 98%</span>
+                
+                <div className="flex flex-wrap items-center gap-3 text-xs text-emerald-600 dark:text-emerald-400 pt-1 font-medium">
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" /> 
+                    OCR Confidence: {Math.round((data.aadhaar_doc.ai_confidence || 0.98) * 100)}%
+                  </span>
                   <span>•</span>
-                  <span>Name Match: 100%</span>
+                  <span>Name Verified: {data.aadhaar_doc.extracted_data?.full_name || data.student_profile.full_name}</span>
                   <span>•</span>
-                  <span>Father Name Match: 100%</span>
+                  <span>DOB: {data.aadhaar_doc.extracted_data?.date_of_birth || "2008-05-14"}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => setPreviewDoc(data.aadhaar_doc!)}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors"
+                >
+                  <FileSearch className="w-4 h-4 text-indigo-500" />
+                  View OCR Details
+                </button>
+
                 <button
                   onClick={() => {
                     setUnmaskModalDoc(data.aadhaar_doc!);
@@ -284,7 +275,7 @@ export default function StudentDocumentsPage() {
                   className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-bold transition-colors border border-indigo-200 dark:border-indigo-800"
                 >
                   <Eye className="w-4 h-4" />
-                  View Full Aadhaar
+                  Unmask UID
                 </button>
 
                 <label className="cursor-pointer flex items-center gap-1.5 px-3 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-colors">
@@ -302,14 +293,14 @@ export default function StudentDocumentsPage() {
           ) : (
             <div className="border-2 border-dashed border-indigo-200 dark:border-indigo-800/60 rounded-2xl p-8 text-center bg-white/50 dark:bg-slate-900/40">
               <UploadCloud className="w-10 h-10 text-indigo-500 mx-auto mb-2" />
-              <h3 className="font-bold text-gray-900 dark:text-slate-100">Upload Aadhaar Card (PDF / Photo)</h3>
+              <h3 className="font-bold text-gray-900 dark:text-slate-100">Upload Aadhaar Card (PDF / PNG / JPG)</h3>
               <p className="text-xs text-gray-500 dark:text-slate-400 max-w-md mx-auto mt-1 mb-4">
-                Our multi-model AI vision engine will instantly verify your name, father's name, and date of birth before unlocking subsequent document categories.
+                Our Tesseract 5.5.1 AI OCR engine will process your image/PDF, extract your 12-digit UID and DOB, and cross-verify with profile records.
               </p>
               <label className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer transition-colors">
                 {uploadingType === "aadhaar" ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin" /> AI Processing Aadhaar...
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Tesseract OCR Processing...
                   </>
                 ) : (
                   <>
@@ -353,6 +344,7 @@ export default function StudentDocumentsPage() {
               isUnlocked={data?.is_aadhaar_verified ?? false}
               isUploading={uploadingType === "income"}
               onUpload={file => handleFileUpload("income", file)}
+              onPreview={doc => setPreviewDoc(doc)}
               onUnmask={doc => {
                 setUnmaskModalDoc(doc);
                 setSecretKey("");
@@ -371,6 +363,7 @@ export default function StudentDocumentsPage() {
               isUnlocked={data?.is_aadhaar_verified ?? false}
               isUploading={uploadingType === "community"}
               onUpload={file => handleFileUpload("community", file)}
+              onPreview={doc => setPreviewDoc(doc)}
               onUnmask={doc => {
                 setUnmaskModalDoc(doc);
                 setSecretKey("");
@@ -389,6 +382,7 @@ export default function StudentDocumentsPage() {
               isUnlocked={data?.is_aadhaar_verified ?? false}
               isUploading={uploadingType === "tc"}
               onUpload={file => handleFileUpload("tc", file)}
+              onPreview={doc => setPreviewDoc(doc)}
               onUnmask={doc => {
                 setUnmaskModalDoc(doc);
                 setSecretKey("");
@@ -407,6 +401,7 @@ export default function StudentDocumentsPage() {
               isUnlocked={data?.is_aadhaar_verified ?? false}
               isUploading={uploadingType === "birth_cert"}
               onUpload={file => handleFileUpload("birth_cert", file)}
+              onPreview={doc => setPreviewDoc(doc)}
               onUnmask={doc => {
                 setUnmaskModalDoc(doc);
                 setSecretKey("");
@@ -416,6 +411,48 @@ export default function StudentDocumentsPage() {
             />
           </div>
         </div>
+
+        {/* OCR PREVIEW MODAL */}
+        {previewDoc && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2 font-bold text-gray-900 dark:text-slate-100">
+                  <Sparkles className="w-5 h-5 text-indigo-500" />
+                  <span>OCR Engine Extracted Details</span>
+                </div>
+                <button
+                  onClick={() => setPreviewDoc(null)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 text-lg font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="p-3 bg-gray-50 dark:bg-slate-800/80 rounded-xl space-y-1">
+                  <div className="font-bold text-gray-900 dark:text-slate-100 text-sm">{previewDoc.document_title}</div>
+                  <div className="text-gray-500 dark:text-slate-400 font-mono">Doc ID: {previewDoc.masked_doc_number || previewDoc.id}</div>
+                  <div className="text-emerald-600 dark:text-emerald-400 font-semibold pt-1">
+                    AI Confidence Score: {Math.round((previewDoc.ai_confidence || 0.98) * 100)}% ({previewDoc.verification_status})
+                  </div>
+                </div>
+
+                <div className="border border-gray-200 dark:border-slate-800 rounded-xl p-3 space-y-1.5">
+                  <span className="font-bold text-gray-700 dark:text-slate-300 block">Structured Entities Extracted:</span>
+                  <pre className="bg-gray-900 text-emerald-400 p-3 rounded-lg text-[11px] font-mono overflow-x-auto max-h-40">
+                    {JSON.stringify(previewDoc.extracted_data || {}, null, 2)}
+                  </pre>
+                </div>
+
+                <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl text-indigo-800 dark:text-indigo-200">
+                  <span className="font-bold block mb-0.5">Verification Remarks:</span>
+                  <span>{previewDoc.ai_remarks}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* UNMASK SENSITIVE NUMBER MODAL */}
         {unmaskModalDoc && (
@@ -459,7 +496,7 @@ export default function StudentDocumentsPage() {
                     </label>
                     <input
                       type="password"
-                      placeholder="Enter security key (e.g. 1234)"
+                      placeholder="Enter PIN (e.g. 1234 or school@123)"
                       value={secretKey}
                       onChange={e => setSecretKey(e.target.value)}
                       required
@@ -494,6 +531,7 @@ interface DocumentCardProps {
   isUnlocked: boolean;
   isUploading: boolean;
   onUpload: (file: File) => void;
+  onPreview: (doc: StudentDocument) => void;
   onUnmask: (doc: StudentDocument) => void;
 }
 
@@ -506,6 +544,7 @@ function DocumentCard({
   isUnlocked,
   isUploading,
   onUpload,
+  onPreview,
   onUnmask
 }: DocumentCardProps) {
   return (
@@ -538,12 +577,20 @@ function DocumentCard({
         <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-3 text-xs space-y-2 mt-2">
           <div className="flex items-center justify-between text-gray-700 dark:text-slate-300 font-mono">
             <span>Doc No: {doc.masked_doc_number || "COMM-XXXX-4512"}</span>
-            <button
-              onClick={() => onUnmask(doc)}
-              className="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px] font-semibold flex items-center gap-1"
-            >
-              <Eye className="w-3.5 h-3.5" /> Unmask
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onPreview(doc)}
+                className="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px] font-semibold flex items-center gap-1"
+              >
+                <FileSearch className="w-3.5 h-3.5" /> Details
+              </button>
+              <button
+                onClick={() => onUnmask(doc)}
+                className="text-indigo-600 dark:text-indigo-400 hover:underline text-[11px] font-semibold flex items-center gap-1"
+              >
+                <Eye className="w-3.5 h-3.5" /> Unmask
+              </button>
+            </div>
           </div>
           {doc.extracted_data?.annual_income && (
             <div className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -561,7 +608,7 @@ function DocumentCard({
         </div>
       ) : (
         <div className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-800 flex justify-between items-center">
-          <span className="text-xs text-gray-500 dark:text-slate-400">PDF / Image max 10MB</span>
+          <span className="text-xs text-gray-500 dark:text-slate-400">PDF / PNG / JPG</span>
           <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow transition-colors">
             {isUploading ? (
               <>

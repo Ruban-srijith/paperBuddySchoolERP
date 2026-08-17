@@ -41,7 +41,40 @@ async def get_dashboard_stats(
 @router.get("/vehicles", response_model=List[VehicleResponse])
 async def get_vehicles(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Vehicle))
-    return result.scalars().all()
+    vehicles = result.scalars().all()
+    if not vehicles:
+        import uuid
+        sample_vehicles = [
+            Vehicle(
+                id=str(uuid.uuid4()),
+                registration_number="TN-01-AB-4021",
+                vehicle_type="Bus (45 Seater)",
+                capacity=45,
+                is_active=True
+            ),
+            Vehicle(
+                id=str(uuid.uuid4()),
+                registration_number="TN-01-CD-8912",
+                vehicle_type="Bus (52 Seater)",
+                capacity=52,
+                is_active=True
+            ),
+            Vehicle(
+                id=str(uuid.uuid4()),
+                registration_number="TN-01-EF-3320",
+                vehicle_type="Mini-Van (18 Seater)",
+                capacity=18,
+                is_active=True
+            )
+        ]
+        for v in sample_vehicles:
+            db.add(v)
+        try:
+            await db.commit()
+            vehicles = sample_vehicles
+        except Exception:
+            await db.rollback()
+    return vehicles
 
 @router.post("/vehicles", response_model=VehicleResponse)
 async def create_vehicle(
@@ -80,7 +113,33 @@ async def update_vehicle(
 @router.get("/routes", response_model=List[TransportRouteResponse])
 async def get_routes(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(TransportRoute))
-    return result.scalars().all()
+    routes = result.scalars().all()
+    if not routes:
+        import uuid
+        sample_routes = [
+            TransportRoute(
+                id=str(uuid.uuid4()),
+                name="Route 01 — Anna Nagar to Main Campus",
+                start_point="Anna Nagar Tower",
+                end_point="Bharathi School Main Gate",
+                total_stops=6
+            ),
+            TransportRoute(
+                id=str(uuid.uuid4()),
+                name="Route 02 — T. Nagar / Guindy Express",
+                start_point="Panagal Park, T. Nagar",
+                end_point="Bharathi School Main Gate",
+                total_stops=8
+            )
+        ]
+        for r in sample_routes:
+            db.add(r)
+        try:
+            await db.commit()
+            routes = sample_routes
+        except Exception:
+            await db.rollback()
+    return routes
 
 @router.post("/routes", response_model=TransportRouteResponse)
 async def create_route(

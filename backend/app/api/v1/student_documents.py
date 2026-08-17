@@ -233,7 +233,7 @@ async def list_admin_student_documents(
     """
     if current_user.role not in [
         UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL,
-        UserRole.CORRESPONDENT, UserRole.CLASS_TEACHER
+        UserRole.CORRESPONDENT, UserRole.TEACHER, UserRole.DEPT_HEAD
     ]:
         raise HTTPException(status_code=403, detail="Unauthorized access to student documents administration.")
 
@@ -267,6 +267,8 @@ async def list_admin_student_documents(
         if comm_doc and comm_doc.extracted_data:
             category_val = comm_doc.extracted_data.get("community_category", "OBC")
 
+        doc_responses = [StudentDocumentResponse.model_validate(d) for d in s.documents]
+
         rows.append(
             AdminStudentDocumentRow(
                 student_id=s.id,
@@ -278,7 +280,7 @@ async def list_admin_student_documents(
                 community_category=category_val,
                 aadhaar_status=aadhaar_status,
                 total_documents=len(s.documents),
-                documents=s.documents
+                documents=doc_responses
             )
         )
 

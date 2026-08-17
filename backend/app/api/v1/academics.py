@@ -257,6 +257,7 @@ async def get_class_toppers(
 # 3. REVENUE & MONTHLY FINANCIAL REPORTING
 # ─────────────────────────────────────────────────────────────
 
+@router.get("/revenue-analytics")
 @router.get("/revenue-summary")
 async def get_revenue_summary(
     year: Optional[int] = 2026,

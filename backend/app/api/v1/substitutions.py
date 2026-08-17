@@ -13,6 +13,8 @@ from app.core.auth import get_current_user, require_role
 router = APIRouter(prefix="/substitutions", tags=["Teacher Substitution Engine"])
 
 
+@router.get("", response_model=List[SubstitutionResponse])
+@router.get("/", response_model=List[SubstitutionResponse])
 @router.get("/list", response_model=List[SubstitutionResponse])
 async def list_substitutions(
     target_date: str = None,

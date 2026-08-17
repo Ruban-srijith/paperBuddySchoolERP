@@ -48,6 +48,9 @@ async def submit_leave_request(
     )
 
 
+@router.get("", response_model=List[LeaveRequestResponse])
+@router.get("/", response_model=List[LeaveRequestResponse])
+@router.get("/pending", response_model=List[LeaveRequestResponse])
 @router.get("/leave", response_model=List[LeaveRequestResponse])
 async def list_leave_requests(
     db: AsyncSession = Depends(get_db),

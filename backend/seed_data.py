@@ -8,18 +8,25 @@ import uuid
 from datetime import datetime, timedelta, date
 from app.db.database import AsyncSessionLocal, engine, Base
 from app.db.models import (
-    User, Student, Class, Subject, Classroom, SyllabusNode,
+    School, User, Student, Class, Subject, Classroom, SyllabusNode,
     LabAssignment, UserRole, Department, MentorAssignment,
     MentorLog, FeePayment, ParentStudentMap, LeaveRequest,
     TeacherSubstitution, BusRoute, AcademicCalendarEvent,
     SalaryRecord, SchoolEventProposal, ExamSchedule,
-    Homework, Assignment, StudentQuery, Announcement
+    Homework, Assignment, StudentQuery, Announcement,
+    FeeStructure, FeeTransaction
 )
 from app.core.auth import hash_password
 
 DEFAULT_PWD = hash_password("school@123")
 
 # ─── Deterministic IDs for easy reference ──────────────────────
+# Schools
+SCHOOL_1_ID = "fcc6aea0-b378-4a72-808f-2cdbd361ed24"
+SCHOOL_2_ID = "school22-2222-2222-2222-222222222222"
+SCHOOL_3_ID = "school33-3333-3333-3333-333333333333"
+SCHOOL_4_ID = "school44-4444-4444-4444-444444444444"
+
 # Departments
 DEPT_SCI_ID = "dept1111-1111-1111-1111-111111111111"
 DEPT_CS_ID  = "dept2222-2222-2222-2222-222222222222"
@@ -45,6 +52,10 @@ STU_3_ID         = "stu33333-3333-3333-3333-333333333333"
 STU_4_ID         = "stu44444-4444-4444-4444-444444444444"
 STU_5_ID         = "stu55555-5555-5555-5555-555555555555"
 PARENT_1_ID      = "parent11-1111-1111-1111-111111111111"
+FINANCE_ID       = "fin11111-1111-1111-1111-111111111111"
+WARDEN_ID        = "war11111-1111-1111-1111-111111111111"
+LIBRARIAN_ID     = "lib11111-1111-1111-1111-111111111111"
+TRANSPORT_ID     = "tra11111-1111-1111-1111-111111111111"
 
 # Grade levels (16 total: LKG through 12th)
 GRADES = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
@@ -58,68 +69,97 @@ async def seed():
 
     async with AsyncSessionLocal() as session:
         # ═══════════════════════════════════════════════════════
+        # 0. REGISTERED SCHOOLS
+        # ═══════════════════════════════════════════════════════
+        school1 = School(
+            id=SCHOOL_1_ID,
+            name="Bharathi Matriculation Hr. Sec. School",
+            address="104 Gandhi Road, Anna Nagar, Chennai, Tamil Nadu",
+            contact_email="admin@bharathischool.edu"
+        )
+        school2 = School(
+            id=SCHOOL_2_ID,
+            name="Delhi Public International School (DPS)",
+            address="Sector 4, Dwarka, New Delhi",
+            contact_email="contact@dpsinternational.edu"
+        )
+        school3 = School(
+            id=SCHOOL_3_ID,
+            name="St. Xavier's Model Academy",
+            address="30 Park Street, Kolkata, West Bengal",
+            contact_email="info@stxaviersacademy.edu"
+        )
+        school4 = School(
+            id=SCHOOL_4_ID,
+            name="PaperBuddy Demonstration Academy",
+            address="Tech Park Avenue, Bengaluru, Karnataka",
+            contact_email="demo@paperbuddy.erp"
+        )
+        session.add_all([school1, school2, school3, school4])
+
+        # ═══════════════════════════════════════════════════════
         # 1. DEPARTMENTS
         # ═══════════════════════════════════════════════════════
-        dept_sci = Department(id=DEPT_SCI_ID, name="Science", code="SCI", dean_id=DEAN_SCI_ID)
-        dept_cs  = Department(id=DEPT_CS_ID, name="Computer Science", code="CS")
-        dept_hum = Department(id=DEPT_HUM_ID, name="Humanities", code="HUM")
+        dept_sci = Department(id=DEPT_SCI_ID, school_id=SCHOOL_1_ID, name="Science", code="SCI", dean_id=DEAN_SCI_ID)
+        dept_cs  = Department(id=DEPT_CS_ID, school_id=SCHOOL_1_ID, name="Computer Science", code="CS")
+        dept_hum = Department(id=DEPT_HUM_ID, school_id=SCHOOL_1_ID, name="Humanities", code="HUM")
         session.add_all([dept_sci, dept_cs, dept_hum])
 
         # ═══════════════════════════════════════════════════════
-        # 2. USERS (all 8 roles)
+        # 2. USERS (all 15 ERP roles)
         # ═══════════════════════════════════════════════════════
 
         # Super Admin
         super_admin = User(
-            id=SUPER_ADMIN_ID, email="superadmin@school.edu",
+            id=SUPER_ADMIN_ID, school_id=SCHOOL_1_ID, email="superadmin@school.edu",
             full_name="System Super Admin", role=UserRole.SUPER_ADMIN,
             password_hash=DEFAULT_PWD
         )
 
         # Admin
         admin = User(
-            id=ADMIN_ID, email="admin@school.edu",
+            id=ADMIN_ID, school_id=SCHOOL_1_ID, email="admin@school.edu",
             full_name="Principal Office Admin", role=UserRole.ADMIN,
             password_hash=DEFAULT_PWD
         )
 
         # Correspondent (School Owner)
         correspondent = User(
-            id=CORRESPONDENT_ID, email="correspondent@school.edu",
+            id=CORRESPONDENT_ID, school_id=SCHOOL_1_ID, email="correspondent@school.edu",
             full_name="Mr. K. R. Sundaram", role=UserRole.CORRESPONDENT,
             password_hash=DEFAULT_PWD
         )
 
         # Principal
         principal = User(
-            id=PRINCIPAL_ID, email="principal@school.edu",
+            id=PRINCIPAL_ID, school_id=SCHOOL_1_ID, email="principal@school.edu",
             full_name="Dr. Raghavan Nair", role=UserRole.PRINCIPAL,
             password_hash=DEFAULT_PWD
         )
 
         # Vice Principal
         vice_principal = User(
-            id=VP_ID, email="vp@school.edu",
+            id=VP_ID, school_id=SCHOOL_1_ID, email="vp@school.edu",
             full_name="Mrs. Gayatri Varma", role=UserRole.VICE_PRINCIPAL,
             password_hash=DEFAULT_PWD
         )
 
         # Dean (Science)
         dean_sci = User(
-            id=DEAN_SCI_ID, email="dean.science@school.edu",
+            id=DEAN_SCI_ID, school_id=SCHOOL_1_ID, email="dean.science@school.edu",
             full_name="Prof. Venkat Raman", role=UserRole.DEAN,
             password_hash=DEFAULT_PWD, department_id=DEPT_SCI_ID
         )
 
         # Dept Heads
         dh_sci = User(
-            id=DH_SCI_ID, email="head.physics@school.edu",
+            id=DH_SCI_ID, school_id=SCHOOL_1_ID, email="head.physics@school.edu",
             full_name="Dr. Lakshmi Iyer", role=UserRole.DEPT_HEAD,
             password_hash=DEFAULT_PWD, department_id=DEPT_SCI_ID,
             assigned_grade="10"
         )
         dh_cs = User(
-            id=DH_CS_ID, email="head.cs@school.edu",
+            id=DH_CS_ID, school_id=SCHOOL_1_ID, email="head.cs@school.edu",
             full_name="Prof. Suresh Babu", role=UserRole.DEPT_HEAD,
             password_hash=DEFAULT_PWD, department_id=DEPT_CS_ID,
             assigned_grade="10"
@@ -127,19 +167,19 @@ async def seed():
 
         # Teachers
         t1 = User(
-            id=TEACHER_1_ID, email="sarah.connor@school.edu",
+            id=TEACHER_1_ID, school_id=SCHOOL_1_ID, email="sarah.connor@school.edu",
             full_name="Dr. Sarah Connor", role=UserRole.TEACHER,
             password_hash=DEFAULT_PWD, department_id=DEPT_SCI_ID,
             assigned_grade="10"
         )
         t2 = User(
-            id=TEACHER_2_ID, email="alan.turing@school.edu",
+            id=TEACHER_2_ID, school_id=SCHOOL_1_ID, email="alan.turing@school.edu",
             full_name="Prof. Alan Turing", role=UserRole.TEACHER,
             password_hash=DEFAULT_PWD, department_id=DEPT_CS_ID,
             assigned_grade="10"
         )
         t3 = User(
-            id=TEACHER_3_ID, email="marie.curie@school.edu",
+            id=TEACHER_3_ID, school_id=SCHOOL_1_ID, email="marie.curie@school.edu",
             full_name="Dr. Marie Curie", role=UserRole.TEACHER,
             password_hash=DEFAULT_PWD, department_id=DEPT_SCI_ID,
             assigned_grade="10"
@@ -147,47 +187,82 @@ async def seed():
 
         # Mentors
         mentor1 = User(
-            id=MENTOR_1_ID, email="mentor.10a@school.edu",
+            id=MENTOR_1_ID, school_id=SCHOOL_1_ID, email="mentor.10a@school.edu",
             full_name="Mrs. Priya Menon", role=UserRole.MENTOR,
             password_hash=DEFAULT_PWD, assigned_grade="10"
         )
         mentor2 = User(
-            id=MENTOR_2_ID, email="mentor.10b@school.edu",
+            id=MENTOR_2_ID, school_id=SCHOOL_1_ID, email="mentor.10b@school.edu",
             full_name="Mr. Arjun Reddy", role=UserRole.MENTOR,
             password_hash=DEFAULT_PWD, assigned_grade="10"
         )
 
         # Students
         st1_u = User(
-            id=STU_1_ID, email="kishor.k@school.edu",
+            id=STU_1_ID, school_id=SCHOOL_1_ID, email="kishor.k@school.edu",
             full_name="Kishor Kumar", role=UserRole.STUDENT,
             password_hash=DEFAULT_PWD, assigned_grade="10"
         )
         st2_u = User(
-            id=STU_2_ID, email="priya.sharma@school.edu",
+            id=STU_2_ID, school_id=SCHOOL_1_ID, email="priya.sharma@school.edu",
             full_name="Priya Sharma", role=UserRole.STUDENT,
             password_hash=DEFAULT_PWD, assigned_grade="10"
         )
         st3_u = User(
-            id=STU_3_ID, email="rahul.dev@school.edu",
+            id=STU_3_ID, school_id=SCHOOL_1_ID, email="rahul.dev@school.edu",
             full_name="Rahul Dev", role=UserRole.STUDENT,
             password_hash=DEFAULT_PWD, assigned_grade="10"
         )
         st4_u = User(
-            id=STU_4_ID, email="ananya.krishna@school.edu",
+            id=STU_4_ID, school_id=SCHOOL_1_ID, email="ananya.krishna@school.edu",
             full_name="Ananya Krishna", role=UserRole.STUDENT,
             password_hash=DEFAULT_PWD, assigned_grade="10"
         )
         st5_u = User(
-            id=STU_5_ID, email="deepak.pillai@school.edu",
+            id=STU_5_ID, school_id=SCHOOL_1_ID, email="deepak.pillai@school.edu",
             full_name="Deepak Pillai", role=UserRole.STUDENT,
             password_hash=DEFAULT_PWD, assigned_grade="10"
         )
 
         # Parent
         parent1 = User(
-            id=PARENT_1_ID, email="parent.kishor@school.edu",
+            id=PARENT_1_ID, school_id=SCHOOL_1_ID, email="parent.kishor@school.edu",
             full_name="Mr. Ramesh Kumar (Parent)", role=UserRole.PARENT,
+            password_hash=DEFAULT_PWD
+        )
+
+        # Finance Officer
+        fin_user = User(
+            id=FINANCE_ID, school_id=SCHOOL_1_ID, email="finance@school.edu",
+            full_name="Mr. Rajesh Khanna (Finance)", role=UserRole.FINANCE,
+            password_hash=DEFAULT_PWD
+        )
+
+        # Hostel Warden
+        warden_user = User(
+            id=WARDEN_ID, school_id=SCHOOL_1_ID, email="warden@school.edu",
+            full_name="Col. R. S. Bhardwaj (Warden)", role=UserRole.WARDEN,
+            password_hash=DEFAULT_PWD
+        )
+
+        # Librarian
+        lib_user = User(
+            id=LIBRARIAN_ID, school_id=SCHOOL_1_ID, email="librarian@school.edu",
+            full_name="Mrs. Meenakshi Sundaram", role=UserRole.LIBRARIAN,
+            password_hash=DEFAULT_PWD
+        )
+
+        # Transport Manager
+        trans_user = User(
+            id=TRANSPORT_ID, school_id=SCHOOL_1_ID, email="transport@school.edu",
+            full_name="Mr. Selvam Murugan (Transport)", role=UserRole.TRANSPORT,
+            password_hash=DEFAULT_PWD
+        )
+
+        # School Specific Admin
+        bharathi_admin = User(
+            id=str(uuid.uuid4()), school_id=SCHOOL_1_ID, email="admin@bharathischool.edu",
+            full_name="Bharathi School Admin", role=UserRole.ADMIN,
             password_hash=DEFAULT_PWD
         )
 
@@ -197,7 +272,7 @@ async def seed():
             t1, t2, t3,
             mentor1, mentor2,
             st1_u, st2_u, st3_u, st4_u, st5_u,
-            parent1
+            parent1, fin_user, warden_user, lib_user, trans_user, bharathi_admin
         ])
 
         # ═══════════════════════════════════════════════════════
@@ -343,19 +418,65 @@ async def seed():
         session.add_all([mlog1, mlog2])
 
         # ═══════════════════════════════════════════════════════
-        # 11. FEE PAYMENTS
+        # 11. FEE STRUCTURES & PAYMENTS
         # ═══════════════════════════════════════════════════════
+        fs_term1 = FeeStructure(
+            id="fs111111-1111-1111-1111-111111111111",
+            grade="10",
+            fee_type="term1",
+            amount=45000.00,
+            academic_year="2026-2027",
+            due_date=date(2026, 12, 31)
+        )
+        fs_term2 = FeeStructure(
+            id="fs222222-2222-2222-2222-222222222222",
+            grade="10",
+            fee_type="term2",
+            amount=40000.00,
+            academic_year="2026-2027",
+            due_date=date(2026, 12, 31)
+        )
+        fs_bus = FeeStructure(
+            id="fs333333-3333-3333-3333-333333333333",
+            grade="10",
+            fee_type="bus",
+            amount=12000.00,
+            academic_year="2026-2027",
+            due_date=date(2026, 12, 31)
+        )
+        fs_hostel = FeeStructure(
+            id="fs444444-4444-4444-4444-444444444444",
+            grade="10",
+            fee_type="hostel",
+            amount=65000.00,
+            academic_year="2026-2027",
+            due_date=date(2026, 12, 31)
+        )
+        session.add_all([fs_term1, fs_term2, fs_bus, fs_hostel])
+
         fee1 = FeePayment(
             id="fee11111-1111-1111-1111-111111111111",
             student_id=STU_1_ID,
-            title="Term 1 Tuition & Operations Fee",
-            amount=450.00,
-            payment_method="Card",
-            transaction_id="TXN-2026-88F4A12B",
-            receipt_number="RCP-2026-90412A",
+            title="Grade 10 - Term 1 Tuition Fee",
+            amount=45000.00,
+            payment_method="Razorpay UPI",
+            transaction_id="pay_demo_seed_001",
+            receipt_number="PB-REC-2026-4421",
             status="paid"
         )
         session.add(fee1)
+
+        tx1 = FeeTransaction(
+            id="ft111111-1111-1111-1111-111111111111",
+            student_id=STU_1_ID,
+            fee_structure_id=fs_term1.id,
+            amount_paid=45000.00,
+            payment_method="Razorpay UPI",
+            receipt_number="PB-REC-2026-4421",
+            processed_by=SUPER_ADMIN_ID
+        )
+        session.add(tx1)
+
 
         # ═══════════════════════════════════════════════════════
         # 12. PARENT STUDENT MAP & BUS ROUTES & LEAVE REQUESTS

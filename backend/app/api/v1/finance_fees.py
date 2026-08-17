@@ -67,7 +67,7 @@ async def get_fee_structures(grade: str, academic_year: str = "2026-2027", db: A
     fs_result = await db.execute(select(FeeStructure).where(FeeStructure.grade == grade, FeeStructure.academic_year == academic_year))
     return fs_result.scalars().all()
 
-from app.db.models import FeePayment
+from app.db.models import FeePayment, ParentStudentMap
 from app.services.email_service import email_service
 
 @router.get("/student/{student_id}/dues")
@@ -92,29 +92,77 @@ async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), 
             u_res = await db.execute(select(User).where(User.id == student_prof.user_id))
             target_user = u_res.scalars().first()
 
+    # If queried entity is a Parent, resolve to their child student
+    if target_user and target_user.role == UserRole.PARENT:
+        ps_res = await db.execute(select(ParentStudentMap).where(ParentStudentMap.parent_id == target_user.id))
+        ps = ps_res.scalars().first()
+        if ps:
+            child_res = await db.execute(select(User).where(User.id == ps.student_id))
+            child_user = child_res.scalars().first()
+            if child_user:
+                target_user = child_user
+                user_id = target_user.id
+                student_prof = None
+        else:
+            user_id = target_user.id
+    else:
+        user_id = target_user.id if target_user else (student_prof.user_id if student_prof else None)
+
     if not target_user and not student_prof:
         raise HTTPException(status_code=404, detail="Student record not found")
 
-    user_id = target_user.id if target_user else student_prof.user_id
-
     # 2. Check authorization: Students/Parents can view own/child dues, Management/Teachers can view any student dues
-    if current_user.role in [UserRole.STUDENT, UserRole.PARENT]:
-        if current_user.id != user_id and current_user.role == UserRole.STUDENT:
-            raise HTTPException(status_code=403, detail="Forbidden: You can only view your own fee dues.")
+    if current_user.role == UserRole.STUDENT and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden: You can only view your own fee dues.")
 
     if not student_prof and user_id:
         p_res = await db.execute(select(Student).where(Student.user_id == user_id))
         student_prof = p_res.scalars().first()
 
-    grade = (target_user.assigned_grade if target_user else None) or (student_prof.school_class.grade if student_prof and student_prof.school_class else "10-A")
+    raw_grade = (target_user.assigned_grade if target_user else None) or (student_prof.school_class.grade if student_prof and student_prof.school_class else "10")
+    clean_grade = raw_grade.replace("Grade ", "").strip()
+    base_grade = clean_grade.split("-")[0] if "-" in clean_grade else clean_grade
 
-    fee_structures_result = await db.execute(select(FeeStructure).where(FeeStructure.grade == grade))
+    # Match exact or base grade (e.g., "10-A", "10", "Grade 10")
+    fee_structures_result = await db.execute(
+        select(FeeStructure).where(FeeStructure.grade.in_([clean_grade, base_grade, f"Grade {base_grade}", "10-A", "10"]))
+    )
     fee_structures = fee_structures_result.scalars().all()
 
-    # Fallback to standard 10-A structures if grade specific structure hasn't been initialized
+    # Deduplicate fee_structures by fee_type
+    seen_types = set()
+    deduped_structures = []
+    for fs in fee_structures:
+        if fs.fee_type not in seen_types:
+            seen_types.add(fs.fee_type)
+            deduped_structures.append(fs)
+    fee_structures = deduped_structures
+
+    # Auto-initialize standard structures if completely empty
     if not fee_structures:
-        fallback_res = await db.execute(select(FeeStructure).where(FeeStructure.grade == "10-A"))
-        fee_structures = fallback_res.scalars().all()
+        default_defs = [
+            ("term1", 45000.0),
+            ("term2", 40000.0),
+            ("bus", 12000.0),
+            ("hostel", 65000.0)
+        ]
+        created_structures = []
+        for ftype, amt in default_defs:
+            new_fs = FeeStructure(
+                id=str(uuid4()),
+                grade=clean_grade or "10",
+                fee_type=ftype,
+                amount=amt,
+                academic_year="2026-2027",
+                due_date=datetime(2026, 12, 31).date()
+            )
+            db.add(new_fs)
+            created_structures.append(new_fs)
+        try:
+            await db.commit()
+            fee_structures = created_structures
+        except Exception:
+            await db.rollback()
 
     dues = []
     for fs in fee_structures:
@@ -137,19 +185,20 @@ async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), 
             scholars = schol_res.scalars().all()
             discount = sum(float(s.discount_amount) for s in scholars)
 
-        final_amount = max(0, float(fs.amount) - discount)
-        balance = final_amount - total_paid
+        final_amount = max(0.0, float(fs.amount) - discount)
+        balance = max(0.0, final_amount - total_paid)
 
         dues.append({
             "fee_structure_id": fs.id,
             "fee_type": fs.fee_type,
-            "title": f"Grade {grade} - {fs.fee_type.replace('_', ' ').title()}",
+            "title": f"Grade {clean_grade} - {fs.fee_type.replace('_', ' ').title()} Fee",
             "total_amount": float(fs.amount),
             "discount_applied": discount,
             "final_amount": final_amount,
             "total_paid": total_paid,
-            "balance": max(0.0, balance),
-            "due_date": fs.due_date
+            "balance": round(balance, 2),
+            "status": "Paid" if balance <= 0 else "Pending",
+            "due_date": str(fs.due_date) if fs.due_date else "2026-12-31"
         })
 
     return dues
@@ -161,10 +210,27 @@ async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends
     if not student:
         raise HTTPException(status_code=404, detail="Student user record not found")
 
+    # If student is parent, resolve to child
+    if student.role == UserRole.PARENT:
+        ps_res = await db.execute(select(ParentStudentMap).where(ParentStudentMap.parent_id == student.id))
+        ps = ps_res.scalars().first()
+        if ps:
+            ch_res = await db.execute(select(User).where(User.id == ps.student_id))
+            student = ch_res.scalars().first() or student
+
     fs_result = await db.execute(select(FeeStructure).where(FeeStructure.id == request.fee_structure_id))
     fs = fs_result.scalars().first()
     if not fs:
         raise HTTPException(status_code=404, detail="Fee structure not found")
+
+    # Check if already fully paid
+    tx_res = await db.execute(select(FeeTransaction).where(FeeTransaction.student_id == student.id, FeeTransaction.fee_structure_id == fs.id))
+    existing_txs = tx_res.scalars().all()
+    already_paid = sum(float(tx.amount_paid) for tx in existing_txs)
+    remaining_balance = max(0.0, float(fs.amount) - already_paid)
+
+    if remaining_balance <= 0:
+        raise HTTPException(status_code=400, detail="This fee item is already fully settled.")
 
     receipt_no = f"RCPT-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{str(uuid4())[:4]}"
     txn_id = f"TXN-{str(uuid4())[:8].upper()}"
@@ -172,7 +238,7 @@ async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends
     # 1. Record FeeTransaction for ledger dues deduction
     transaction = FeeTransaction(
         id=str(uuid4()),
-        student_id=request.student_id,
+        student_id=student.id,
         fee_structure_id=request.fee_structure_id,
         amount_paid=request.amount_paid,
         payment_method=request.payment_method,
@@ -184,8 +250,8 @@ async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends
     # 2. Record FeePayment receipt record for unified receipts log
     payment = FeePayment(
         id=str(uuid4()),
-        student_id=request.student_id,
-        title=f"Grade {fs.grade} - {fs.fee_type.replace('_', ' ').title()}",
+        student_id=student.id,
+        title=f"Grade {fs.grade} - {fs.fee_type.replace('_', ' ').title()} Fee",
         amount=request.amount_paid,
         payment_method=request.payment_method,
         transaction_id=txn_id,

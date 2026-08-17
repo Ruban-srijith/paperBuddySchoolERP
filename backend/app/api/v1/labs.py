@@ -42,9 +42,12 @@ async def create_lab_assignment(
         "due_date": assignment.due_date
     }
 
+@router.get("", response_model=None)
+@router.get("/", response_model=None)
+@router.get("/assignments", response_model=None)
 @router.get("/assignments/class/{class_id}")
 async def list_class_lab_assignments(
-    class_id: str,
+    class_id: str = "all",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

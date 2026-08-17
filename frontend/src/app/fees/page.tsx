@@ -90,9 +90,17 @@ export default function FeesPage() {
               setSelectedDue(firstPending);
               setForm(prev => ({
                 ...prev,
-                title: firstPending.title || `Grade 10-A ${firstPending.fee_type.toUpperCase()} Fee`,
+                title: firstPending.title || `Grade Fee (${firstPending.fee_type.toUpperCase()})`,
                 amount: firstPending.balance,
                 fee_structure_id: firstPending.fee_structure_id
+              }));
+            } else {
+              setSelectedDue(null);
+              setForm(prev => ({
+                ...prev,
+                title: "All Dues Cleared",
+                amount: 0,
+                fee_structure_id: ""
               }));
             }
           }
@@ -113,6 +121,11 @@ export default function FeesPage() {
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedDue || form.amount <= 0 || selectedDue.balance <= 0) {
+      toast.info("This fee item has already been fully paid or no outstanding balance remains.", "Fee Paid");
+      return;
+    }
+
     setPaying(true);
 
     const resScript = await loadRazorpay();
@@ -122,16 +135,20 @@ export default function FeesPage() {
     try {
       const orderRes = await api.post("/fees/create-order", {
         amount: form.amount,
-        currency: "INR"
+        currency: "INR",
+        fee_structure_id: selectedDue?.fee_structure_id,
+        student_id: user?.id
       });
       orderData = orderRes.data;
     } catch (e) {
       console.log("Using direct Razorpay payment mode or test gateway");
     }
 
+    const razorpayKey = orderData?.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TFdHFeHGkMKc4O";
+
     const options = {
-      key: orderData?.key || "rzp_test_paperbuddy2026",
-      amount: (orderData?.amount || form.amount) * 100,
+      key: razorpayKey,
+      amount: Math.round((orderData?.amount || form.amount) * 100),
       currency: orderData?.currency || "INR",
       name: "PaperBuddy ERP",
       description: form.title,
@@ -145,7 +162,9 @@ export default function FeesPage() {
               razorpay_signature: response.razorpay_signature,
               title: form.title,
               amount: form.amount,
-              payment_method: form.payment_method || "Razorpay Checkout"
+              payment_method: form.payment_method || "Razorpay UPI",
+              fee_structure_id: selectedDue?.fee_structure_id,
+              student_id: user?.id
             });
             toast.success(`Payment successful! Receipt: ${verifyRes.data.receipt_number}`, "Fee Paid");
           } else {
@@ -153,14 +172,15 @@ export default function FeesPage() {
               title: form.title,
               amount: form.amount,
               payment_method: form.payment_method || "Razorpay Gateway",
-              fee_structure_id: selectedDue?.fee_structure_id
+              fee_structure_id: selectedDue?.fee_structure_id,
+              student_id: user?.id
             });
             toast.success(`Payment of ₹${form.amount.toLocaleString()} successful! Receipt: ${payRes.data?.receipt_number || "REC-2026-092"}`, "Fee Paid");
           }
-          fetchDuesAndReceipts();
-        } catch (verifyErr) {
-          toast.success(`Payment of ₹${form.amount.toLocaleString()} processed via Razorpay Gateway!`, "Fee Paid");
-          fetchDuesAndReceipts();
+          await fetchDuesAndReceipts();
+        } catch (verifyErr: any) {
+          toast.error(verifyErr?.response?.data?.detail || "Payment verification encountered an issue.", "Payment Status");
+          await fetchDuesAndReceipts();
         } finally {
           setPaying(false);
         }
@@ -195,10 +215,10 @@ export default function FeesPage() {
         paymentObject.open();
       } catch (err) {
         // Fallback execution if popups are blocked by browser
-        executeDirectPayment();
+        await executeDirectPayment();
       }
     } else {
-      executeDirectPayment();
+      await executeDirectPayment();
     }
   };
 
@@ -208,17 +228,19 @@ export default function FeesPage() {
         title: form.title,
         amount: form.amount,
         payment_method: form.payment_method,
-        fee_structure_id: selectedDue?.fee_structure_id
+        fee_structure_id: selectedDue?.fee_structure_id,
+        student_id: user?.id
       });
       toast.success(`Payment of ₹${form.amount.toLocaleString()} successful! Receipt: ${res.data?.receipt_number}`, "Fee Paid");
-      fetchDuesAndReceipts();
-    } catch (err) {
-      toast.success(`Payment of ₹${form.amount.toLocaleString()} completed!`, "Fee Paid");
-      fetchDuesAndReceipts();
+      await fetchDuesAndReceipts();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Payment failed to process.", "Payment Error");
+      await fetchDuesAndReceipts();
     } finally {
       setPaying(false);
     }
   };
+
 
   const handleDownload = (receipt: ReceiptItem) => {
     setSelectedReceipt(receipt);
@@ -361,47 +383,68 @@ export default function FeesPage() {
             {dues.length > 0 ? (
               <div className="space-y-3">
                 <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block uppercase tracking-wider">
-                  Select Pending Due Item to Pay
+                  Your Fee Schedule
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {dues.map((d: any) => (
-                    <button
-                      key={d.fee_structure_id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedDue(d);
-                        setForm(prev => ({
-                          ...prev,
-                          title: d.title || `Grade Fee (${d.fee_type.toUpperCase()})`,
-                          amount: d.balance,
-                          fee_structure_id: d.fee_structure_id
-                        }));
-                      }}
-                      className={`p-4 rounded-2xl border text-left transition-all flex justify-between items-center ${
-                        selectedDue?.fee_structure_id === d.fee_structure_id
-                          ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20"
-                          : "bg-gray-50/60 dark:bg-slate-800/40 border-gray-200 dark:border-slate-700 hover:border-gray-300"
-                      }`}
-                    >
-                      <div>
-                        <div className="font-bold text-sm text-gray-900 dark:text-slate-100">{d.title || d.fee_type.toUpperCase()}</div>
-                        <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                          Total: ₹{d.total_amount.toLocaleString()} {d.discount_applied > 0 && `(Discount: ₹${d.discount_applied})`}
+                  {dues.map((d: any) => {
+                    const isPaid = d.balance <= 0;
+                    const isSelected = selectedDue?.fee_structure_id === d.fee_structure_id;
+                    return (
+                      <button
+                        key={d.fee_structure_id}
+                        type="button"
+                        disabled={isPaid}
+                        onClick={() => {
+                          if (isPaid) return;
+                          setSelectedDue(d);
+                          setForm(prev => ({
+                            ...prev,
+                            title: d.title || `Grade Fee (${d.fee_type.toUpperCase()})`,
+                            amount: d.balance,
+                            fee_structure_id: d.fee_structure_id
+                          }));
+                        }}
+                        className={`p-4 rounded-2xl border text-left transition-all flex justify-between items-center ${
+                          isPaid
+                            ? "bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-300/40 dark:border-emerald-700/30 opacity-70 cursor-not-allowed"
+                            : isSelected
+                            ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20 cursor-pointer"
+                            : "bg-gray-50/60 dark:bg-slate-800/40 border-gray-200 dark:border-slate-700 hover:border-emerald-400 cursor-pointer"
+                        }`}
+                      >
+                        <div>
+                          <div className="font-bold text-sm text-gray-900 dark:text-slate-100">{d.title || d.fee_type.toUpperCase()}</div>
+                          <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                            Total: ₹{(d.total_amount || 0).toLocaleString()}
+                            {d.discount_applied > 0 && ` (Scholarship: -₹${d.discount_applied})`}
+                            {d.total_paid > 0 && ` • Paid: ₹${(d.total_paid || 0).toLocaleString()}`}
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-base text-emerald-700 dark:text-emerald-300">₹{d.balance.toLocaleString()}</div>
-                        <div className={`text-[10px] font-semibold uppercase ${d.balance > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600"}`}>
-                          {d.balance > 0 ? "Pending Due" : "Paid"}
+                        <div className="text-right flex-shrink-0 ml-3">
+                          {isPaid ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-400/30">
+                              <Check className="w-3 h-3" /> PAID
+                            </span>
+                          ) : (
+                            <>
+                              <div className="font-bold text-base text-rose-600 dark:text-rose-400">₹{(d.balance || 0).toLocaleString()}</div>
+                              <div className="text-[10px] font-semibold uppercase text-rose-500 dark:text-rose-400">Due</div>
+                            </>
+                          )}
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
+                {dues.every((d: any) => d.balance <= 0) && (
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl text-center text-emerald-800 dark:text-emerald-200 text-sm font-medium">
+                    🎉 All fee dues for this term have been fully cleared! No outstanding balance.
+                  </div>
+                )}
               </div>
             ) : (
               <div className="p-6 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl text-center text-emerald-800 dark:text-emerald-200 text-sm font-medium">
-                ✅ All fee dues for this term have been fully cleared! No outstanding balance.
+                ✅ No fee schedule found or all dues have been cleared.
               </div>
             )}
 
@@ -440,13 +483,23 @@ export default function FeesPage() {
               </div>
 
               <div className="sm:col-span-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={paying || form.amount <= 0}
-                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl text-sm transition-colors shadow-md flex items-center justify-center gap-2"
-                >
-                  {paying ? "Connecting to Payment Gateway..." : `Pay ₹${form.amount.toLocaleString()} Now via Gateway`}
-                </button>
+                {dues.length > 0 && dues.every((d: any) => d.balance <= 0) ? (
+                  <div className="w-full py-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 font-bold rounded-xl text-sm flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-5 h-5" /> All Fees Paid — No Outstanding Balance
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={paying || form.amount <= 0 || !selectedDue || selectedDue.balance <= 0}
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-colors shadow-md flex items-center justify-center gap-2"
+                  >
+                    {paying ? (
+                      <><span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> Connecting to Razorpay...</>
+                    ) : (
+                      `Pay ₹${(form.amount || 0).toLocaleString()} via Razorpay`
+                    )}
+                  </button>
+                )}
               </div>
             </form>
           </div>
