@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore, UserRole, ROLE_LABELS } from '@/store/authStore';
+import { useAuthStore, UserRole } from '@/store/authStore';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,7 +10,6 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { isAuthenticated, user, checkAuth } = useAuthStore();
-  const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
@@ -21,23 +19,13 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   useEffect(() => {
     if (hasChecked && !isAuthenticated) {
-      router.push('/login');
+      window.location.replace('/login');
     }
-  }, [isAuthenticated, hasChecked, router]);
+  }, [isAuthenticated, hasChecked]);
 
   if (!hasChecked || !isAuthenticated || !user) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin mx-auto"></div>
-          <p className="text-gray-400 text-sm">Authenticating...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
-
-  // Role access check bypassed as per request
-  // if (allowedRoles && !allowedRoles.includes(user.role)) { ... }
 
   return <>{children}</>;
 }

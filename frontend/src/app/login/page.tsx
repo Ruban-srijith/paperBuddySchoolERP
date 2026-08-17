@@ -81,7 +81,7 @@ export default function LoginPage() {
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
-  const { login, isLoading, error, isAuthenticated, checkAuth } = useAuthStore();
+  const { login, isLoading, error, isAuthenticated, checkAuth, user } = useAuthStore();
   const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
   const [isSuccessMorphing, setIsSuccessMorphing] = useState(false);
@@ -105,20 +105,32 @@ export default function LoginPage() {
     }
   };
 
-  useEffect(() => {
-    if (hasChecked && isAuthenticated) {
-      router.push('/dashboard');
+  const getRoleDestination = (role?: string) => {
+    switch (role) {
+      case 'student': return '/student/documents';
+      case 'parent': return '/parent';
+      case 'warden': return '/warden/rooms';
+      case 'librarian': return '/librarian';
+      case 'transport': return '/transport/fleet';
+      default: return '/dashboard';
     }
-  }, [isAuthenticated, hasChecked, router]);
+  };
+
+  useEffect(() => {
+    if (hasChecked && isAuthenticated && user) {
+      window.location.replace(getRoleDestination(user.role));
+    }
+  }, [isAuthenticated, hasChecked, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await login(email, password);
     if (success) {
       setIsSuccessMorphing(true);
+      const currentUser = useAuthStore.getState().user;
       setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 500);
+        window.location.replace(getRoleDestination(currentUser?.role));
+      }, 300);
     }
   };
 
@@ -132,9 +144,10 @@ export default function LoginPage() {
     const success = await login(demoEmail, pw);
     if (success) {
       setIsSuccessMorphing(true);
+      const currentUser = useAuthStore.getState().user;
       setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 500);
+        window.location.replace(getRoleDestination(currentUser?.role));
+      }, 300);
     }
   };
 

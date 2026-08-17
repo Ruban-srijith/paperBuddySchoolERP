@@ -20,15 +20,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor to handle 401 responses (auto-logout)
+// Interceptor to handle genuine token expiration on /auth/me
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // Token expired or invalid — clear auth state
+    const isAuthEndpoint = error.config?.url?.includes('/auth/me');
+    if (error.response?.status === 401 && isAuthEndpoint && typeof window !== 'undefined') {
       localStorage.removeItem('pb_token');
       localStorage.removeItem('pb_user');
-      // Redirect to login if not already there
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
