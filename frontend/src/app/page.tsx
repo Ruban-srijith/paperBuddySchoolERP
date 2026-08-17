@@ -66,25 +66,15 @@ function MagneticButton({ children, className }: { children: React.ReactNode, cl
 export default function LandingPage() {
   const { isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
-  const [showPreloader, setShowPreloader] = useState(true);
 
   useEffect(() => {
     setMounted(true);
-    // Hide preloader after 2.5 seconds
-    const timer = setTimeout(() => setShowPreloader(false), 2500);
-    return () => clearTimeout(timer);
   }, []);
 
   if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f19] text-brand-black overflow-x-hidden selection:bg-brand-blue/20 font-sans">
-      
-      {/* Animated Preloader */}
-      {showPreloader && (
-        <PageLoader />
-      )}
-
       {/* Navbar */}
       <motion.nav 
         initial={{ y: -100, opacity: 0 }}

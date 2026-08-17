@@ -85,17 +85,11 @@ export default function LoginPage() {
   const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
   const [isSuccessMorphing, setIsSuccessMorphing] = useState(false);
-  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
     checkAuth();
     setHasChecked(true);
     fetchSchools();
-    
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
   }, [checkAuth]);
 
   const fetchSchools = async () => {
@@ -159,12 +153,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8F9FD] dark:bg-[#0b0f19] p-4 font-sans overflow-hidden transition-colors duration-300">
-      
-      {isPageLoading ? (
-        <PageLoader />
-      ) : (
-        <>
-          {/* Background Animated Elements */}
+      {/* Background Animated Elements */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <motion.div 
               animate={{ rotate: 360 }}
@@ -394,11 +383,8 @@ export default function LoginPage() {
                   </div>
                 </motion.div>
               )}
-
             </div>
           </motion.div>
-        </>
-      )}
     </div>
   );
 }

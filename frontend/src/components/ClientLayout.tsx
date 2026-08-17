@@ -121,9 +121,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (hasChecked && pathname !== '/login' && pathname !== '/' && pathname !== '/register' && !isAuthenticated) {
-      router.push('/login');
+      window.location.replace('/login');
     }
-  }, [pathname, isAuthenticated, hasChecked, router]);
+  }, [pathname, isAuthenticated, hasChecked]);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
@@ -142,8 +142,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // If not authenticated and not on login, show brief loading while redirecting
-  if (!hasChecked || (!isAuthenticated || !user)) {
+  // If not authenticated and not on login, redirect immediately
+  if (!hasChecked || !isAuthenticated || !user) {
     return <PageLoader />;
   }
 
