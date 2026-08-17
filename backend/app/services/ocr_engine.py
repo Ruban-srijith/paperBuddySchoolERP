@@ -34,7 +34,8 @@ class OpenRouterOCREngine:
         father_name: Optional[str] = None,
         mother_name: Optional[str] = None,
         phone: Optional[str] = None,
-        verified_aadhaar_data: Optional[Dict[str, Any]] = None
+        verified_aadhaar_data: Optional[Dict[str, Any]] = None,
+        filename: str = ""
     ) -> Dict[str, Any]:
         """
         Runs AI Vision & OCR Consensus on uploaded Student Documents.
@@ -47,7 +48,8 @@ class OpenRouterOCREngine:
             father_name=father_name,
             mother_name=mother_name,
             phone=phone,
-            verified_aadhaar_data=verified_aadhaar_data
+            verified_aadhaar_data=verified_aadhaar_data,
+            filename=filename
         )
 
     async def process_form(self, file_bytes: bytes):

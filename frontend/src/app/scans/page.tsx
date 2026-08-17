@@ -133,8 +133,9 @@ export default function UniversalScansPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-16">
-      {/* HEADER */}
+    <ProtectedRoute>
+      <div className="max-w-7xl mx-auto space-y-6 pb-16">
+        {/* HEADER */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
         <div>
           <div className="flex items-center gap-2">
@@ -511,6 +512,7 @@ export default function UniversalScansPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }

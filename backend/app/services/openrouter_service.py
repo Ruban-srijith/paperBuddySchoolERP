@@ -157,7 +157,8 @@ class OpenRouterService:
         father_name: Optional[str] = None,
         mother_name: Optional[str] = None,
         phone: Optional[str] = None,
-        verified_aadhaar_data: Optional[Dict[str, Any]] = None
+        verified_aadhaar_data: Optional[Dict[str, Any]] = None,
+        filename: str = ""
     ) -> Dict[str, Any]:
         """
         Cross-checks student document data against system records using document-specific prompt rules.
@@ -170,7 +171,8 @@ class OpenRouterService:
             father_name=father_name,
             mother_name=mother_name,
             phone=phone,
-            verified_aadhaar_data=verified_aadhaar_data
+            verified_aadhaar_data=verified_aadhaar_data,
+            filename=filename
         )
 
         prompt_info = result.get("document_prompt") or ocr_service.get_document_prompt(document_type, student_name, father_name)
