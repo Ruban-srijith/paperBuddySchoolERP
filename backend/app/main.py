@@ -13,9 +13,17 @@ logger = logging.getLogger("main")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing relational database tables...")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("Relational database initialized successfully.")
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Relational database initialized successfully.")
+    except Exception as e:
+        if "already exists" in str(e).lower() or "duplicate key" in str(e).lower():
+            # Enum type already exists in PostgreSQL — tables are already set up
+            logger.info("Database schema already exists — skipping creation.")
+        else:
+            logger.error(f"Database initialization error: {e}")
+            raise
     
     if "neon" in str(engine.url).lower():
         logger.info("the neon db is connected to verify")

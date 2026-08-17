@@ -32,17 +32,17 @@ async def _get_or_create_student_profile(db: AsyncSession, current_user: User) -
 
     if not student:
         # Check if student exists by admission/email or create a fallback demo student profile
-        adm_no = f"ADM-2026-STU-{current_user.id[:6].upper()}"
+        adm_no = f"ADM-2026-{current_user.id[:6].upper()}"
         student = Student(
             user_id=current_user.id,
             admission_number=adm_no,
             full_name=current_user.full_name or "Student Profile",
-            father_name="Ramesh Kumar",
-            mother_name="Anita Kumar",
-            guardian_phone="+91-9876543210",
-            date_of_birth="2008-05-14",
-            blood_group="O+",
-            address="123 Academic Campus Avenue"
+            father_name=f"Guardian ({current_user.full_name})",
+            mother_name="Parent / Guardian",
+            guardian_phone=current_user.phone or "+91-9876543210",
+            date_of_birth="Not Specified",
+            blood_group="Not Specified",
+            address="Academic Campus Residence"
         )
         db.add(student)
         await db.commit()

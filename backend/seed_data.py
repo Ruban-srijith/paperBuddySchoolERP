@@ -63,9 +63,25 @@ SECTIONS = ["A", "B"]
 
 
 async def seed():
+    print("Connecting to database and preparing tables...")
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        from sqlalchemy import text
+        if "postgresql" in str(engine.url):
+            try:
+                await conn.execute(text(
+                    "DROP TABLE IF EXISTS parent_student_maps, leave_requests, teacher_substitutions, bus_routes, "
+                    "academic_calendar_events, salary_records, school_event_proposals, exam_schedules, homeworks, "
+                    "assignments, student_queries, announcements, fee_transactions, fee_payments, fee_structures, "
+                    "mentor_logs, mentor_assignments, lab_assignments, syllabus_nodes, classrooms, subjects, "
+                    "classes, students, departments, users, schools CASCADE;"
+                ))
+            except Exception as e:
+                print(f"Drop notice: {e}")
+        else:
+            await conn.run_sync(Base.metadata.drop_all)
+        print("Creating table schema...")
         await conn.run_sync(Base.metadata.create_all)
+    print("Table schema created! Inserting seed data...")
 
     async with AsyncSessionLocal() as session:
         # ═══════════════════════════════════════════════════════
@@ -96,14 +112,16 @@ async def seed():
             contact_email="demo@paperbuddy.erp"
         )
         session.add_all([school1, school2, school3, school4])
+        await session.flush()
 
         # ═══════════════════════════════════════════════════════
         # 1. DEPARTMENTS
         # ═══════════════════════════════════════════════════════
-        dept_sci = Department(id=DEPT_SCI_ID, school_id=SCHOOL_1_ID, name="Science", code="SCI", dean_id=DEAN_SCI_ID)
+        dept_sci = Department(id=DEPT_SCI_ID, school_id=SCHOOL_1_ID, name="Science", code="SCI")
         dept_cs  = Department(id=DEPT_CS_ID, school_id=SCHOOL_1_ID, name="Computer Science", code="CS")
         dept_hum = Department(id=DEPT_HUM_ID, school_id=SCHOOL_1_ID, name="Humanities", code="HUM")
         session.add_all([dept_sci, dept_cs, dept_hum])
+        await session.flush()
 
         # ═══════════════════════════════════════════════════════
         # 2. USERS (all 15 ERP roles)
@@ -274,6 +292,8 @@ async def seed():
             st1_u, st2_u, st3_u, st4_u, st5_u,
             parent1, fin_user, warden_user, lib_user, trans_user, bharathi_admin
         ])
+        await session.flush()
+        dept_sci.dean_id = DEAN_SCI_ID
 
         # ═══════════════════════════════════════════════════════
         # 3. CLASSES — All 16 grades × 2 sections = 32 classes
