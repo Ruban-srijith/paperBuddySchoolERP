@@ -26,6 +26,9 @@ async def lifespan(app: FastAPI):
         logger.info("MongoDB local database initialized and ready.")
     else:
         logger.warning("MongoDB local database connection could not be established.")
+
+    allowed = settings.get_cors_origins()
+    logger.info(f"CORS allowed origins: {allowed}")
     yield
 
 
@@ -35,10 +38,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware for Next.js frontend
+# CORS middleware — origins controlled via ALLOWED_ORIGINS env variable
+# Default: http://localhost:3000 (dev). Set in .env for production.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

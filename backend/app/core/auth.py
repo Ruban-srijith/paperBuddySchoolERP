@@ -98,9 +98,12 @@ def require_role(*allowed_roles: UserRole):
     Usage: Depends(require_role(UserRole.ADMIN, UserRole.SUPER_ADMIN))
     """
     async def role_checker(current_user: User = Depends(get_current_user)) -> User:
-        # Role check bypassed as per request
-        # if current_user.role not in allowed_roles:
-        #     raise HTTPException(...)
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required role(s): {[r.value for r in allowed_roles]}. "
+                       f"Your role: '{current_user.role.value}'.",
+            )
         return current_user
     return role_checker
 
@@ -133,6 +136,8 @@ require_mentor_or_above = require_role(
 )
 
 require_any_authenticated = require_role(
-    UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.DEAN,
-    UserRole.DEPT_HEAD, UserRole.TEACHER, UserRole.MENTOR, UserRole.STUDENT
+    UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL,
+    UserRole.VICE_PRINCIPAL, UserRole.DEAN, UserRole.DEPT_HEAD, UserRole.TEACHER,
+    UserRole.MENTOR, UserRole.STUDENT, UserRole.PARENT,
+    UserRole.FINANCE, UserRole.WARDEN, UserRole.LIBRARIAN, UserRole.TRANSPORT
 )

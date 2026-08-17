@@ -91,7 +91,7 @@ async def get_warden_summary(db: AsyncSession = Depends(get_db), current_user: U
     outpasses = outpass_res.scalars().all()
 
     total_capacity = sum(r.capacity for r in rooms) if rooms else 120
-    occupied = sum(r.occupied for r in rooms) if rooms else 108
+    occupied = sum(r.current_occupancy for r in rooms) if rooms else 108
 
     return {
         "total_rooms": len(rooms) if rooms else 30,
@@ -141,9 +141,9 @@ async def get_outpasses(status: str = None, db: AsyncSession = Depends(get_db), 
             "room_number": "Block A - 102",
             "reason": o.reason,
             "departure_time": str(o.departure_time),
-            "expected_return": str(o.expected_return),
+            "expected_return": str(o.expected_return_time),
             "status": o.status,
-            "parent_consent_verified": o.parent_consent_verified
+            "parent_consent_verified": False
         }
         for o in outpasses
     ]
@@ -164,8 +164,7 @@ async def get_hostel_attendance(target_date: str = None, db: AsyncSession = Depe
             {
                 "id": r.id,
                 "student_id": r.student_id,
-                "status": r.status,
-                "remarks": r.remarks
+                "status": r.status
             }
             for r in records
         ]

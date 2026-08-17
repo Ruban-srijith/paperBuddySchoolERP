@@ -11,13 +11,41 @@ import pypdf
 
 logger = logging.getLogger("ocr_service")
 
-# Configure tesseract binary path if not in standard PATH
-if os.path.exists("/opt/homebrew/bin/tesseract"):
-    pytesseract.pytesseract.tesseract_cmd = "/opt/homebrew/bin/tesseract"
-elif os.path.exists("/usr/local/bin/tesseract"):
-    pytesseract.pytesseract.tesseract_cmd = "/usr/local/bin/tesseract"
-elif os.path.exists("/usr/bin/tesseract"):
-    pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+# Configure tesseract binary path
+# Priority: TESSERACT_CMD env var → OS-specific auto-detection → system PATH
+_tesseract_configured = False
+
+_tesseract_env = os.getenv("TESSERACT_CMD", "")
+if _tesseract_env and os.path.exists(_tesseract_env):
+    pytesseract.pytesseract.tesseract_cmd = _tesseract_env
+    _tesseract_configured = True
+
+if not _tesseract_configured:
+    _candidates = [
+        # macOS Homebrew (Apple Silicon & Intel)
+        "/opt/homebrew/bin/tesseract",
+        "/usr/local/bin/tesseract",
+        # Linux
+        "/usr/bin/tesseract",
+        # Windows — Chocolatey install
+        r"C:\ProgramData\chocolatey\bin\tesseract.exe",
+        # Windows — official installer default paths
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    ]
+    for _path in _candidates:
+        if os.path.exists(_path):
+            pytesseract.pytesseract.tesseract_cmd = _path
+            _tesseract_configured = True
+            break
+
+if not _tesseract_configured:
+    logger.warning(
+        "Tesseract OCR binary not found in standard locations. "
+        "Install it with: 'choco install tesseract' (Windows) or "
+        "'brew install tesseract' (macOS) or 'apt install tesseract-ocr' (Ubuntu). "
+        "Or set the TESSERACT_CMD environment variable to its full path."
+    )
 
 
 class LocalOCRService:

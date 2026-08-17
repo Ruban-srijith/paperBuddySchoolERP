@@ -1,4 +1,5 @@
 import uuid
+import logging
 from typing import List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
@@ -14,9 +15,11 @@ from app.services.email_service import email_service
 from app.core.config import settings
 import razorpay
 
+logger = logging.getLogger("fees")
 router = APIRouter(prefix="/fees", tags=["Fee Payment Gateway & Receipts"])
 
-# Initialize Razorpay Client
+
+# Initialize Razorpay Client (keys must be set via env — no hardcoded fallback)
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 
@@ -24,8 +27,18 @@ razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZOR
 from app.db.models import FeeTransaction, ParentStudentMap
 
 def get_razorpay_client():
-    key_id = settings.RAZORPAY_KEY_ID or "rzp_test_TFdHFeHGkMKc4O"
-    key_secret = settings.RAZORPAY_KEY_SECRET or "FokGHk1rDxyq7SYKStBsM0wi"
+    """
+    Returns a configured Razorpay client.
+    Raises HTTP 503 if RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET are not set in environment.
+    """
+    key_id = settings.RAZORPAY_KEY_ID
+    key_secret = settings.RAZORPAY_KEY_SECRET
+    if not key_id or not key_secret:
+        raise HTTPException(
+            status_code=503,
+            detail="Razorpay payment gateway is not configured. "
+                   "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables."
+        )
     return razorpay.Client(auth=(key_id, key_secret))
 
 @router.post("/pay", response_model=FeePaymentResponse)
@@ -112,8 +125,9 @@ async def create_razorpay_order(
 ):
     """
     Create a Razorpay order for fee payment.
+    Requires RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to be set in environment.
     """
-    key_id = settings.RAZORPAY_KEY_ID or "rzp_test_TFdHFeHGkMKc4O"
+    key_id = settings.RAZORPAY_KEY_ID
     try:
         client = get_razorpay_client()
         # Amount in paise (1 INR = 100 paise)
@@ -136,14 +150,13 @@ async def create_razorpay_order(
             currency=order_currency,
             key=key_id
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Razorpay sandbox/live order creation fallback: {str(e)}")
-        demo_order_id = f"order_{uuid.uuid4().hex[:14]}"
-        return RazorpayOrderResponse(
-            order_id=demo_order_id,
-            amount=req.amount,
-            currency=req.currency or "INR",
-            key=key_id
+        logger.warning(f"Razorpay order creation error: {str(e)}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to create Razorpay order: {str(e)}"
         )
 
 
