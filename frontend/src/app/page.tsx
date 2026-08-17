@@ -99,10 +99,10 @@ export default function LandingPage() {
               transition={{ duration: 0.5, type: "spring" }}
               className="w-10 h-10 flex items-center justify-center shrink-0 relative overflow-hidden group"
             >
-              <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain relative z-10" />
+              <img src="/logo.png" alt="Genesis ERP Logo" className="w-full h-full object-contain relative z-10" />
             </motion.div>
             <span className="font-bold text-xl sm:text-2xl tracking-tight text-brand-blue whitespace-nowrap">
-              PaperBuddy
+              Genesis ERP
             </span>
           </div>
         
@@ -151,7 +151,7 @@ export default function LandingPage() {
             </motion.h1>
 
             <motion.p variants={fadeUpVariant} className="mt-8 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              PaperBuddy transforms traditional school management with a 9-Role RBAC system, automated workflows, and intelligent analytics from LKG to 12th Standard.
+              Genesis ERP transforms traditional school management with a 9-Role RBAC system, automated workflows, and intelligent analytics from LKG to 12th Standard.
             </motion.p>
 
             <motion.div variants={fadeUpVariant} className="mt-12 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
@@ -209,7 +209,7 @@ export default function LandingPage() {
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               className="relative rounded-[32px] overflow-hidden border border-gray-200 shadow-2xl bg-white p-4"
             >
-              <img src="/dashboard-mockup.png" alt="PaperBuddy Dashboard" className="w-full h-auto object-cover rounded-[20px] bg-gray-50" />
+              <img src="/dashboard-mockup.png" alt="Genesis ERP Dashboard" className="w-full h-auto object-cover rounded-[20px] bg-gray-50" />
             </motion.div>
             
             {/* Floating badges */}
@@ -282,7 +282,7 @@ export default function LandingPage() {
             className="text-center mb-20 max-w-3xl mx-auto"
           >
             <h2 className="text-3xl md:text-5xl font-extrabold text-brand-black mb-6">Everything you need, <br/><span className="text-brand-blue">beautifully integrated.</span></h2>
-            <p className="text-gray-500 font-medium text-lg">Stop juggling dozens of disjointed tools. PaperBuddy provides a unified, AI-driven ecosystem tailored perfectly for modern educational institutions.</p>
+            <p className="text-gray-500 font-medium text-lg">Stop juggling dozens of disjointed tools. Genesis ERP provides a unified, AI-driven ecosystem tailored perfectly for modern educational institutions.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-auto md:auto-rows-[320px]">
@@ -438,7 +438,7 @@ export default function LandingPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { name: "Dr. Sarah Connor", role: "Principal, Lincoln High", text: "PaperBuddy completely revolutionized how we handle our grading and timetable scheduling. It's like having an extra admin team." },
+                { name: "Dr. Sarah Connor", role: "Principal, Lincoln High", text: "Genesis ERP completely revolutionized how we handle our grading and timetable scheduling. It's like having an extra admin team." },
                 { name: "James Wilson", role: "Head of Academics", text: "The AI predictive analytics caught 15 students who were silently struggling. We intervened early and saved their semester." },
                 { name: "Elena Rodriguez", role: "Finance Director", text: "Fee collection tracking used to take a week. Now I get a real-time snapshot on my dashboard every morning. Absolutely brilliant." }
               ].map((t, i) => (
@@ -475,9 +475,9 @@ export default function LandingPage() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 flex items-center justify-center">
-                <img src="/logo.png" alt="PaperBuddy Logo" className="w-full h-full object-contain" />
+                <img src="/logo.png" alt="Genesis ERP Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="font-extrabold text-xl text-brand-black">PaperBuddy</span>
+              <span className="font-extrabold text-xl text-brand-black">Genesis ERP</span>
             </div>
             <p className="text-gray-500 font-medium max-w-sm mb-6 leading-relaxed">
               The world's most advanced autonomous school operations platform, designed to eliminate administrative friction.
@@ -510,7 +510,7 @@ export default function LandingPage() {
         </div>
         
         <div className="max-w-7xl mx-auto px-4 pt-8 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4 font-semibold">
-          <p className="text-gray-400 text-sm">© 2026 PaperBuddy. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">© 2026 Genesis ERP. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <a href="#" className="hover:text-brand-black transition-colors">Terms of Service</a>
             <a href="#" className="hover:text-brand-black transition-colors">Privacy Policy</a>

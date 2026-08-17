@@ -598,7 +598,7 @@ export default function FeesPage() {
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-brand-black">PaperBuddy Fee Receipt</h3>
+                    <h3 className="text-base font-bold text-brand-black">Genesis ERP Fee Receipt</h3>
                     <p className="text-[10px] text-gray-600">GST Registration: 33AAAAA0000A1Z5</p>
                   </div>
                 </div>
