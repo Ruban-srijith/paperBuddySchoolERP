@@ -29,9 +29,17 @@ class Settings(BaseSettings):
 
     # OpenRouter API Integration
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
-    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "luna-pro")
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "google/gemini-2.5-flash")
     OPENROUTER_SITE_URL: str = os.getenv("OPENROUTER_SITE_URL", "https://paperbuddy.erp")
     OPENROUTER_APP_NAME: str = os.getenv("OPENROUTER_APP_NAME", "PaperBuddy School ERP")
+
+    # CORS: comma-separated list of allowed origins
+    # e.g. ALLOWED_ORIGINS="https://app.paperbuddy.in,https://admin.paperbuddy.in"
+    ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
+
+    def get_cors_origins(self) -> list[str]:
+        """Parse ALLOWED_ORIGINS into a list, stripping whitespace."""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
 
     
     class Config:
