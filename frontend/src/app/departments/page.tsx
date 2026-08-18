@@ -415,7 +415,7 @@ function DepartmentsContent() {
 
 export default function DepartmentsPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'dean', 'dept_head']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'vice_principal']}>
       <DepartmentsContent />
     </ProtectedRoute>
   );

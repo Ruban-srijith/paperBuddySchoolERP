@@ -9,15 +9,11 @@ from .database import Base
 class UserRole(str, enum.Enum):
     SUPER_ADMIN = "super_admin"
     CORRESPONDENT = "correspondent"
-    ADMIN = "admin"
     PRINCIPAL = "principal"
     VICE_PRINCIPAL = "vice_principal"
-    DEAN = "dean"
-    DEPT_HEAD = "dept_head"
     TEACHER = "teacher"
     MENTOR = "mentor"
     STUDENT = "student"
-    PARENT = "parent"
     FINANCE = "finance"
     WARDEN = "warden"
     LIBRARIAN = "librarian"
@@ -51,16 +47,15 @@ class ScanStatus(str, enum.Enum):
 ROLE_HIERARCHY = {
     UserRole.SUPER_ADMIN: 10,
     UserRole.CORRESPONDENT: 9,
-    UserRole.ADMIN: 8,
-    UserRole.PRINCIPAL: 7,
-    UserRole.VICE_PRINCIPAL: 6,
-    UserRole.DEAN: 5,
-    UserRole.DEPT_HEAD: 4,
-    UserRole.TEACHER: 3,
-    UserRole.MENTOR: 2,
-    UserRole.STUDENT: 1,
-    UserRole.PARENT: 1,
-    UserRole.TRANSPORT: 5,
+    UserRole.PRINCIPAL: 8,
+    UserRole.VICE_PRINCIPAL: 7,
+    UserRole.TEACHER: 6,
+    UserRole.MENTOR: 5,
+    UserRole.STUDENT: 4,
+    UserRole.FINANCE: 8,
+    UserRole.WARDEN: 8,
+    UserRole.LIBRARIAN: 8,
+    UserRole.TRANSPORT: 8,
 }
 
 

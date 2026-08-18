@@ -152,14 +152,13 @@ export default function LoginPage() {
   };
 
   const quickLogins = [
-    { label: '👨‍🎓 Student', email: 'kishor.k@school.edu' },
-    { label: '👩‍🏫 Teacher', email: 'sarah.connor@school.edu' },
-    { label: '👔 Admin', email: 'admin@school.edu' },
-    { label: '🎓 Principal', email: 'principal@school.edu' },
+    { label: '🌟 Founder', email: 'superadmin@school.edu' },
     { label: '💼 Correspondent', email: 'correspondent@school.edu' },
+    { label: '🎓 Principal', email: 'principal@school.edu' },
     { label: '🏛️ VP', email: 'vp@school.edu' },
-    { label: '🔬 Dean', email: 'dean.science@school.edu' },
-    { label: '👨‍👧 Parent', email: 'parent.kishor@school.edu' },
+    { label: '👩‍🏫 Teacher', email: 'sarah.connor@school.edu' },
+    { label: '🤝 Mentor', email: 'mentor.10a@school.edu' },
+    { label: '👨‍🎓 Student', email: 'kishor.k@school.edu' },
     { label: '💰 Finance', email: 'finance@school.edu' },
     { label: '🏠 Warden', email: 'warden@school.edu' },
     { label: '📚 Librarian', email: 'librarian@school.edu' },

@@ -181,17 +181,7 @@ async def list_scans(
     )
 
     if user_rank < 5:  # Below Dean level
-        if current_user.role == UserRole.DEPT_HEAD and current_user.department_id:
-            # HOD can view department members' scans
-            dept_user_ids_res = await db.execute(
-                select(User.id).where(User.department_id == current_user.department_id)
-            )
-            dept_user_ids = dept_user_ids_res.scalars().all()
-            query = query.where(
-                (ScanRecord.uploaded_by_id == current_user.id) | (ScanRecord.uploaded_by_id.in_(dept_user_ids))
-            )
-        else:
-            query = query.where(ScanRecord.uploaded_by_id == current_user.id)
+        query = query.where(ScanRecord.uploaded_by_id == current_user.id)
 
     # Optional filters
     if role:
@@ -226,8 +216,7 @@ async def get_scan_by_unique_id(
 
     user_rank = ROLE_HIERARCHY.get(current_user.role, 1)
     if user_rank < 5 and scan.uploaded_by_id != current_user.id:
-        if not (current_user.role == UserRole.DEPT_HEAD and scan.uploaded_by and scan.uploaded_by.department_id == current_user.department_id):
-            raise HTTPException(status_code=403, detail="Permission denied to access this scan record.")
+        raise HTTPException(status_code=403, detail="Permission denied to access this scan record.")
 
     return format_scan_response(scan)
 
@@ -258,8 +247,7 @@ async def verify_scan_record(
     # Permission check: Must be higher rank than uploader, or HOD in same dept, or Super Admin/Admin/Principal
     is_authorized = (
         user_rank > uploader_rank or
-        current_user.role in [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL] or
-        (current_user.role == UserRole.DEPT_HEAD and scan.uploaded_by and scan.uploaded_by.department_id == current_user.department_id)
+        current_user.role in [UserRole.SUPER_ADMIN, UserRole.PRINCIPAL]
     )
 
     if not is_authorized:

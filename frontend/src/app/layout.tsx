@@ -7,7 +7,9 @@ export const metadata: Metadata = {
   description: "Next-Gen AI Autonomous School Management System with 9-Role RBAC, LKG to 12th Standard",
   icons: {
     icon: '/logo.png',
+    apple: '/logo.png',
   },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -16,9 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="scroll-smooth scroll-pt-24" suppressHydrationWarning>
+    <html lang="en" className="scroll-pt-24" suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="light dark" />
+        <meta name="theme-color" content="#3b82f6" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Genesis ERP" />
+        <link rel="manifest" href="/manifest.json" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -33,6 +40,11 @@ export default function RootLayout({
                   }
                 } catch (e) {}
               })();
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
             `,
           }}
         />

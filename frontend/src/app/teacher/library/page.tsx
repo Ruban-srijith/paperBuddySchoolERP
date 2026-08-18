@@ -5,7 +5,7 @@ import { Library, Plus, Search, FileSearch } from "lucide-react";
 
 export default function TeacherLibrary() {
   return (
-    <ProtectedRoute allowedRoles={['teacher', 'super_admin', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['teacher', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-7xl mx-auto">
         <header className="mb-8 flex justify-between items-center">
           <div>

@@ -35,7 +35,7 @@ export default function OperationalReportsPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "principal", "super_admin", "correspondent"]}>
+    <ProtectedRoute allowedRoles={["principal", "super_admin", "correspondent"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

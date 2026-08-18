@@ -53,11 +53,6 @@ async def process_fee_payment(
     """
     # Resolve target student ID (if parent is paying for child)
     target_student_id = req.student_id or current_user.id
-    if current_user.role == UserRole.PARENT and (not req.student_id or req.student_id == current_user.id):
-        ps_res = await db.execute(select(ParentStudentMap).where(ParentStudentMap.parent_id == current_user.id))
-        ps = ps_res.scalars().first()
-        if ps:
-            target_student_id = ps.student_id
 
     u_res = await db.execute(select(User).where(User.id == target_student_id))
     target_user = u_res.scalars().first() or current_user
@@ -171,11 +166,7 @@ async def verify_razorpay_signature(
     """
     # 1. Resolve Target Student ID (Student or Parent)
     target_student_id = req.student_id or current_user.id
-    if current_user.role == UserRole.PARENT and (not req.student_id or req.student_id == current_user.id):
-        ps_res = await db.execute(select(ParentStudentMap).where(ParentStudentMap.parent_id == current_user.id))
-        ps = ps_res.scalars().first()
-        if ps:
-            target_student_id = ps.student_id
+
 
     u_res = await db.execute(select(User).where(User.id == target_student_id))
     target_user = u_res.scalars().first() or current_user
@@ -266,10 +257,7 @@ async def list_fee_receipts(
 
     if current_user.role == UserRole.STUDENT:
         query = query.where(FeePayment.student_id == current_user.id)
-    elif current_user.role == UserRole.PARENT:
-        ps_res = await db.execute(select(ParentStudentMap.student_id).where(ParentStudentMap.parent_id == current_user.id))
-        student_ids = ps_res.scalars().all()
-        query = query.where(FeePayment.student_id.in_(student_ids + [current_user.id]))
+
 
     res = await db.execute(query)
     payments = res.scalars().all()

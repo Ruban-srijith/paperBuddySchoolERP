@@ -237,12 +237,12 @@ export default function LeaveApplyPage() {
                     <span className="font-mono text-cyan-300 font-semibold">{l.start_date} to {l.end_date}</span>
                   </div>
 
-                  <p className="text-xs text-gray-600 bg-gray-950/50 p-2.5 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-800 dark:text-slate-100 bg-gray-50 dark:bg-slate-800 p-2.5 rounded-lg border border-gray-150 dark:border-slate-700">
                     "{l.reason}"
                   </p>
 
-                  <div className="flex justify-between text-[11px] text-gray-600 pt-1">
-                    <span>Substitute: <span className="text-indigo-300">{l.substitute_teacher}</span></span>
+                  <div className="flex justify-between text-[11px] text-gray-600 dark:text-slate-400 pt-1">
+                    <span>Substitute: <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{l.substitute_teacher}</span></span>
                     <span className="font-mono">Applied: {l.applied_on}</span>
                   </div>
                 </div>

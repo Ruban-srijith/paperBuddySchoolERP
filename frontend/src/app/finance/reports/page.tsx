@@ -5,7 +5,7 @@ import { FileSpreadsheet, Download, TrendingUp } from "lucide-react";
 
 export default function FinancialReportsPortal() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'finance']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'finance']}>
       <div className="space-y-6 max-w-5xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">

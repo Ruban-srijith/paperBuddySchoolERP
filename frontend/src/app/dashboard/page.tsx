@@ -53,6 +53,22 @@ function DashboardContent() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (user?.role === 'super_admin') {
+      router.replace('/superadmin?tab=analytics');
+    }
+  }, [user, router]);
+
+  if (user?.role === 'super_admin') {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-2 border-fuchsia-500/30 border-t-fuchsia-500 rounded-full animate-spin"></div>
+        <p className="text-xs font-semibold text-gray-500">Routing to Global Operations Center...</p>
+      </div>
+    );
+  }
+
   const [stats, setStats] = useState({
     totalStudents: 1420,
     totalTeachers: 68,
@@ -151,8 +167,8 @@ function DashboardContent() {
   const navItems = ROLE_NAV_ITEMS[user.role] || [];
   
   const isSuperAdmin = ['super_admin', 'correspondent'].includes(user.role);
-  const isAdmin = ['admin', 'principal'].includes(user.role);
-  const isVicePrincipal = ['vice_principal', 'dean', 'dept_head'].includes(user.role);
+  const isAdmin = ['principal'].includes(user.role);
+  const isVicePrincipal = ['vice_principal'].includes(user.role);
   const isTeacher = user.role === 'teacher';
   const isStudent = user.role === 'student';
   const isManagement = isSuperAdmin || isAdmin || isVicePrincipal;
@@ -327,18 +343,18 @@ function DashboardContent() {
       )}
 
       {/* Class Detail Modal / Drawer */}
-      {selectedGrade && classDetail && typeof document !== 'undefined' && createPortal(
+      {selectedGrade && (loadingClass || classDetail) && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white border border-gray-200 max-w-4xl w-full max-h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
             {/* Modal Header */}
             <div className="p-6 border-b border-gray-100 flex items-start justify-between bg-gray-50/80">
               <div className="flex items-start space-x-3 flex-1 min-w-0">
                 <div className="w-12 h-12 rounded-xl bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center text-brand-blue font-bold text-lg flex-shrink-0">
-                  {classDetail.grade}
+                  {selectedGrade}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl font-bold text-brand-black flex flex-wrap items-center gap-2">
-                    <span>Grade {classDetail.grade} Class Detail</span>
+                    <span>Grade {selectedGrade} Class Detail</span>
                   </h3>
                   <div className="flex items-center gap-2 mt-2">
                     {activeClasses.find(c => c.grade === selectedGrade)?.sections.map(sec => (
@@ -355,32 +371,42 @@ function DashboardContent() {
                       </button>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 truncate">
-                    Class Teacher: <span className="text-brand-black font-semibold">{classDetail.class_teacher}</span> ({classDetail.class_teacher_email})
-                  </p>
+                  {classDetail && (
+                    <p className="text-xs text-gray-500 mt-2 truncate">
+                      Class Teacher: <span className="text-brand-black font-semibold">{classDetail.class_teacher || 'Unassigned'}</span> ({classDetail.class_teacher_email || '-'})
+                    </p>
+                  )}
                 </div>
               </div>
               <button
-                onClick={() => setSelectedGrade(null)}
+                onClick={() => { setSelectedGrade(null); setClassDetail(null); }}
                 className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-black transition-colors flex-shrink-0 ml-4"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
+            {loadingClass ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-4">
+                 <div className="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
+                 <p className="text-gray-500 font-medium">Loading class details...</p>
+              </div>
+            ) : classDetail ? (
+              <>
+
             {/* Modal Metrics Bar */}
             <div className="grid grid-cols-3 gap-4 p-4 border-b border-gray-100 bg-gray-50/50 text-center">
               <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm">
                 <div className="text-xs text-gray-500 font-medium">Total Strength</div>
-                <div className="text-xl font-bold text-brand-black mt-1">{classDetail.total_strength} <span className="text-xs text-gray-400 font-medium">Students</span></div>
+                <div className="text-xl font-bold text-brand-black mt-1">{classDetail.total_strength || 0} <span className="text-xs text-gray-400 font-medium">Students</span></div>
               </div>
               <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm">
                 <div className="text-xs text-gray-500 font-medium">Class Attendance</div>
-                <div className="text-xl font-bold text-emerald-600 mt-1">{classDetail.attendance_rate}%</div>
+                <div className="text-xl font-bold text-emerald-600 mt-1">{classDetail.attendance_rate || 0}%</div>
               </div>
               <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm">
                 <div className="text-xs text-gray-500 font-medium">Syllabus Completion</div>
-                <div className="text-xl font-bold text-brand-blue mt-1">{classDetail.syllabus_coverage}%</div>
+                <div className="text-xl font-bold text-brand-blue mt-1">{classDetail.syllabus_coverage || 0}%</div>
               </div>
             </div>
 
@@ -393,7 +419,7 @@ function DashboardContent() {
                   <span>Today's Class Schedule</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {classDetail.schedule_today.length > 0 ? (
+                  {classDetail.schedule_today && classDetail.schedule_today.length > 0 ? (
                     classDetail.schedule_today.map((s: any) => (
                       <div key={s.period} className={`p-4 rounded-xl border transition-colors shadow-sm space-y-1.5 relative overflow-hidden ${
                         s.isOngoing ? 'bg-brand-blue/5 border-brand-blue/50 ring-1 ring-brand-blue/30' : 'bg-gray-50 border-gray-100 hover:border-brand-blue/30'
@@ -407,9 +433,9 @@ function DashboardContent() {
                           <span className={s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}>Period {s.period}</span>
                           <span className={`font-mono font-bold ${s.isOngoing ? 'text-brand-blue' : 'text-brand-blue'}`}>{s.time}</span>
                         </div>
-                        <div className="text-sm font-bold text-brand-black truncate">{s.subject}</div>
-                        <div className={`text-[11px] font-medium truncate ${s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}`}>{s.teacher}</div>
-                        <div className="text-[10px] font-bold text-gray-400">{s.room}</div>
+                        <div className="text-sm font-bold text-brand-black truncate">{s.subject || 'Unknown'}</div>
+                        <div className={`text-[11px] font-medium truncate ${s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}`}>{s.teacher || 'Unassigned'}</div>
+                        <div className="text-[10px] font-bold text-gray-400">{s.room || 'TBD'}</div>
                       </div>
                     ))
                   ) : (
@@ -424,10 +450,10 @@ function DashboardContent() {
               <div className="space-y-3">
                 <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
                   <Users className="w-4 h-4 text-brand-blue" />
-                  <span>Enrolled Student Roster ({classDetail.students.length})</span>
+                  <span>Enrolled Student Roster ({(classDetail.students || []).length})</span>
                 </h4>
                 <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                  {classDetail.students.length > 0 ? (
+                  {classDetail.students && classDetail.students.length > 0 ? (
                     <table className="w-full text-left text-xs min-w-[600px]">
                       <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider border-b border-gray-200">
                         <tr>
@@ -443,23 +469,23 @@ function DashboardContent() {
                         {classDetail.students.map((stu) => (
                           <tr key={stu.id} className="hover:bg-blue-50/50 transition-colors">
                             <td className="p-3.5 font-bold text-brand-black flex items-center gap-2.5 whitespace-nowrap">
-                              <div className="w-7 h-7 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center text-[11px] font-bold border border-brand-blue/20">
-                                {stu.full_name[0]}
+                              <div className="w-7 h-7 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center text-[11px] font-bold border border-brand-blue/20 uppercase">
+                                {stu.full_name ? stu.full_name[0] : '?'}
                               </div>
-                              {stu.full_name}
+                              {stu.full_name || 'Unknown Student'}
                             </td>
-                            <td className="p-3.5 font-mono font-semibold text-gray-500 whitespace-nowrap">{stu.admission_number}</td>
-                            <td className="p-3.5 font-medium text-gray-700 whitespace-nowrap">{stu.father_name}</td>
+                            <td className="p-3.5 font-mono font-semibold text-gray-500 whitespace-nowrap">{stu.admission_number || '-'}</td>
+                            <td className="p-3.5 font-medium text-gray-700 whitespace-nowrap">{stu.father_name || '-'}</td>
                             <td className="p-3.5 text-gray-600 flex items-center gap-1.5 font-mono font-medium whitespace-nowrap">
                               <Phone className="w-3.5 h-3.5 text-brand-blue" />
-                              {stu.guardian_phone}
+                              {stu.guardian_phone || '-'}
                             </td>
                             <td className="p-3.5 whitespace-nowrap">
                               <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                {stu.attendance_pct}%
+                                {stu.attendance_pct || 0}%
                               </span>
                             </td>
-                            <td className="p-3.5 text-right font-bold text-brand-black whitespace-nowrap">{stu.gpa}</td>
+                            <td className="p-3.5 text-right font-bold text-brand-black whitespace-nowrap">{stu.gpa || '-'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -492,12 +518,15 @@ function DashboardContent() {
                 </Link>
               </div>
               <button
-                onClick={() => setSelectedGrade(null)}
+                onClick={() => { setSelectedGrade(null); setClassDetail(null); }}
                 className="px-6 py-2.5 w-full sm:w-auto rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition-colors shadow-sm"
               >
                 Close
               </button>
             </div>
+            </>
+            ) : null}
+
           </div>
         </div>,
         document.body

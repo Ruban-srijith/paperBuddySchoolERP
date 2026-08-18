@@ -31,7 +31,7 @@ async def bulk_onboard_students(
     prefix: Optional[str] = Form("ADM-2026-"),
     default_password: Optional[str] = Form("Student@123"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN)),
 ):
     """
     Dual-Mode Mass Student Onboarding Engine:
@@ -239,7 +239,7 @@ async def bulk_onboard_students(
 async def list_students(
     class_id: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT, UserRole.TEACHER, UserRole.MENTOR)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT, UserRole.TEACHER, UserRole.MENTOR)),
 ):
     """List student profiles with optional class filtering."""
     query = select(Student).options(selectinload(Student.user), selectinload(Student.school_class))
@@ -269,7 +269,7 @@ async def list_students(
 async def assign_students_to_class(
     req: StudentClassAssignment,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT)),
 ):
     """Bulk assign or unassign students to a specific class."""
     query = select(Student).where(Student.id.in_(req.student_ids))

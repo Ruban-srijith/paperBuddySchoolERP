@@ -229,7 +229,7 @@ function ParentContent() {
 
 export default function ParentPage() {
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "admin", "principal", "parent"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal"]}>
       <ParentContent />
     </ProtectedRoute>
   );

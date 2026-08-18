@@ -122,7 +122,7 @@ export default function ClassroomAllocationPage() {
   });
 
   return (
-    <ProtectedRoute allowedRoles={["vice_principal", "dean", "dept_head", "super_admin", "correspondent", "admin", "principal"]}>
+    <ProtectedRoute allowedRoles={["vice_principal", "super_admin", "correspondent", "principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="space-y-1">

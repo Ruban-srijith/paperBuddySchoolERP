@@ -73,7 +73,7 @@ export default function ClassToppersPage() {
   const filteredToppers = toppers.filter(t => (selectedGradeFilter === "all" || t.grade === selectedGradeFilter) && t.rank <= 3);
 
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "admin", "principal"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

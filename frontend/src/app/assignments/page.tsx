@@ -33,7 +33,7 @@ interface AssignmentItem {
 export default function AssignmentsPage() {
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const isTeacher = user?.role === "teacher" || ['super_admin', 'admin', 'principal', 'vice_principal'].includes(user?.role || '');
+  const isTeacher = user?.role === "teacher" || ['super_admin', 'principal', 'vice_principal'].includes(user?.role || '');
 
   const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
   const [loading, setLoading] = useState(true);

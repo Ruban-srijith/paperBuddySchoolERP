@@ -17,7 +17,7 @@ async def generate_timetable(
     req: SolveTimetableRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT
     )),
 ):
     """Generate conflict-free timetable using OR-Tools. Admin/Principal only."""

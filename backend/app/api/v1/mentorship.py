@@ -20,7 +20,7 @@ router = APIRouter(prefix="/mentorship", tags=["Mentorship Activity System"])
 async def get_assigned_mentees(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.MENTOR
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.MENTOR
     )),
 ):
     """
@@ -125,7 +125,7 @@ async def create_mentor_log(
     req: MentorLogCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.MENTOR
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.MENTOR
     )),
 ):
     """Log a mentorship activity note for a mentee."""

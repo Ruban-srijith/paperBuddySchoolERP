@@ -13,7 +13,7 @@ export default function OutpassApproval() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['warden', 'super_admin', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['warden', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-6xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">

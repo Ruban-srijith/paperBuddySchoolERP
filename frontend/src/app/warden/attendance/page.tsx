@@ -12,7 +12,7 @@ export default function WardenAttendance() {
     setTimeout(() => setToastMessage(null), 3000);
   };
   return (
-    <ProtectedRoute allowedRoles={['warden', 'super_admin', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['warden', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-5xl mx-auto">
         <header className="mb-8 flex justify-between items-center">
           <div>

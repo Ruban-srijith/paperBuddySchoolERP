@@ -189,7 +189,7 @@ function SubstitutionsContent() {
 
 export default function SubstitutionsPage() {
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "admin", "principal", "vice_principal"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal", "vice_principal"]}>
       <SubstitutionsContent />
     </ProtectedRoute>
   );

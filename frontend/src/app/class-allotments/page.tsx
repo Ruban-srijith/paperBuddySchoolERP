@@ -30,7 +30,7 @@ interface ClassItem {
 
 export default function ClassAllotmentsPage() {
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "admin", "principal", "vice_principal"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal", "vice_principal"]}>
       <ClassAllotmentsContent />
     </ProtectedRoute>
   );
@@ -38,7 +38,7 @@ export default function ClassAllotmentsPage() {
 
 function ClassAllotmentsContent() {
   const user = useAuthStore(state => state.user);
-  const canManage = ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal'].includes(user?.role as string);
+  const canManage = ['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user?.role as string);
   const { toast } = useToast();
 
   const [classes, setClasses] = useState<ClassItem[]>([]);

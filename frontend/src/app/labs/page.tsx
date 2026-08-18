@@ -60,7 +60,7 @@ export default function LabsPage() {
     due_date: "2026-08-15T23:59:00",
   });
 
-  const isManagement = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'dean', 'dept_head'].includes(user.role);
+  const isManagement = user && ['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user.role);
   const isTeacher = user?.role === 'teacher';
   const isStudent = user?.role === 'student';
 

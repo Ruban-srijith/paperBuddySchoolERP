@@ -21,7 +21,7 @@ router = APIRouter(tags=["Transport Management"])
 @router.get("/dashboard-stats")
 async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL))
+    current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN, UserRole.PRINCIPAL))
 ):
     vehicles = await db.execute(select(Vehicle))
     routes = await db.execute(select(TransportRoute))

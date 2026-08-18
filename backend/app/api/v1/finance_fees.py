@@ -28,7 +28,7 @@ class FeePaymentRequest(BaseModel):
     payment_method: str
 
 def get_finance_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role not in [UserRole.FINANCE, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL]:
+    if current_user.role not in [UserRole.FINANCE, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL]:
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
 
@@ -92,21 +92,7 @@ async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), 
             u_res = await db.execute(select(User).where(User.id == student_prof.user_id))
             target_user = u_res.scalars().first()
 
-    # If queried entity is a Parent, resolve to their child student
-    if target_user and target_user.role == UserRole.PARENT:
-        ps_res = await db.execute(select(ParentStudentMap).where(ParentStudentMap.parent_id == target_user.id))
-        ps = ps_res.scalars().first()
-        if ps:
-            child_res = await db.execute(select(User).where(User.id == ps.student_id))
-            child_user = child_res.scalars().first()
-            if child_user:
-                target_user = child_user
-                user_id = target_user.id
-                student_prof = None
-        else:
-            user_id = target_user.id
-    else:
-        user_id = target_user.id if target_user else (student_prof.user_id if student_prof else None)
+    user_id = target_user.id if target_user else (student_prof.user_id if student_prof else None)
 
     if not target_user and not student_prof:
         raise HTTPException(status_code=404, detail="Student record not found")
@@ -210,13 +196,7 @@ async def process_payment(request: FeePaymentRequest, db: AsyncSession = Depends
     if not student:
         raise HTTPException(status_code=404, detail="Student user record not found")
 
-    # If student is parent, resolve to child
-    if student.role == UserRole.PARENT:
-        ps_res = await db.execute(select(ParentStudentMap).where(ParentStudentMap.parent_id == student.id))
-        ps = ps_res.scalars().first()
-        if ps:
-            ch_res = await db.execute(select(User).where(User.id == ps.student_id))
-            student = ch_res.scalars().first() or student
+
 
     fs_result = await db.execute(select(FeeStructure).where(FeeStructure.id == request.fee_structure_id))
     fs = fs_result.scalars().first()

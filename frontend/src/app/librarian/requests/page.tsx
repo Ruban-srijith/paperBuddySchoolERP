@@ -5,7 +5,7 @@ import { FileSearch, CheckCircle2, XCircle, Send } from "lucide-react";
 
 export default function LibrarianRequests() {
   return (
-    <ProtectedRoute allowedRoles={['librarian', 'super_admin', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['librarian', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-7xl mx-auto">
         <header className="mb-8 flex justify-between items-center">
           <div>

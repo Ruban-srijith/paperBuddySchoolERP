@@ -263,7 +263,7 @@ async def get_revenue_summary(
     year: Optional[int] = 2026,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL
     )),
 ):
     """Retrieve monthly revenue summaries, breakdown by category, fee collection vs target."""
@@ -403,7 +403,7 @@ async def list_homework(
 async def create_homework(
     req: HomeworkCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.ADMIN, UserRole.SUPER_ADMIN)),
+    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.SUPER_ADMIN)),
 ):
     """Assign homework to a class."""
     # Find matching class or default
@@ -485,7 +485,7 @@ async def list_assignments(
 async def create_assignment(
     req: AssignmentCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.ADMIN, UserRole.SUPER_ADMIN)),
+    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.SUPER_ADMIN)),
 ):
     return {"status": "success", "message": f"Assignment '{req.title}' created successfully"}
 
@@ -583,7 +583,7 @@ async def create_exam_schedule(
     req: ExamCreateRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Create a new exam schedule and hall allotment (Sub-admin / VP only)."""
@@ -688,7 +688,7 @@ async def reply_query(
     query_id: str,
     req: QueryReplyRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.ADMIN, UserRole.SUPER_ADMIN)),
+    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.SUPER_ADMIN)),
 ):
     """Teacher answers doubt or approves/rejects student leave."""
     return {
@@ -751,7 +751,7 @@ async def create_announcement(
     req: AnnouncementCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.TEACHER
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.TEACHER
     )),
 ):
     return {"status": "success", "message": f"Announcement '{req.title}' published successfully"}
@@ -765,7 +765,7 @@ async def create_announcement(
 async def get_teachers_workload(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Retrieve syllabus completion progress, periods, and workload per teacher."""

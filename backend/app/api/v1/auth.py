@@ -118,7 +118,7 @@ async def update_profile_picture(
 async def register_user(
     req: RegisterRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN)),
 ):
     """Create a new user (Super Admin / Admin only)."""
     # Validate role
