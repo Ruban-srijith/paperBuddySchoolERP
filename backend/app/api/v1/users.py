@@ -76,7 +76,7 @@ async def list_users(
 async def create_user(
     req: UserCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.VICE_PRINCIPAL)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """Create a new user with role assignment (Admin only)."""
     try:
@@ -134,7 +134,7 @@ async def update_user(
     user_id: str,
     req: UserUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.VICE_PRINCIPAL)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """Update user profile & role (Admin only)."""
     result = await db.execute(select(User).where(User.id == user_id, User.school_id == current_user.school_id))

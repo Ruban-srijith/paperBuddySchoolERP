@@ -117,7 +117,7 @@ async def batch_mark_attendance(
     req: BatchAttendanceRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.TEACHER, UserRole.MENTOR
+        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.TEACHER, UserRole.MENTOR
     )),
 ):
     """Mark attendance for a batch of students (max 60 per request). Teachers can mark today / past 48h."""

@@ -233,8 +233,8 @@ class TestGetUsersByRole:
 
     async def test_all_results_have_matching_role(self, client: AsyncClient, admin_user, db_session):
         """Every returned user from /by-role/{role} must have the queried role."""
-        await make_user(db_session, email="a_admin@school.edu", role=)
-        resp = await client.get("/api/v1/users/by-role/admin", headers=auth_header(admin_user))
+        await make_user(db_session, email="a_admin@school.edu", role=UserRole.PRINCIPAL)
+        resp = await client.get("/api/v1/users/by-role/principal", headers=auth_header(admin_user))
         assert resp.status_code == 200
         for u in resp.json():
-            assert u["role"] == "admin"
+            assert u["role"] == "principal"

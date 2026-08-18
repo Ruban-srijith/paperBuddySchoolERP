@@ -323,7 +323,7 @@ export default function ProfilePage() {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             
             {/* Correspondent / Super Admin */}
-            {(role === 'correspondent' || role === 'super_admin' || role === 'admin') && (
+            {(role === 'correspondent' || role === 'super_admin') && (
               <>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">

@@ -112,26 +112,28 @@ def require_role(*allowed_roles: UserRole):
 # ─── Convenience Shortcuts ─────────────────────────────────────
 # Pre-built role checkers for common access patterns
 
-require_admin_or_above = require_role(UserRole.SUPER_ADMIN)
+require_admin_or_above = require_role(
+    UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
+)
 
 require_principal_or_above = require_role(
-    UserRole.SUPER_ADMIN, UserRole.PRINCIPAL
+    UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL
 )
 
 require_dean_or_above = require_role(
-    UserRole.SUPER_ADMIN, UserRole.PRINCIPAL
+    UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
 )
 
 require_dept_head_or_above = require_role(
-    UserRole.SUPER_ADMIN, UserRole.PRINCIPAL
+    UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
 )
 
 require_teacher_or_above = require_role(
-    UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.TEACHER
+    UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.TEACHER
 )
 
 require_mentor_or_above = require_role(
-    UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.TEACHER, UserRole.MENTOR
+    UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.TEACHER, UserRole.MENTOR
 )
 
 require_any_authenticated = require_role(

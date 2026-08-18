@@ -78,13 +78,13 @@ class TestLoginFlow:
 
     async def test_login_returns_correct_role(self, client: AsyncClient, db_session):
         """Token response must carry the user's exact role."""
-        await make_user(db_session, email="admin_login@school.edu", password="Admin@1234", role=)
+        await make_user(db_session, email="admin_login@school.edu", password="Admin@1234", role=UserRole.PRINCIPAL)
         resp = await client.post(
             "/api/v1/auth/login",
             json={"email": "admin_login@school.edu", "password": "Admin@1234"},
         )
         assert resp.status_code == 200
-        assert resp.json()["role"] == "admin"
+        assert resp.json()["role"] == "principal"
 
 
 @pytest.mark.asyncio

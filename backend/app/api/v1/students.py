@@ -31,7 +31,7 @@ async def bulk_onboard_students(
     prefix: Optional[str] = Form("ADM-2026-"),
     default_password: Optional[str] = Form("Student@123"),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """
     Dual-Mode Mass Student Onboarding Engine:
