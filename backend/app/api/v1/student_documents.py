@@ -32,17 +32,17 @@ async def _get_or_create_student_profile(db: AsyncSession, current_user: User) -
 
     if not student:
         # Check if student exists by admission/email or create a fallback demo student profile
-        adm_no = f"ADM-2026-{current_user.id[:6].upper()}"
+        adm_no = f"ADM-2026-STU-{current_user.id[:6].upper()}"
         student = Student(
             user_id=current_user.id,
             admission_number=adm_no,
             full_name=current_user.full_name or "Student Profile",
-            father_name=f"Guardian ({current_user.full_name})",
-            mother_name="Parent / Guardian",
-            guardian_phone=current_user.phone or "+91-9876543210",
-            date_of_birth="Not Specified",
-            blood_group="Not Specified",
-            address="Academic Campus Residence"
+            father_name="Ramesh Kumar",
+            mother_name="Anita Kumar",
+            guardian_phone="+91-9876543210",
+            date_of_birth="2008-05-14",
+            blood_group="O+",
+            address="123 Academic Campus Avenue"
         )
         db.add(student)
         await db.commit()
@@ -77,14 +77,6 @@ async def get_my_documents(
         "mother_name": student.mother_name,
         "guardian_phone": student.guardian_phone,
         "date_of_birth": student.date_of_birth,
-        "blood_group": student.blood_group,
-        "address": student.address,
-        "gender": student.gender,
-        "community_category": student.community_category,
-        "father_annual_income": student.father_annual_income,
-        "aadhaar_number": student.aadhaar_number,
-        "previous_school": student.previous_school,
-        "tc_number": student.tc_number,
         "class_name": f"{student.school_class.grade}-{student.school_class.section}" if student.school_class else "Grade 10-A"
     }
 
@@ -98,39 +90,20 @@ async def get_my_documents(
 
 @router.post("/upload", response_model=StudentDocumentResponse)
 async def upload_student_document(
-    document_type: str = Form(..., description="auto, aadhaar, community, income, tc, birth_cert, custom"),
+    document_type: str = Form(..., description="aadhaar, community, income, tc, birth_cert, custom"),
     document_title: Optional[str] = Form(None),
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Upload a student profile document with AI Auto-Classification, instant OCR entity extraction,
-    and automatic synchronization directly into the Student database table records.
+    Upload a student profile document with mandatory Aadhaar gate check and instant AI cross-verification.
     """
     student = await _get_or_create_student_profile(db, current_user)
-    doc_type_clean = document_type.lower().strip() if document_type else "auto"
+    doc_type_clean = document_type.lower().strip()
 
-    # Step 1: Read file bytes
-    file_bytes = await file.read()
-
-    # Step 2: Multi-Model AI Vision & Classifier Engine
-    ai_result = await ocr_engine.verify_student_document_with_ai(
-        file_bytes=file_bytes,
-        document_type=doc_type_clean,
-        student_name=student.full_name,
-        father_name=student.father_name,
-        mother_name=student.mother_name,
-        phone=student.guardian_phone,
-        filename=file.filename or ""
-    )
-
-    detected_type = ai_result.get("detected_document_type") or doc_type_clean
-    if detected_type == "auto":
-        detected_type = "aadhaar" if "aadhaar" in (file.filename or "").lower() else "custom"
-
-    # Step 3: Enforce Aadhaar Gate if uploading secondary document
-    if detected_type != "aadhaar" and doc_type_clean != "aadhaar":
+    # Step 1: Enforce Aadhaar Mandatory Gate
+    if doc_type_clean != "aadhaar":
         aadhaar_check = await db.execute(
             select(StudentDocument).where(
                 StudentDocument.student_id == student.id,
@@ -139,15 +112,20 @@ async def upload_student_document(
             )
         )
         verified_aadhaar = aadhaar_check.scalar_one_or_none()
+
         if not verified_aadhaar:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="⛔ Mandatory Gate: You must upload and verify your Aadhaar Card first before uploading secondary certificates."
+                detail="⛔ Mandatory Gate: You must upload and verify your Aadhaar Card first before uploading other documents."
             )
+        verified_aadhaar_payload = verified_aadhaar.extracted_data or {}
+    else:
+        verified_aadhaar_payload = None
 
-    # Step 4: Save uploaded file to disk
-    file_ext = os.path.splitext(file.filename or "")[1] or ".png"
-    unique_filename = f"{student.id[:8]}_{detected_type}_{uuid.uuid4().hex[:6]}{file_ext}"
+    # Step 2: Read file bytes & Save File
+    file_bytes = await file.read()
+    file_ext = os.path.splitext(file.filename)[1] or ".png"
+    unique_filename = f"{student.id[:8]}_{doc_type_clean}_{uuid.uuid4().hex[:6]}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
 
     with open(file_path, "wb") as f:
@@ -155,24 +133,24 @@ async def upload_student_document(
 
     file_url = f"/static/uploads/documents/{unique_filename}"
 
-    # Step 5: LIVE SYNCHRONIZATION INTO STUDENTS DATABASE TABLE
-    sync_fields = ai_result.get("student_sync_fields") or {}
-    for attr, val in sync_fields.items():
-        if hasattr(student, attr) and val:
-            setattr(student, attr, val)
+    # Step 3: Multi-Model AI Vision Cross-Verification Engine
+    ai_result = await ocr_engine.verify_student_document_with_ai(
+        file_bytes=file_bytes,
+        document_type=doc_type_clean,
+        student_name=student.full_name,
+        father_name=student.father_name,
+        mother_name=student.mother_name,
+        phone=student.guardian_phone,
+        verified_aadhaar_data=verified_aadhaar_payload
+    )
 
-    # If full name was updated from Aadhaar/Birth Cert, also sync user table
-    if sync_fields.get("full_name") and current_user.full_name != sync_fields["full_name"]:
-        current_user.full_name = sync_fields["full_name"]
-        student.full_name = sync_fields["full_name"]
+    clean_title = document_title or doc_type_clean.replace('_', ' ').title()
 
-    clean_title = document_title or ai_result.get("document_title") or detected_type.replace('_', ' ').title()
-
-    # Step 6: Update or Insert Document Record
+    # Step 4: Update or Insert Document Record
     existing_doc_res = await db.execute(
         select(StudentDocument).where(
             StudentDocument.student_id == student.id,
-            StudentDocument.document_type == detected_type
+            StudentDocument.document_type == doc_type_clean
         )
     )
     existing_doc = existing_doc_res.scalar_one_or_none()
@@ -191,7 +169,7 @@ async def upload_student_document(
     else:
         doc = StudentDocument(
             student_id=student.id,
-            document_type=detected_type,
+            document_type=doc_type_clean,
             document_title=clean_title,
             file_url=file_url,
             masked_doc_number=ai_result["masked_doc_number"],
@@ -205,7 +183,6 @@ async def upload_student_document(
         db.add(doc)
 
     await db.commit()
-    await db.refresh(student)
     await db.refresh(doc)
     return doc
 
