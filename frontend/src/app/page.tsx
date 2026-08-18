@@ -7,7 +7,7 @@ import {
   ArrowRight, Sparkles, BrainCircuit, ShieldCheck, 
   LayoutDashboard, Users, GraduationCap, BarChart3, Clock, 
   Zap, Globe, ChevronRight, CheckCircle2, Star,
-  Quote
+  Quote, AlertTriangle, Calendar, Award, BellRing, Megaphone, Download
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
@@ -66,9 +66,78 @@ function MagneticButton({ children, className }: { children: React.ReactNode, cl
 export default function LandingPage() {
   const { isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [line1, setLine1] = useState("");
+  const [line2, setLine2] = useState("");
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    });
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
+    
+    const text1 = "Autonomous School";
+    const text2 = "Operations Platform";
+    let isCancelled = false;
+    
+    const typeText = async () => {
+      while (!isCancelled) {
+        // Type first line
+        for (let i = 0; i <= text1.length; i++) {
+          if (isCancelled) return;
+          setLine1(text1.slice(0, i));
+          await new Promise((resolve) => setTimeout(resolve, 60));
+        }
+        
+        // Type second line
+        for (let j = 0; j <= text2.length; j++) {
+          if (isCancelled) return;
+          setLine2(text2.slice(0, j));
+          await new Promise((resolve) => setTimeout(resolve, 60));
+        }
+        
+        // Pause at completion
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+        if (isCancelled) return;
+        
+        // Erase second line
+        for (let j = text2.length; j >= 0; j--) {
+          if (isCancelled) return;
+          setLine2(text2.slice(0, j));
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+        
+        // Erase first line
+        for (let i = text1.length; i >= 0; i--) {
+          if (isCancelled) return;
+          setLine1(text1.slice(0, i));
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+        
+        // Pause before typing again
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    };
+    
+    typeText();
+    
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   if (!mounted) return null;
@@ -82,16 +151,16 @@ export default function LandingPage() {
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className="sticky top-0 z-50 w-full bg-white/80 dark:bg-[#0b0f19]/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 shadow-sm"
       >
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 max-w-7xl mx-auto w-full">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <motion.div 
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.5, type: "spring" }}
-              className="w-10 h-10 flex items-center justify-center shrink-0 relative overflow-hidden group"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0 relative overflow-hidden group"
             >
               <img src="/logo.png" alt="Genesis ERP Logo" className="w-full h-full object-contain relative z-10" />
             </motion.div>
-            <span className="font-bold text-xl sm:text-2xl tracking-tight text-brand-blue whitespace-nowrap">
+            <span className="font-bold text-lg sm:text-2xl tracking-tight text-brand-blue whitespace-nowrap">
               Genesis ERP
             </span>
           </div>
@@ -103,16 +172,40 @@ export default function LandingPage() {
           <a href="#platform" className="hover:text-brand-blue transition-colors">Platform</a>
         </div>
 
-          <div className="shrink-0 flex items-center gap-3">
+          <div className="shrink-0 flex items-center gap-2 sm:gap-3">
+            {/* PWA Install Button */}
+            {!isInstalled && (
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={async () => {
+                  if (installPrompt) {
+                    installPrompt.prompt();
+                    const { outcome } = await installPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                      setInstallPrompt(null);
+                      setIsInstalled(true);
+                    }
+                  } else {
+                    alert("To install the app, look for the install icon in your browser's address bar, or use 'Add to Home Screen' in your browser menu.");
+                  }
+                }}
+                className="inline-flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-brand-blue to-indigo-600 text-white font-bold text-[11px] sm:text-sm shadow-md shadow-blue-500/25 hover:opacity-90 transition-all whitespace-nowrap"
+              >
+                <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="hidden sm:inline">Download App</span>
+                <span className="sm:hidden">Install</span>
+              </motion.button>
+            )}
             {isAuthenticated ? (
-              <Link href="/dashboard" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-gray-50 border border-gray-200 text-xs sm:text-sm font-bold text-brand-black hover:bg-gray-100 transition-all whitespace-nowrap overflow-hidden">
+              <Link href="/dashboard" className="group relative inline-flex items-center gap-1 sm:gap-2 px-3 py-1.5 sm:px-6 sm:py-2.5 rounded-full bg-gray-50 border border-gray-200 text-[11px] sm:text-sm font-bold text-brand-black hover:bg-gray-100 transition-all whitespace-nowrap overflow-hidden">
                 <span className="relative z-10">Dashboard</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
               </Link>
             ) : (
-              <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-brand-blue text-white text-xs sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
+              <Link href="/login" className="group relative inline-flex items-center gap-1 sm:gap-2 px-3 py-1.5 sm:px-6 sm:py-2.5 rounded-full bg-brand-blue text-white text-[11px] sm:text-sm font-bold hover:bg-brand-blue/90 shadow-md transition-all whitespace-nowrap">
                 <span className="relative z-10">Sign In</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
               </Link>
             )}
           </div>
@@ -121,30 +214,36 @@ export default function LandingPage() {
 
       <main className="relative z-10">
         {/* Enhanced Hero Section */}
-        <section className="pt-24 pb-32 px-4 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 overflow-visible">
+        <section className="pt-24 pb-32 px-4 max-w-4xl mx-auto flex flex-col items-center gap-16 overflow-visible text-center">
           <motion.div 
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="flex-1 text-center lg:text-left"
+            className="flex-1 w-full"
           >
             <motion.div variants={fadeUpVariant} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-brand-blue text-sm font-bold mb-8 shadow-sm">
               <Sparkles className="w-4 h-4 animate-pulse" />
               <span>v2.0 Next-Gen AI Release</span>
             </motion.div>
 
-            <motion.h1 variants={fadeUpVariant} className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-brand-black hyphens-auto break-words">
-              Autonomous School <br />
-              <span className="text-brand-blue">
-                Operations Platform
-              </span>
+            <motion.h1 variants={fadeUpVariant} className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-brand-black hyphens-auto break-words min-h-[120px] lg:min-h-[160px] flex flex-col items-center">
+              <div>
+                {line1}
+                {line1 === "Autonomous School" && <br />}
+              </div>
+              <div className="flex items-center">
+                <span className="text-brand-blue">
+                  {line2}
+                </span>
+                <span className="animate-pulse border-r-4 border-brand-blue ml-1">&nbsp;</span>
+              </div>
             </motion.h1>
 
-            <motion.p variants={fadeUpVariant} className="mt-8 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-              Genesis ERP transforms traditional school management with a 9-Role RBAC system, automated workflows, and intelligent analytics from LKG to 12th Standard.
+            <motion.p variants={fadeUpVariant} className="mt-8 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed font-medium">
+              Genesis ERP transforms traditional school management with a 11-Role RBAC system, automated workflows, and intelligent analytics from LKG to 12th Standard.
             </motion.p>
 
-            <motion.div variants={fadeUpVariant} className="mt-12 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+            <motion.div variants={fadeUpVariant} className="mt-12 flex flex-col sm:flex-row items-center gap-4 justify-center">
               {isAuthenticated ? (
                 <MagneticButton>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -182,55 +281,7 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.2 }}
-            className="flex-1 w-full max-w-2xl relative"
-          >
-            <motion.div 
-              animate={{ y: [0, -15, 0], rotate: [3, 2, 3] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0 bg-brand-blue/5 rounded-[40px] blur-3xl"
-            ></motion.div>
-            
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="relative rounded-[32px] overflow-hidden border border-gray-200 shadow-2xl bg-white p-4"
-            >
-              <img src="/dashboard-mockup.png" alt="Genesis ERP Dashboard" className="w-full h-auto object-cover rounded-[20px] bg-gray-50" />
-            </motion.div>
-            
-            {/* Floating badges */}
-            <motion.div 
-              animate={{ y: [0, 15, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute -top-6 -left-6 bg-white border border-gray-100 p-4 rounded-[24px] shadow-lg flex items-center gap-4"
-            >
-              <div className="bg-emerald-50 p-2 rounded-[12px]">
-                <ShieldCheck className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 font-bold">Security</div>
-                <div className="text-sm text-brand-black font-extrabold">Enterprise Grade</div>
-              </div>
-            </motion.div>
 
-            <motion.div 
-              animate={{ y: [0, -15, 0] }}
-              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute -bottom-6 -right-6 bg-white border border-gray-100 p-4 rounded-[24px] shadow-lg flex items-center gap-4"
-            >
-              <div className="bg-brand-blue/10 p-2 rounded-[12px]">
-                <BrainCircuit className="w-6 h-6 text-brand-blue" />
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 font-bold">AI Processing</div>
-                <div className="text-sm text-brand-black font-extrabold">Live 24/7</div>
-              </div>
-            </motion.div>
-          </motion.div>
         </section>
 
         {/* Impact/Statistics Section */}

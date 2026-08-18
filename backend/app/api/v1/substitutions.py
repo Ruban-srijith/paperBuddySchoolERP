@@ -60,7 +60,7 @@ async def auto_assign_substitution(
     req: SubstitutionAutoAssignRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Automatically find an available free teacher for the slot and assign substitution."""

@@ -19,6 +19,9 @@ body {
   font-family: var(--font-syne);
   overflow-x: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -371,5 +374,22 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   background: #3b82f6;
 }
 
+/* =========================================
+   LENIS SMOOTH SCROLLING BASE CSS
+   ========================================= */
 
-
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}

@@ -62,7 +62,7 @@ async def list_leave_requests(
         selectinload(LeaveRequest.approver)
     ).order_by(LeaveRequest.created_at.desc())
 
-    if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL]:
+    if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL]:
         query = query.where(LeaveRequest.applicant_id == current_user.id)
 
     res = await db.execute(query)
@@ -92,7 +92,7 @@ async def process_leave_approval(
     action: LeaveApprovalAction,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL
     )),
 ):
     """Approve or Reject a staff leave request (Principal / Correspondent / Admin)."""

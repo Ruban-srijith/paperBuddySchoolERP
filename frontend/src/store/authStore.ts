@@ -6,15 +6,11 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_
 export type UserRole = 
   | 'super_admin' 
   | 'correspondent'
-  | 'admin' 
   | 'principal' 
   | 'vice_principal'
-  | 'dean' 
-  | 'dept_head' 
   | 'teacher' 
   | 'mentor' 
   | 'student'
-  | 'parent'
   | 'finance'
   | 'warden'
   | 'librarian'
@@ -47,17 +43,13 @@ interface AuthState {
 
 // Role display names for UI
 export const ROLE_LABELS: Record<UserRole, string> = {
-  super_admin: 'Super Admin (Correspondent)',
+  super_admin: 'Founder / Super Admin',
   correspondent: 'Correspondent',
-  admin: 'Admin (Principal)',
   principal: 'Principal',
-  vice_principal: 'Sub-admin (Vice-Principal)',
-  dean: 'Dean of Academics',
-  dept_head: 'Head of Department',
+  vice_principal: 'Vice-Principal',
   teacher: 'Teacher',
   mentor: 'Mentor',
   student: 'Student',
-  parent: 'Parent',
   finance: 'Finance Manager',
   warden: 'Hostel Warden',
   librarian: 'Chief Librarian',
@@ -66,17 +58,13 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 // Role colors for badges
 export const ROLE_COLORS: Record<UserRole, string> = {
-  super_admin: 'from-red-500 to-amber-500',
+  super_admin: 'from-fuchsia-500 to-purple-600',
   correspondent: 'from-amber-500 to-red-500',
-  admin: 'from-indigo-500 to-purple-500',
   principal: 'from-amber-500 to-yellow-500',
   vice_principal: 'from-blue-600 to-cyan-500',
-  dean: 'from-teal-500 to-cyan-500',
-  dept_head: 'from-blue-500 to-indigo-500',
   teacher: 'from-emerald-500 to-green-500',
   mentor: 'from-violet-500 to-purple-500',
   student: 'from-sky-500 to-blue-500',
-  parent: 'from-pink-500 to-rose-500',
   finance: 'from-emerald-500 to-teal-500',
   warden: 'from-fuchsia-500 to-purple-500',
   librarian: 'from-sky-500 to-indigo-500',
@@ -86,24 +74,13 @@ export const ROLE_COLORS: Record<UserRole, string> = {
 // Navigation items per role
 export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   super_admin: [
-    'dashboard',
-    'scans',
-    'admin_documents',
-    'salary_approvals',
-    'event_approvals',
-    'revenue',
-    'toppers',
-    'calendar',
-    'timetable',
-    'attendance',
-    'mentorship',
-    'fees',
-    'emails',
-    'users',
-    'departments',
-    'classes',
-    'assign_students',
-    'class_allotments'
+    'superadmin_analytics',
+    'superadmin_colleges',
+    'superadmin_admins',
+    'superadmin_logs',
+    'superadmin_payments',
+    'superadmin_broadcasts',
+    'superadmin_aiconfig'
   ],
   correspondent: [
     'dashboard',
@@ -125,28 +102,8 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'assign_students',
     'class_roster',
     'class_allotments',
-    'classroom_allocation'
-  ],
-  admin: [
-    'dashboard',
-    'scans',
-    'admin_documents',
-    'pending_approvals',
-    'workload',
-    'staff_management',
-    'reports',
-    'calendar',
-    'timetable',
-    'attendance',
-    'mentorship',
-    'fees',
-    'emails',
-    'users',
-    'departments',
-    'classes',
-    'assign_students',
-    'class_roster',
-    'class_allotments'
+    'classroom_allocation',
+    'reports'
   ],
   principal: [
     'dashboard',
@@ -190,29 +147,6 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'class_roster',
     'class_allotments'
   ],
-  dean: [
-    'dashboard',
-    'scans',
-    'timetable',
-    'classroom_allocation',
-    'workload',
-    'exams',
-    'calendar',
-    'reports',
-    'labs',
-    'attendance',
-    'portion'
-  ],
-  dept_head: [
-    'dashboard',
-    'scans',
-    'timetable',
-    'workload',
-    'calendar',
-    'labs',
-    'attendance',
-    'portion'
-  ],
   teacher: [
     'dashboard',
     'scans',
@@ -238,8 +172,8 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'dashboard',
     'scans',
     'mentorship',
-    'attendance',
-    'portion'
+    'assignments',
+    'queries'
   ],
   student: [
     'dashboard',
@@ -259,9 +193,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'student_library',
     'student_hostel'
   ],
-  parent: [
-    'parent_portal'
-  ],
+
   finance: [
     'dashboard',
     'scans',

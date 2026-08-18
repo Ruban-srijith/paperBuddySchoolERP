@@ -138,7 +138,7 @@ export default function WorkloadPage() {
   const avgSyllabus = (teachers.reduce((a, b) => a + b.syllabus_completed_pct, 0) / (teachers.length || 1)).toFixed(1);
 
   return (
-    <ProtectedRoute allowedRoles={["admin", "principal", "vice_principal", "dean", "dept_head", "super_admin", "correspondent"]}>
+    <ProtectedRoute allowedRoles={["principal", "vice_principal", "super_admin", "correspondent"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

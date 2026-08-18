@@ -178,7 +178,7 @@ function ClassesPageContent() {
 
 export default function ClassesPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'vice_principal']}>
       <ClassesPageContent />
     </ProtectedRoute>
   );

@@ -7,7 +7,7 @@ import { AlertTriangle, Plus, X } from "lucide-react";
 export default function WardenIncidents() {
   const [showIncidentModal, setShowIncidentModal] = useState(false);
   return (
-    <ProtectedRoute allowedRoles={['warden', 'super_admin', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['warden', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-6xl mx-auto">
         <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

@@ -17,7 +17,7 @@ async def create_lab_assignment(
     req: LabAssignmentCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.TEACHER
+        UserRole.SUPER_ADMIN, UserRole.TEACHER
     )),
 ):
     """Create a lab assignment. Teachers can create for their own classes."""

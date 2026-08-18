@@ -63,7 +63,7 @@ export default function MyClassPage() {
   );
 
   return (
-    <ProtectedRoute allowedRoles={["teacher", "super_admin", "admin", "principal", "vice_principal"]}>
+    <ProtectedRoute allowedRoles={["teacher", "super_admin", "principal", "vice_principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

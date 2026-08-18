@@ -5,7 +5,7 @@ import { Library, BookOpen, Clock, AlertTriangle, Sparkles, LogIn, LineChart, Tr
 
 export default function LibrarianDashboard() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'librarian']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'librarian']}>
       <div className="space-y-6 max-w-7xl mx-auto">
         <header className="mb-8 flex justify-between items-end">
           <div>

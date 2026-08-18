@@ -238,7 +238,7 @@ async def unmask_document_number(
     # Simple session key validation check (accepts school password, pin, or admin)
     valid_keys = ["school@123", "1234", "Student@123", "password", "Admin@123", "password123"]
     if provided_key.strip() not in valid_keys and not any(k in provided_key.strip() for k in ["school", "123"]):
-        if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL]:
+        if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.PRINCIPAL]:
             raise HTTPException(status_code=400, detail="Invalid administrative secret key. Access denied.")
 
     # Reconstruct unmasked value
@@ -266,8 +266,8 @@ async def list_admin_student_documents(
     Restricted to super_admin, admin, principal, correspondent, class_teacher.
     """
     if current_user.role not in [
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL,
-        UserRole.CORRESPONDENT, UserRole.TEACHER, UserRole.DEPT_HEAD
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL,
+        UserRole.CORRESPONDENT, UserRole.TEACHER
     ]:
         raise HTTPException(status_code=403, detail="Unauthorized access to student documents administration.")
 

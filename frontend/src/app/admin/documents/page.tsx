@@ -63,7 +63,7 @@ export default function AdminDocumentsPage() {
   }, []);
 
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "admin", "principal", "correspondent", "teacher", "dept_head"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "principal", "correspondent", "teacher"]}>
       <div className="max-w-7xl mx-auto space-y-6 pb-12">
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">

@@ -66,14 +66,14 @@ export default function TimetablePage() {
 
   // Teachers directory
   const teachers = [
-    { id: "t1111111-1111-1111-1111-111111111111", name: "Dr. Sarah Connor", subject: "Mathematics" },
-    { id: "t2222222-2222-2222-2222-222222222222", name: "Prof. Alan Turing", subject: "Physics" },
+    { id: "t1111111-1111-1111-1111-111111111111", name: "Dr. Sarah Connor", subject: "Science" },
+    { id: "t2222222-2222-2222-2222-222222222222", name: "Prof. Alan Turing", subject: "Mathematics" },
     { id: "t3333333-3333-3333-3333-333333333333", name: "Dr. Marie Curie", subject: "Chemistry" },
     { id: "t4444444-4444-4444-4444-444444444444", name: "Alex Mercer", subject: "Computer Science" },
   ];
 
-  const isSubAdmin = user && ['vice_principal', 'dean', 'dept_head'].includes(user.role);
-  const isSuperOrAdmin = user && ['super_admin', 'correspondent', 'admin', 'principal'].includes(user.role);
+  const isSubAdmin = user && ['vice_principal'].includes(user.role);
+  const isSuperOrAdmin = user && ['super_admin', 'correspondent', 'principal'].includes(user.role);
   const isTeacher = user && user.role === 'teacher';
   const isStudent = user && user.role === 'student';
 

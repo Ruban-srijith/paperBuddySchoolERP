@@ -58,7 +58,7 @@ export default function AcademicCalendarPage() {
     target_audience: "all",
   });
 
-  const canAddEvents = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal'].includes(user.role);
+  const canAddEvents = user && ['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user.role);
 
   const getDemoCalendarEvents = (): CalendarEvent[] => [
     {

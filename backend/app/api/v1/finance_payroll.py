@@ -20,13 +20,13 @@ class ProcessSalaryRequest(BaseModel):
     deductions: float = 0.0
 
 def get_finance_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role not in [UserRole.FINANCE, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL]:
+    if current_user.role not in [UserRole.FINANCE, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL]:
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
 
 @router.get("/staff")
 async def get_staff(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_admin)):
-    staff_roles = [UserRole.TEACHER, UserRole.MENTOR, UserRole.DEPT_HEAD, UserRole.DEAN, UserRole.VICE_PRINCIPAL, UserRole.WARDEN, UserRole.FINANCE]
+    staff_roles = [UserRole.TEACHER, UserRole.MENTOR, UserRole.VICE_PRINCIPAL, UserRole.WARDEN, UserRole.FINANCE]
     staff_result = await db.execute(select(User).where(User.role.in_(staff_roles)))
     staff = staff_result.scalars().all()
     

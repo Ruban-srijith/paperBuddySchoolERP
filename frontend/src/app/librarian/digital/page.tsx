@@ -7,7 +7,7 @@ import { MonitorSmartphone, ExternalLink, Plus, Search, X } from "lucide-react";
 export default function LibrarianDigital() {
   const [showAddModal, setShowAddModal] = useState(false);
   return (
-    <ProtectedRoute allowedRoles={['librarian', 'super_admin', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['librarian', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-7xl mx-auto">
         <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

@@ -29,7 +29,7 @@ interface AnnouncementItem {
 export default function AnnouncementsPage() {
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const canPost = user && ['teacher', 'admin', 'principal', 'vice_principal', 'super_admin', 'correspondent'].includes(user.role);
+  const canPost = user && ['teacher', 'principal', 'vice_principal', 'super_admin', 'correspondent'].includes(user.role);
 
   const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
 
@@ -123,7 +123,7 @@ export default function AnnouncementsPage() {
               </div>
 
               <h2 className="text-base font-bold text-brand-black">{a.title}</h2>
-              <p className="text-xs text-gray-700 leading-relaxed bg-gray-950/40 p-3.5 rounded-xl border border-gray-200/80">
+              <p className="text-xs text-gray-800 dark:text-slate-100 leading-relaxed bg-gray-50 dark:bg-slate-800 p-3.5 rounded-xl border border-gray-200/80 dark:border-slate-700">
                 {a.content}
               </p>
             </div>

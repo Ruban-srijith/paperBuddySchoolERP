@@ -112,7 +112,7 @@ export default function AssignToppersPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["teacher", "super_admin", "admin"]}>
+    <ProtectedRoute allowedRoles={["teacher", "super_admin"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

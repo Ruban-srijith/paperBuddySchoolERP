@@ -76,7 +76,7 @@ export default function ProfilePage() {
   const color = roleColors[role] || "from-gray-500 to-gray-600";
 
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'teacher', 'student', 'parent', 'mentor', 'finance', 'warden', 'librarian']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'vice_principal', 'teacher', 'student', 'mentor', 'finance', 'warden', 'librarian']}>
       <div className="space-y-6 max-w-6xl mx-auto pb-12">
         
         {/* Header Section */}

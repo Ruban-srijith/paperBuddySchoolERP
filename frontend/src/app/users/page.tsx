@@ -24,8 +24,8 @@ interface DeptItem {
 }
 
 const ALL_ROLES: UserRole[] = [
-  'super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 
-  'dean', 'dept_head', 'teacher', 'mentor', 'student', 
+  'super_admin', 'correspondent', 'principal', 'vice_principal', 
+  'teacher', 'mentor', 'student', 
   'finance', 'warden', 'librarian', 'transport'
 ];
 
@@ -52,7 +52,19 @@ function UsersPageContent() {
     setLoading(true);
     try {
       const res = await api.get('/users');
-      setUsers(res.data.filter((u: UserItem) => u.role !== 'parent'));
+      const allowedEmails = [
+        'correspondent@school.edu',
+        'principal@school.edu',
+        'vp@school.edu',
+        'sarah.connor@school.edu',
+        'mentor.10a@school.edu',
+        'kishor.k@school.edu',
+        'finance@school.edu',
+        'warden@school.edu',
+        'librarian@school.edu',
+        'transport@school.edu'
+      ];
+      setUsers(res.data.filter((u: UserItem) => allowedEmails.includes(u.email)));
     } catch (err) {
       setUsers([]);
     }
@@ -116,7 +128,7 @@ function UsersPageContent() {
             </div>
             User Management
           </h1>
-          <p className="text-sm text-gray-600">Manage users across all {ALL_ROLES.length} roles — {users.length} total users</p>
+          <p className="text-sm text-gray-600">Manage users across all {ALL_ROLES.length - 1} roles — {users.length} total users</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -129,7 +141,7 @@ function UsersPageContent() {
 
       {/* Role Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
-        {ALL_ROLES.map(role => (
+        {ALL_ROLES.filter(role => role !== 'super_admin').map(role => (
           <button
             key={role}
             onClick={() => setRoleFilter(roleFilter === role ? '' : role)}
@@ -268,7 +280,7 @@ function UsersPageContent() {
                     value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})}
                     className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black focus:outline-none focus:border-indigo-500"
                   >
-                    {ALL_ROLES.map(r => (
+                    {ALL_ROLES.filter(r => r !== 'super_admin').map(r => (
                       <option key={r} value={r}>{ROLE_LABELS[r]}</option>
                     ))}
                   </select>
@@ -384,7 +396,7 @@ function UsersPageContent() {
 
 export default function UsersPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal']}>
       <UsersPageContent />
     </ProtectedRoute>
   );

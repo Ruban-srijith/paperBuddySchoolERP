@@ -39,7 +39,7 @@ async def register_school(req: SchoolRegister, db: AsyncSession = Depends(get_db
         school_id=new_school.id,
         email=req.admin_user.email,
         full_name=req.admin_user.full_name,
-        role=UserRole.ADMIN,  # Force role to ADMIN
+        role=UserRole.CORRESPONDENT, # Force role to CORRESPONDENT
         password_hash=hash_password(req.admin_user.password),
     )
     db.add(new_admin)

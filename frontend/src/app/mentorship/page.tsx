@@ -74,7 +74,7 @@ function MentorshipContent() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const isManagement = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'dean', 'dept_head'].includes(user.role);
+  const isManagement = user && ['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user.role);
 
   const fetchMentees = async () => {
     setLoading(true);
@@ -428,7 +428,7 @@ function MentorshipContent() {
 
 export default function MentorshipPage() {
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "admin", "principal", "vice_principal", "dean", "dept_head", "mentor"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal", "vice_principal", "mentor"]}>
       <MentorshipContent />
     </ProtectedRoute>
   );

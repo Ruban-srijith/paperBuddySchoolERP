@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   FileSearch, Calendar, CheckSquare, BookOpen, FlaskConical, 
   Mail, LayoutDashboard, GraduationCap, Sparkles, Users,
-  Building2, LogOut, Shield, ChevronDown, UserCheck, CreditCard,
+  Building2, LogOut, Shield, ChevronDown, UserCheck, CreditCard, History,
   CheckCircle2, RefreshCw, Heart, DollarSign, Award, TrendingUp,
   Clock, Activity, FileSpreadsheet, LayoutGrid, FileCheck,
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
   Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
-  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus, Sun, Moon, ShieldCheck, Bus, MapPin
+  BookCopy, Library, MonitorSmartphone, UserCircle, UserPlus, Sun, Moon, ShieldCheck, Bus, MapPin, Download
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -31,6 +31,14 @@ const fadeLeftVariant = {
 
 // Map nav item keys to their config
 const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge?: string; color: string }> = {
+  superadmin_analytics: { href: '/superadmin?tab=analytics',       label: 'Global Analytics',           icon: Activity,        color: 'group-hover:text-fuchsia-400' },
+  superadmin_colleges:  { href: '/superadmin?tab=colleges',        label: 'Manage Schools',             icon: Building2,       color: 'group-hover:text-fuchsia-400' },
+  superadmin_admins:    { href: '/superadmin?tab=admins',          label: 'Manage Admins',              icon: Users,           color: 'group-hover:text-fuchsia-400' },
+  superadmin_logs:      { href: '/superadmin?tab=logs',            label: 'Audit Ledgers',              icon: History,         color: 'group-hover:text-fuchsia-400' },
+  superadmin_payments:  { href: '/superadmin?tab=payments',        label: 'Payments & Ledger',          icon: CreditCard,      color: 'group-hover:text-fuchsia-400' },
+  superadmin_broadcasts: { href: '/superadmin?tab=broadcasts',      label: 'System Broadcasts',          icon: Megaphone,       color: 'group-hover:text-fuchsia-400' },
+  superadmin_aiconfig:  { href: '/superadmin?tab=aiconfig',        label: 'AI Core Config',             icon: Sparkles,        color: 'group-hover:text-fuchsia-400' },
+  superadmin_addschool: { href: '/superadmin?tab=addschool',       label: 'Add School Client',          icon: UserPlus,        color: 'group-hover:text-fuchsia-400' },
   dashboard:            { href: '/dashboard',                     label: 'Dashboard Overview',         icon: LayoutDashboard, color: 'group-hover:text-indigo-400' },
   scans:                { href: '/scans',                         label: 'Universal OCR Scanner',      icon: FileSearch,      color: 'group-hover:text-amber-400', badge: 'OCR' },
   student_documents:    { href: '/student/documents',            label: 'Profile Documents',         icon: ShieldCheck,     color: 'group-hover:text-sky-400', badge: 'AI' },
@@ -110,6 +118,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  // Hardware-accelerated native smooth scroll is applied via CSS
 
   useEffect(() => {
     checkAuth();
@@ -125,6 +137,23 @@ function AppShell({ children }: { children: React.ReactNode }) {
       window.location.replace('/login');
     }
   }, [pathname, isAuthenticated, hasChecked]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    });
+    // Check if already running as installed PWA
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+    }
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
@@ -160,30 +189,51 @@ function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#EEF2F6] dark:bg-[#0b0f19] text-[#131313] dark:text-slate-100 transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="h-16 flex-none bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800/80 shadow-sm px-4 md:px-6 flex items-center justify-between transition-colors duration-200 z-50">
-        <div className="flex items-center space-x-3">
+      <header className="h-16 flex-none bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800/80 shadow-sm px-2 sm:px-4 md:px-6 flex items-center justify-between transition-colors duration-200 z-50">
+        <div className="flex items-center space-x-1 sm:space-x-3 shrink-0">
           <button
             onClick={() => setShowMobileMenu(true)}
-            className="lg:hidden p-2 -ml-2 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-brand-black dark:hover:text-white transition-colors"
+            className="lg:hidden p-1.5 sm:p-2 -ml-1 sm:-ml-2 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-brand-black dark:hover:text-white transition-colors"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-5 h-5 sm:w-5 sm:h-5" />
           </button>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Link href="/" className="flex items-center space-x-2 md:space-x-3">
-            <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center flex-shrink-0">
+            <Link href="/" className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-3">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 flex items-center justify-center flex-shrink-0">
               <img src="/logo.png" alt="Genesis ERP Logo" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col justify-center whitespace-nowrap">
-              <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-brand-blue dark:text-blue-400">Genesis ERP</span>
-              <span className="hidden md:inline-flex mt-0.5 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 font-medium w-fit">
-                v2.5 Multi-Role
-              </span>
+              <span className="font-bold text-sm sm:text-base md:text-xl tracking-tight text-brand-blue dark:text-blue-400">Genesis ERP</span>
             </div>
             </Link>
           </motion.div>
         </div>
 
-        <div className="flex items-center space-x-2 md:space-x-4">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 md:space-x-4 shrink-0">
+          {/* PWA Download App Button */}
+          {!isInstalled && (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={async () => {
+                if (installPrompt) {
+                  installPrompt.prompt();
+                  const { outcome } = await installPrompt.userChoice;
+                  if (outcome === 'accepted') {
+                    setInstallPrompt(null);
+                    setIsInstalled(true);
+                  }
+                } else {
+                  alert("To install the app, look for the install icon in your browser's address bar, or use 'Add to Home Screen' in your browser menu.");
+                }
+              }}
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-brand-blue to-indigo-600 text-white font-semibold text-[10px] sm:text-xs shadow-md shadow-blue-500/25 hover:opacity-90 transition-all whitespace-nowrap"
+            >
+              <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">Download App</span>
+              <span className="sm:hidden">Install</span>
+            </motion.button>
+          )}
           {/* Dark Mode Switch */}
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -370,8 +420,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full p-4 md:p-6 overflow-y-auto">
-          {children}
+        <main className="flex-1 w-full p-4 md:p-6 overflow-y-auto scroll-smooth transform-gpu" style={{ willChange: 'scroll-position' }}>
+          <div>
+            {children}
+          </div>
         </main>
       </div>
     </div>

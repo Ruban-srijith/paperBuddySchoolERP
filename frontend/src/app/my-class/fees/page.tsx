@@ -54,7 +54,7 @@ export default function MyClassFeesPortal() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['teacher', 'super_admin', 'correspondent', 'admin', 'principal']}>
+    <ProtectedRoute allowedRoles={['teacher', 'super_admin', 'correspondent', 'principal']}>
       <div className="space-y-6 max-w-6xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
@@ -65,8 +65,8 @@ export default function MyClassFeesPortal() {
         </header>
 
         <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-xl flex items-start gap-3">
-          <Info className="w-5 h-5 text-cyan-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-cyan-200/80">
+          <Info className="w-5 h-5 text-cyan-600 dark:text-cyan-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-cyan-800 dark:text-cyan-300">
             <strong>Note:</strong> Toggling the Bus or Hostel switch will automatically recalculate the student's dues in the Finance portal. 
             Ensure these toggles are accurate for the current term!
           </div>

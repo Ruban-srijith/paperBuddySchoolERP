@@ -110,7 +110,7 @@ async def super_admin(db_session):
 
 @pytest_asyncio.fixture
 async def admin_user(db_session):
-    return await make_user(db_session, email="admin@school.edu", full_name="Admin User", role=UserRole.ADMIN)
+    return await make_user(db_session, email="admin@school.edu", full_name="Admin User", role=)
 
 
 @pytest_asyncio.fixture
@@ -125,7 +125,7 @@ async def student_user(db_session):
 
 @pytest_asyncio.fixture
 async def parent_user(db_session):
-    return await make_user(db_session, email="parent@school.edu", full_name="Parent User", role=UserRole.PARENT)
+    return await make_user(db_session, email="parent@school.edu", full_name="Parent User", role=)
 
 
 @pytest_asyncio.fixture

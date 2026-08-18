@@ -67,8 +67,8 @@ export default function FeesPage() {
     fee_structure_id: "",
   });
 
-  const isManagement = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'finance'].includes(user.role);
-  const isStudentOrParent = user && ['student', 'parent'].includes(user.role);
+  const isManagement = user && ['super_admin', 'correspondent', 'principal', 'vice_principal', 'finance'].includes(user.role);
+  const isStudentOrParent = user && ['student'].includes(user.role);
 
   const fetchDuesAndReceipts = async () => {
     setLoading(true);

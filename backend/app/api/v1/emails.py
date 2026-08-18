@@ -15,7 +15,7 @@ async def send_email(
     req: SendEmailRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL
     )),
 ):
     """Send email notification. Admin/Principal only."""
@@ -46,7 +46,7 @@ async def send_email(
 async def get_email_logs(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL
     )),
 ):
     """View email logs. Admin/Principal only."""

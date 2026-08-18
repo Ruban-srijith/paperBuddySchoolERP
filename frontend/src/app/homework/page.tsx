@@ -31,7 +31,7 @@ interface HomeworkItem {
 export default function HomeworkPage() {
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const isTeacher = user?.role === "teacher" || ['super_admin', 'admin', 'principal', 'vice_principal'].includes(user?.role || '');
+  const isTeacher = user?.role === "teacher" || ['super_admin', 'principal', 'vice_principal'].includes(user?.role || '');
 
   const [homeworkList, setHomeworkList] = useState<HomeworkItem[]>([]);
   const [loading, setLoading] = useState(true);

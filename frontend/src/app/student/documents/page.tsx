@@ -269,7 +269,7 @@ export default function StudentDocumentsPage() {
   const handleFileUpload = handleUpload;
 
   return (
-    <ProtectedRoute allowedRoles={["student", "super_admin", "admin"]}>
+    <ProtectedRoute allowedRoles={["student", "super_admin"]}>
       <div className="space-y-6 max-w-7xl mx-auto pb-12">
         {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-6 rounded-3xl shadow-sm">

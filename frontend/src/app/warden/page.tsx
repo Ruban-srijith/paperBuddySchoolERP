@@ -5,7 +5,7 @@ import { Home, Users, AlertTriangle, ShieldCheck, TrendingUp, Sparkles, LogOut }
 
 export default function WardenDashboard() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'warden']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'warden']}>
       <div className="space-y-6 max-w-7xl mx-auto">
         <header className="mb-8 flex justify-between items-end">
           <div>

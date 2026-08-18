@@ -38,7 +38,7 @@ async def get_classes(db: AsyncSession = Depends(get_db)):
 async def create_class(
     class_data: ClassCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
 ):
     # Check if class already exists
     existing = await db.execute(select(Class).where(Class.grade == class_data.grade, Class.section == class_data.section))
@@ -61,7 +61,7 @@ async def assign_teacher(
     class_id: str,
     assign_data: AssignTeacherRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
 ):
     result = await db.execute(select(Class).where(Class.id == class_id))
     db_class = result.scalar_one_or_none()
@@ -84,7 +84,7 @@ async def assign_teacher(
 @router.get("/my-class", response_model=ClassResponse)
 async def get_my_class(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.TEACHER, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
 ):
     # Find the class where this user is the class teacher
     result = await db.execute(
@@ -108,7 +108,7 @@ async def get_my_class(
 async def remove_assigned_teacher(
     class_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
 ):
     result = await db.execute(select(Class).where(Class.id == class_id))
     db_class = result.scalar_one_or_none()

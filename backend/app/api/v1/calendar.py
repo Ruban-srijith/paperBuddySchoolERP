@@ -167,7 +167,7 @@ async def create_calendar_event(
     req: CalendarEventCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Create a new academic calendar event (Sub-admin/Admin/Superadmin only)."""
@@ -198,7 +198,7 @@ async def update_calendar_event(
     req: CalendarEventUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Update an existing calendar event."""
@@ -230,7 +230,7 @@ async def delete_calendar_event(
     event_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.DEAN
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Delete a calendar event."""

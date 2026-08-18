@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function FinanceDashboard() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'finance']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'finance']}>
       <div className="space-y-8 max-w-7xl mx-auto pb-12">
         
         {/* Header & AI Insights Panel */}
@@ -49,11 +49,11 @@ export default function FinanceDashboard() {
                 Copilot Insights
               </h3>
               <div className="space-y-4">
-                <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-200/50 text-sm">
-                  <span className="text-rose-400 font-semibold">Risk Alert:</span> The Infrastructure budget is 85% utilized. Recommend freezing non-essential repairs.
+                <div className="bg-gray-50/50 dark:bg-slate-800/40 p-3 rounded-xl border border-gray-200/50 text-sm text-gray-700 dark:text-indigo-200">
+                  <span className="text-rose-600 dark:text-rose-400 font-semibold">Risk Alert:</span> The Infrastructure budget is 85% utilized. Recommend freezing non-essential repairs.
                 </div>
-                <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-200/50 text-sm">
-                  <span className="text-emerald-600 font-semibold">Forecast:</span> Expected fee collection next week is ₹4.2M based on historical payment patterns.
+                <div className="bg-gray-50/50 dark:bg-slate-800/40 p-3 rounded-xl border border-gray-200/50 text-sm text-gray-700 dark:text-indigo-200">
+                  <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Forecast:</span> Expected fee collection next week is ₹4.2M based on historical payment patterns.
                 </div>
               </div>
             </div>

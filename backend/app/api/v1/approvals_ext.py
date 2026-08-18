@@ -49,7 +49,7 @@ async def list_salary_records(
     year: Optional[int] = None,
     status_filter: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT)),
 ):
     """List staff salary payout records for Superadmin review."""
     query = select(SalaryRecord).options(
@@ -190,7 +190,7 @@ async def decide_event_proposal(
     event_id: str,
     req: EventDecisionRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT)),
 ):
     """Superadmin / Admin approves or rejects major event proposal."""
     res = await db.execute(select(SchoolEventProposal).where(SchoolEventProposal.id == event_id))
@@ -215,7 +215,7 @@ async def decide_event_proposal(
 @router.get("/pending-summary")
 async def get_pending_approvals_summary(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.SUPER_ADMIN)),
+    current_user: User = Depends(require_role(UserRole.PRINCIPAL, UserRole.SUPER_ADMIN)),
 ):
     """Consolidated view of all items awaiting Admin / Principal action."""
     # Pending leaves

@@ -15,7 +15,7 @@ class AuxServiceUpdate(BaseModel):
     is_hostel_user: bool
 
 def get_teacher(current_user: User = Depends(get_current_user)):
-    if current_user.role not in [UserRole.TEACHER, UserRole.ADMIN, UserRole.PRINCIPAL, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT]:
+    if current_user.role not in [UserRole.TEACHER, UserRole.PRINCIPAL, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT]:
         raise HTTPException(status_code=403, detail="Not authorized")
     return current_user
 

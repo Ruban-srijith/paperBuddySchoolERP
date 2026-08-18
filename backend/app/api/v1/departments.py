@@ -55,7 +55,7 @@ async def list_departments(
 async def create_department(
     req: DepartmentCreateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Create a new department (Admin only)."""
     # Check duplicate
@@ -136,7 +136,7 @@ async def update_department(
     dept_id: str,
     req: DepartmentUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.VICE_PRINCIPAL)),
 ):
     """Update a department (e.g. set dean)."""
     dept = await db.execute(select(Department).where(Department.id == dept_id))
@@ -160,7 +160,7 @@ async def remove_teacher_from_department(
     dept_id: str,
     teacher_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.VICE_PRINCIPAL))
 ):
     teacher = await db.execute(select(User).where(User.id == teacher_id, User.department_id == dept_id))
     teacher_obj = teacher.scalar_one_or_none()
@@ -175,7 +175,7 @@ async def remove_teacher_from_department(
 async def delete_department(
     dept_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.VICE_PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.VICE_PRINCIPAL))
 ):
     dept = await db.execute(select(Department).where(Department.id == dept_id))
     dept_obj = dept.scalar_one_or_none()

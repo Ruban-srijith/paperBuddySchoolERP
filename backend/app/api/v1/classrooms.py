@@ -35,7 +35,7 @@ async def list_classrooms(
 async def create_classroom(
     req: ClassroomCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.VICE_PRINCIPAL, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.VICE_PRINCIPAL, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL))
 ):
     new_classroom = Classroom(**req.dict())
     db.add(new_classroom)
@@ -48,7 +48,7 @@ async def update_classroom(
     classroom_id: str,
     req: ClassroomUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.VICE_PRINCIPAL, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.VICE_PRINCIPAL, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL))
 ):
     result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
     classroom = result.scalar_one_or_none()
@@ -67,7 +67,7 @@ async def update_classroom(
 async def delete_classroom(
     classroom_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.VICE_PRINCIPAL, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL))
+    current_user: User = Depends(require_role(UserRole.VICE_PRINCIPAL, UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL))
 ):
     result = await db.execute(select(Classroom).where(Classroom.id == classroom_id))
     classroom = result.scalar_one_or_none()

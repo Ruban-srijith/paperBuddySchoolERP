@@ -49,7 +49,7 @@ export default function AttendancePage() {
   // Fetch summary data for management
   useEffect(() => {
     const fetchSummary = async () => {
-      if (['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal'].includes(user?.role || '')) {
+      if (['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user?.role || '')) {
         setLoadingSummary(true);
         try {
           const res = await api.get(`/attendance/summary?date_str=${selectedDate}`);
@@ -95,7 +95,7 @@ export default function AttendancePage() {
     summary: "Covered convex/concave lens calculations, ray diagrams, and solved 4 numerical problems."
   });
 
-  const isManagement = user && ['super_admin', 'correspondent', 'admin', 'principal', 'vice_principal', 'dean', 'dept_head'].includes(user.role);
+  const isManagement = user && ['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user.role);
   const isTeacher = user?.role === 'teacher';
   const isStudent = user?.role === 'student';
 

@@ -74,7 +74,7 @@ export default function FeeConfigPortal() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'admin', 'principal', 'finance']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'finance']}>
       <div className="space-y-6 max-w-5xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-brand-black flex items-center gap-3">
@@ -93,9 +93,9 @@ export default function FeeConfigPortal() {
                 <button
                   key={grade}
                   onClick={() => setSelectedGrade(grade)}
-                  className={`w-full text-left px-4 py-3 rounded-xl transition-colors font-medium ${
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium ${
                     selectedGrade === grade 
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                      ? 'bg-brand-blue text-white shadow-md shadow-brand-blue/15' 
                       : 'text-gray-600 hover:bg-gray-100 hover:text-brand-black'
                   }`}
                 >
