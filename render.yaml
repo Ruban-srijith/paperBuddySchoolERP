@@ -9,7 +9,7 @@ services:
       - key: DATABASE_URL
         sync: false   # Set manually in Render Dashboard
       - key: MONGODB_URL
-        sync: false   # Set to MongoDB Atlas URL in Render Dashboard
+        value: mongodb://localhost:27017 # Optional dev/seed database (Not required for production)
       - key: MONGODB_DB_NAME
         value: paperbuddy_erp
       - key: SECRET_KEY
