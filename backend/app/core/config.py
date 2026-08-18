@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # JWT Authentication Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "paperbuddy-super-secret-key-change-in-production-2026")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8 hours
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days
 
     # Default password for seeded users
     DEFAULT_PASSWORD: str = "school@123"

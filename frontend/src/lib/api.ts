@@ -20,16 +20,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor to handle genuine token expiration on /auth/me
+// Interceptor to handle token expiration (401) across all secured routes
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isAuthEndpoint = error.config?.url?.includes('/auth/me');
-    if (error.response?.status === 401 && isAuthEndpoint && typeof window !== 'undefined') {
-      localStorage.removeItem('pb_token');
-      localStorage.removeItem('pb_user');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      const isLoginAttempt = error.config?.url?.includes('/auth/login');
+      if (!isLoginAttempt) {
+        localStorage.removeItem('pb_token');
+        localStorage.removeItem('pb_user');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

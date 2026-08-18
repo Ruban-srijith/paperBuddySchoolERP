@@ -103,6 +103,11 @@ export default function StudentDocumentsPage() {
       mother_name: "Anita Kumar",
       guardian_phone: "+91-9876543210",
       date_of_birth: "2008-05-14",
+      blood_group: "O+",
+      gender: "Male",
+      address: "123 Academic Campus Avenue, Chennai",
+      community_category: "OBC / Backward Class",
+      father_annual_income: "₹ 3,50,000 / Annum",
       class_name: "Grade 10-A"
     }
   });
