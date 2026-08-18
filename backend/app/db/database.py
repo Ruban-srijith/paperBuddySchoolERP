@@ -8,13 +8,15 @@ from app.core.config import settings
 logger = logging.getLogger("db")
 
 # Parse and normalise the DATABASE_URL for asyncpg
-db_url = settings.DATABASE_URL
+db_url = (settings.DATABASE_URL or "").strip()
+if not db_url:
+    db_url = settings.SQLITE_DATABASE_URL
 
 # Convert postgresql:// → postgresql+asyncpg://
 if db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 elif db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+    db_url = db_url.replace("postgres://", "postgres+asyncpg://" if "postgres+asyncpg" in db_url else "postgresql+asyncpg://", 1)
 
 is_sqlite = "sqlite" in db_url
 is_postgres = "postgresql+asyncpg" in db_url
