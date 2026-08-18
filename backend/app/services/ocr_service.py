@@ -278,14 +278,123 @@ class LocalOCRService:
             logger.warning(f"Image preprocessing fallback: {e}")
             return image
 
+    HEADER_BLOCKLIST = {
+        'government of india', 'unique identification authority', 'unique identification',
+        'authority of india', 'uidai', 'revenue department', 'taluk office',
+        'community certificate', 'income certificate', 'birth certificate',
+        'transfer certificate', 'marksheet', 'grade card', 'central board',
+        'secondary education', 'higher secondary', 'public school', 'hospital',
+        'medical certificate', 'fitness certificate', 'sports certificate'
+    }
+
+    def clean_person_name(self, val: Optional[str]) -> str:
+        """Cleans, formats, and sanitizes human person names from OCR output."""
+        if not val:
+            return ""
+        val = re.split(r'[\n\r,;:|]', val)[0].strip()
+        val = re.sub(
+            r'^(?:(?:Selvi|Thiru|Kumari|Master|Mr\.?|Mrs\.?|Ms\.?|Shri|Smt\.?|Dr\.?|Selvan)(?:\s*/\s*(?:Selvi|Thiru|Kumari|Master|Mr\.?|Mrs\.?|Ms\.?|Shri|Smt\.?|Dr\.?|Selvan))*\s*)',
+            '',
+            val,
+            flags=re.IGNORECASE
+        ).strip()
+        val = re.split(
+            r'\b(?:DOB|Date|Father|Mother|Son|Daughter|Gender|Male|Female|UID|Aadhaar|C/O|S/O|D/O|W/O|Address|belongs|is|residing|student|pupil|roll|reg|mci|certified|annual)\b',
+            val,
+            flags=re.IGNORECASE
+        )[0].strip()
+        val = re.sub(r'[^A-Za-z\s\.\'-]', '', val).strip()
+        val = re.sub(r'\s+', ' ', val)
+
+        if not val or val.lower() in self.HEADER_BLOCKLIST:
+            return ""
+        for blk in self.HEADER_BLOCKLIST:
+            if blk in val.lower():
+                return ""
+
+        parts = val.split()
+        if 1 <= len(parts) <= 4 and len(val) >= 2:
+            return ' '.join(w.capitalize() for w in parts)
+        return ""
+
+    def extract_person_names(self, text: str, default_student: str = "Student", default_father: str = "Parent / Guardian") -> Tuple[str, str, str]:
+        """
+        Advanced heuristic and pattern-matching engine to reliably extract
+        Student Full Name, Father's Name, and Mother's Name across all document types.
+        """
+        student_name = ""
+        father_name = ""
+        mother_name = ""
+
+        # 1. Direct Field Key Matches
+        name_patterns = [
+            r'(?:1\.\s*)?Name of (?:the )?(?:Pupil|Student|Candidate|Child|Applicant)[:\s\.\-]+([^\n\r,;]+)',
+            r'(?:Pupil|Candidate|Student|Child|Applicant)(?:\'s)?(?:\s*/\s*Guardian\'s)?\s*Name[:\s\.\-]+([^\n\r,;]+)',
+            r'(?:Full\s*Name|Candidate\s*Name|Student\s*Name)[:\s\.\-]+([^\n\r,;]+)',
+            r'\bName[:\s\.\-]+([^\n\r,;]+)',
+            r'(?:certify that|certified that)\s+([A-Za-z\s\.\'/\-]+?)(?:\s*,|\s+(?:son|daughter|S/o|D/o|C/o|W/o|is|who|residing))'
+        ]
+        for pat in name_patterns:
+            m = re.search(pat, text, re.IGNORECASE)
+            if m:
+                cand = self.clean_person_name(m.group(1))
+                if cand and len(cand) >= 2:
+                    student_name = cand
+                    break
+
+        # 2. Aadhaar / ID Card Spatial Scan (Line immediately preceding DOB)
+        if not student_name:
+            lines = [l.strip() for l in text.split('\n') if l.strip()]
+            for idx, line in enumerate(lines):
+                if re.search(r'\b(?:DOB|Date of Birth|Year of Birth|D\.O\.B)\b', line, re.IGNORECASE) and idx > 0:
+                    for prev_idx in range(idx - 1, max(-1, idx - 4), -1):
+                        cand = self.clean_person_name(lines[prev_idx])
+                        if cand and len(cand) >= 2 and not re.search(r'\d', lines[prev_idx]):
+                            student_name = cand
+                            break
+                    if student_name:
+                        break
+
+        # 3. Father / Guardian Name Matches
+        father_patterns = [
+            r'(?:2\.\s*)?Father(?:\'s)?(?:\s*/\s*Guardian\'s)?\s*Name[:\s\.\-]+([^\n\r,;]+)',
+            r'(?:Father|Guardian|Parent)(?:\'s)?\s*Name[:\s\.\-]+([^\n\r,;]+)',
+            r'(?:S/O|C/O|D/O|W/O)[:\s\.\-]+([^\n\r,;]+)',
+            r'(?:son of|daughter of|ward of)\s+(?:Thiru|Mr\.?|Dr\.?|Shri)?\s*([A-Za-z\s\.\'-]+?)(?:\s*,|\s+(?:and|residing|village|taluk|district|\n))'
+        ]
+        for pat in father_patterns:
+            m = re.search(pat, text, re.IGNORECASE)
+            if m:
+                cand = self.clean_person_name(m.group(1))
+                if cand and len(cand) >= 2:
+                    father_name = cand
+                    break
+
+        # 4. Mother Name Matches
+        mother_patterns = [
+            r'(?:3\.\s*)?Mother(?:\'s)?\s*Name[:\s\.\-]+([^\n\r,;]+)',
+            r'\bMother[:\s\.\-]+([^\n\r,;]+)'
+        ]
+        for pat in mother_patterns:
+            m = re.search(pat, text, re.IGNORECASE)
+            if m:
+                cand = self.clean_person_name(m.group(1))
+                if cand and len(cand) >= 2:
+                    mother_name = cand
+                    break
+
+        return (
+            student_name or default_student,
+            father_name or default_father,
+            mother_name or ""
+        )
+
     def _clean_token(self, val: Optional[str], default: str) -> str:
         """Strips label prefixes, newlines, and trailing punctuation from extracted entities."""
         if not val:
             return default
         line = val.split('\n')[0].strip()
-        # Strip trailing label words like Father, DOB, Gender, Aadhaar, UID, S/O, D/O
         line = re.split(r'\b(?:Father|DOB|Gender|Aadhaar|UID|Date|S/O|D/O|C/O|Address|Place|Reg)\b', line, flags=re.IGNORECASE)[0].strip()
-        # Strip trailing colons, dots, dashes
         line = re.sub(r'[:\.\-,;]+$', '', line).strip()
         return line if len(line) >= 2 else default
 
@@ -298,7 +407,6 @@ class LocalOCRService:
 
         extracted_text = ""
 
-        # 1. Try PDF extraction if file is PDF
         if file_bytes[:4] == b'%PDF' or (filename and filename.lower().endswith('.pdf')):
             try:
                 reader = pypdf.PdfReader(io.BytesIO(file_bytes))
@@ -307,7 +415,6 @@ class LocalOCRService:
                     txt = page.extract_text()
                     if txt:
                         pdf_text += txt + "\n"
-                    # Also try extracting embedded images from PDF pages
                     for img_file in page.images:
                         try:
                             pi = Image.open(io.BytesIO(img_file.data))
@@ -323,20 +430,19 @@ class LocalOCRService:
             except Exception as e:
                 logger.warning(f"PyPDF extraction warning: {e}")
 
-        # 2. Try Direct Image OCR via Pillow + Pytesseract (with multi-PSM fallback)
         if not extracted_text:
             try:
                 img = Image.open(io.BytesIO(file_bytes))
                 processed = self.preprocess_image(img)
                 
-                # Pass 1: PSM 6 (uniform block of text)
+                # Pass 1: PSM 6
                 extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 6').strip()
                 
-                # Pass 2: PSM 3 (fully automatic page segmentation)
+                # Pass 2: PSM 3
                 if len(extracted_text) < 15:
                     extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 3').strip()
                 
-                # Pass 3: PSM 11 (sparse text with OSD)
+                # Pass 3: PSM 11
                 if len(extracted_text) < 15:
                     extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 11').strip()
             except Exception as e:
@@ -345,7 +451,7 @@ class LocalOCRService:
         return extracted_text.strip()
 
     def parse_aadhaar_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
-        """Extracts Aadhaar specific entities with clean single-line tokens."""
+        """Extracts Aadhaar specific entities with robust name matching."""
         aadhaar_pattern = r'\b([2-9]\d{3})[\s\-]?(\d{4})[\s\-]?(\d{4})\b'
         aadhaar_match = re.search(aadhaar_pattern, text)
         if aadhaar_match:
@@ -366,13 +472,7 @@ class LocalOCRService:
         gender_match = re.search(r'\b(MALE|FEMALE|TRANSGENDER)\b', text, re.IGNORECASE)
         gender_val = gender_match.group(1).upper() if gender_match else "MALE"
 
-        name_match = re.search(r'(?:Name|Student Name|Full Name)[:\s\.]+([^\n\r,;]+)', text, re.IGNORECASE)
-        raw_name = name_match.group(1) if name_match else default_name
-        extracted_name = self._clean_token(raw_name, default_name)
-
-        father_match = re.search(r'(?:Father|S/O|D/O|C/O|Guardian)[:\s\.]+([^\n\r,;]+)', text, re.IGNORECASE)
-        raw_father = father_match.group(1) if father_match else default_father
-        extracted_father = self._clean_token(raw_father, default_father)
+        extracted_name, extracted_father, _ = self.extract_person_names(text, default_name, default_father)
 
         return {
             "document_name": "Aadhaar Identity Card (UIDAI)",
@@ -401,6 +501,8 @@ class LocalOCRService:
         cert_no = cert_match.group(1).strip() if cert_match else f"INC-{uuid.uuid4().hex[:6].upper()}"
         masked_no = f"INC-XXXX-{cert_no[-4:] if len(cert_no) >= 4 else '7321'}"
 
+        extracted_name, extracted_father, _ = self.extract_person_names(text, default_name, default_father)
+
         return {
             "document_name": "Father's Annual Income Certificate",
             "certificate_number": cert_no,
@@ -409,8 +511,8 @@ class LocalOCRService:
             "annual_income": income_val,
             "validity_year": "2026-2027",
             "issuing_authority": "Revenue Department, Government of Tamil Nadu",
-            "father_name": default_father,
-            "full_name": default_name
+            "father_name": extracted_father,
+            "full_name": extracted_name
         }
 
     def parse_community_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
@@ -431,6 +533,8 @@ class LocalOCRService:
         cert_no = cert_match.group(1).strip() if cert_match else f"COMM-{uuid.uuid4().hex[:6].upper()}"
         masked_no = f"COMM-XXXX-{cert_no[-4:] if len(cert_no) >= 4 else '4819'}"
 
+        extracted_name, extracted_father, _ = self.extract_person_names(text, default_name, default_father)
+
         return {
             "document_name": "Community / Caste Certificate",
             "certificate_number": cert_no,
@@ -438,22 +542,30 @@ class LocalOCRService:
             "encrypted_doc_number": f"ENC_COMMUNITY_{cert_no}",
             "community_category": category,
             "issuing_authority": "Zonal Deputy Tahsildar / Revenue Authority",
-            "father_name": default_father,
-            "full_name": default_name
+            "father_name": extracted_father,
+            "full_name": extracted_name
         }
 
     def parse_tc_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
         """Extracts Transfer Certificate details."""
         cert_match = re.search(r'(?:TC No|Transfer Cert No|Cert No)[:\s]*([A-Z0-9\-/]+)', text, re.IGNORECASE)
         cert_no = cert_match.group(1).strip() if cert_match else f"TC-{uuid.uuid4().hex[:6].upper()}"
+        
+        extracted_name, extracted_father, extracted_mother = self.extract_person_names(text, default_name, "Parent / Guardian")
+
+        prev_school_match = re.search(r'(?:Previous School|Institution|School last attended)[:\s\.\-]+([^\n\r,;]+)', text, re.IGNORECASE)
+        prev_school = self._clean_token(prev_school_match.group(1), "State Board Matriculation School") if prev_school_match else "State Board Matriculation School"
+
         return {
             "document_name": "Transfer Certificate (TC)",
             "certificate_number": cert_no,
             "masked_doc_number": f"TC-XXXX-{cert_no[-4:] if len(cert_no) >= 4 else '5521'}",
             "encrypted_doc_number": f"ENC_TC_{cert_no}",
-            "previous_institution": "State Board Matriculation School",
+            "previous_institution": prev_school,
             "conduct_character": "Good / Exemplary",
-            "full_name": default_name
+            "full_name": extracted_name,
+            "father_name": extracted_father,
+            "mother_name": extracted_mother
         }
 
     def parse_birth_cert_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
@@ -462,6 +574,9 @@ class LocalOCRService:
         dob_val = dob_match.group(1) if dob_match else "2008-05-14"
         reg_match = re.search(r'(?:Registration No|Reg No)[:\s]*([A-Z0-9\-/]+)', text, re.IGNORECASE)
         reg_no = reg_match.group(1).strip() if reg_match else f"BC-{uuid.uuid4().hex[:6].upper()}"
+
+        extracted_name, extracted_father, extracted_mother = self.extract_person_names(text, default_name, default_father)
+
         return {
             "document_name": "Birth Certificate",
             "registration_number": reg_no,
@@ -469,8 +584,9 @@ class LocalOCRService:
             "encrypted_doc_number": f"ENC_BIRTH_{reg_no}",
             "date_of_birth": dob_val,
             "issuing_authority": "Municipal Health Officer / Registrar of Births & Deaths",
-            "father_name": default_father,
-            "full_name": default_name
+            "father_name": extracted_father,
+            "mother_name": extracted_mother,
+            "full_name": extracted_name
         }
 
     def parse_marksheet_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
@@ -487,6 +603,8 @@ class LocalOCRService:
         percentage_match = re.search(r'([0-9]{2}(?:\.[0-9]+)?)\s*%', text)
         percentage_val = f"{percentage_match.group(1)}%" if percentage_match else "94.8%"
 
+        extracted_name, extracted_father, extracted_mother = self.extract_person_names(text, default_name, "Parent / Guardian")
+
         return {
             "document_name": "Previous Academic Marksheet & Grade Card",
             "board_name": board,
@@ -497,7 +615,9 @@ class LocalOCRService:
             "total_marks": "474 / 500",
             "result_status": "Pass — First Class with Distinction",
             "academic_year": "2025-2026",
-            "full_name": default_name
+            "full_name": extracted_name,
+            "father_name": extracted_father,
+            "mother_name": extracted_mother
         }
 
     def parse_medical_fitness_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
@@ -508,6 +628,8 @@ class LocalOCRService:
         doc_reg_match = re.search(r'(?:Reg No|MCI No|Doctor Reg)[:\s]*([A-Z0-9\-/]+)', text, re.IGNORECASE)
         doc_reg = doc_reg_match.group(1).strip() if doc_reg_match else f"MCI-{uuid.uuid4().hex[:5].upper()}"
 
+        extracted_name, _, _ = self.extract_person_names(text, default_name, "Parent / Guardian")
+
         return {
             "document_name": "Medical Fitness & Blood Group Certificate",
             "blood_group": bg_val,
@@ -517,7 +639,7 @@ class LocalOCRService:
             "masked_doc_number": f"MED-XXXX-{doc_reg[-4:] if len(doc_reg) >= 4 else '3312'}",
             "encrypted_doc_number": f"ENC_MED_{doc_reg}",
             "issuing_hospital": "Apollo City Healthcare & Diagnostics",
-            "full_name": default_name
+            "full_name": extracted_name
         }
 
     def parse_sports_cert_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
@@ -532,6 +654,7 @@ class LocalOCRService:
             level = "District Level Athletic Meet"
 
         cert_no = f"SPT-{uuid.uuid4().hex[:6].upper()}"
+        extracted_name, _, _ = self.extract_person_names(text, default_name, "Parent / Guardian")
 
         return {
             "document_name": "Sports & Extracurricular Achievement Award",
@@ -542,7 +665,7 @@ class LocalOCRService:
             "certificate_number": cert_no,
             "masked_doc_number": f"SPT-XXXX-{cert_no[-4:]}",
             "encrypted_doc_number": f"ENC_SPORTS_{cert_no}",
-            "full_name": default_name
+            "full_name": extracted_name
         }
 
     def parse_scholarship_entities(self, text: str, default_name: str = "Student") -> Dict[str, Any]:
@@ -551,6 +674,7 @@ class LocalOCRService:
         amt_val = f"₹ {amount_match.group(1)}" if amount_match else "₹ 25,000 / Year"
 
         order_no = f"SCHOL-{uuid.uuid4().hex[:6].upper()}"
+        extracted_name, _, _ = self.extract_person_names(text, default_name, "Parent / Guardian")
 
         return {
             "document_name": "Scholarship Allotment & Fee Concession Order",
@@ -561,7 +685,7 @@ class LocalOCRService:
             "encrypted_doc_number": f"ENC_SCHOL_{order_no}",
             "validity_year": "2026-2027",
             "sponsoring_body": "Ministry of Education & Academic Excellence Trust",
-            "full_name": default_name
+            "full_name": extracted_name
         }
 
     def parse_parent_id_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian") -> Dict[str, Any]:
@@ -569,15 +693,17 @@ class LocalOCRService:
         id_match = re.search(r'\b([A-Z]{3}[0-9]{7})\b', text)
         epic_no = id_match.group(1) if id_match else f"TN/{uuid.uuid4().hex[:7].upper()}"
 
+        extracted_name, extracted_father, _ = self.extract_person_names(text, default_name, default_father)
+
         return {
             "document_name": "Parent / Guardian Government Photo ID (Voter / Passport)",
             "id_number": epic_no,
             "masked_doc_number": f"ID-XXXX-{epic_no[-4:] if len(epic_no) >= 4 else '5021'}",
             "encrypted_doc_number": f"ENC_PID_{epic_no}",
-            "parent_name": default_father,
+            "parent_name": extracted_father,
             "id_type": "Election Commission of India Photo Identity Card (EPIC)",
             "issuing_authority": "Election Commission of India",
-            "student_name": default_name
+            "student_name": extracted_name
         }
 
     def classify_document(self, text: str, filename: str = "") -> Tuple[str, float]:
