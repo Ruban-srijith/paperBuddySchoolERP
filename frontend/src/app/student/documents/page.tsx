@@ -72,16 +72,14 @@ export default function StudentDocumentsPage() {
 
   // OCR Preview Modal State
   const [previewDoc, setPreviewDoc] = useState<StudentDocument | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const fetchDocuments = async () => {
-    setLoading(true);
-    setErrorMessage(null);
     try {
+      setLoading(true);
       const res = await api.get("/student-documents/me");
       if (res.data) {
         setData(res.data);
-      } else {
-        setData(getFallbackData());
       }
     } catch (err: any) {
       console.log("Using dynamic student profile fallback");
@@ -119,16 +117,20 @@ export default function StudentDocumentsPage() {
   const handleUpload = async (docType: string, file: File) => {
     setUploadingType(docType);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("document_type", docType);
 
     try {
-      await api.post("/student-documents/upload", formData, {
+      const res = await api.post("/student-documents/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       await fetchDocuments();
+      const detected = res.data?.document_title || docType.replace('_', ' ').toUpperCase();
+      setSuccessMessage(`✅ Successfully uploaded and verified ${detected}! Profile database synchronized.`);
+      setTimeout(() => setSuccessMessage(null), 6000);
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || "Upload or OCR verification failed. Please try again.");
     } finally {
@@ -139,16 +141,20 @@ export default function StudentDocumentsPage() {
   const handleAutoClassifyUpload = async (file: File) => {
     setIsAutoDetecting(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("document_type", "auto");
 
     try {
-      await api.post("/student-documents/upload", formData, {
+      const res = await api.post("/student-documents/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       await fetchDocuments();
+      const detected = res.data?.document_title || "Document";
+      setSuccessMessage(`🎯 AI Detected & Verified: ${detected}! Database records updated automatically.`);
+      setTimeout(() => setSuccessMessage(null), 6000);
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || "AI Auto-Classification failed. Please try selecting the category directly.");
     } finally {
@@ -335,35 +341,52 @@ export default function StudentDocumentsPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <label className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200 text-xs font-bold rounded-xl cursor-pointer transition-colors whitespace-nowrap">
                 <FileSearch className="w-3.5 h-3.5 text-brand-blue" />
-                {autoDetectFile ? "Change File" : "Choose File"}
+                {isAutoDetecting ? "Processing..." : "Upload Any Document"}
                 <input
                   type="file"
                   accept="image/*,.pdf"
                   className="hidden"
-                  onChange={e => e.target.files?.[0] && setAutoDetectFile(e.target.files[0])}
+                  disabled={isAutoDetecting}
+                  onClick={e => { (e.currentTarget as HTMLInputElement).value = ''; }}
+                  onChange={e => {
+                    if (e.target.files?.[0]) {
+                      const file = e.target.files[0];
+                      setAutoDetectFile(file);
+                      handleAutoClassifyUpload(file);
+                      e.target.value = '';
+                    }
+                  }}
                 />
               </label>
 
-              <button
-                onClick={() => autoDetectFile && handleAutoClassifyUpload(autoDetectFile)}
-                disabled={!autoDetectFile || isAutoDetecting}
-                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-blue to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap"
-              >
-                {isAutoDetecting ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Analyzing & Syncing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Auto-Detect & Sync Profile</span>
-                  </>
-                )}
-              </button>
+              {autoDetectFile && !isAutoDetecting && (
+                <button
+                  onClick={() => handleAutoClassifyUpload(autoDetectFile)}
+                  className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-brand-blue to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Re-Analyze File</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
+
+        {/* SUCCESS NOTIFICATION BANNER */}
+        {successMessage && (
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 rounded-2xl text-xs flex items-center justify-between shadow-sm animate-fade-in">
+            <div className="flex items-center gap-2 font-semibold">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 font-bold ml-2"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* LIVE SYNCHRONIZED STUDENT PROFILE DATABASE TABLE CARD */}
         {data?.student_profile && (
@@ -512,7 +535,13 @@ export default function StudentDocumentsPage() {
                     type="file"
                     accept="image/*,.pdf"
                     className="hidden"
-                    onChange={e => e.target.files?.[0] && handleFileUpload("aadhaar", e.target.files[0])}
+                    onClick={e => { (e.currentTarget as HTMLInputElement).value = ''; }}
+                    onChange={e => {
+                      if (e.target.files?.[0]) {
+                        handleFileUpload("aadhaar", e.target.files[0]);
+                        e.target.value = '';
+                      }
+                    }}
                   />
                 </label>
               </div>
@@ -539,7 +568,13 @@ export default function StudentDocumentsPage() {
                   accept="image/*,.pdf"
                   className="hidden"
                   disabled={uploadingType === "aadhaar"}
-                  onChange={e => e.target.files?.[0] && handleFileUpload("aadhaar", e.target.files[0])}
+                  onClick={e => { (e.currentTarget as HTMLInputElement).value = ''; }}
+                  onChange={e => {
+                    if (e.target.files?.[0]) {
+                      handleFileUpload("aadhaar", e.target.files[0]);
+                      e.target.value = '';
+                    }
+                  }}
                 />
               </label>
             </div>
@@ -843,7 +878,13 @@ function DocumentCard({
                 accept="image/*,.pdf"
                 className="hidden"
                 disabled={isUploading}
-                onChange={e => e.target.files?.[0] && onUpload(e.target.files[0])}
+                onClick={e => { (e.currentTarget as HTMLInputElement).value = ''; }}
+                onChange={e => {
+                  if (e.target.files?.[0]) {
+                    onUpload(e.target.files[0]);
+                    e.target.value = '';
+                  }
+                }}
               />
             </label>
           </>
@@ -863,7 +904,13 @@ function DocumentCard({
               accept="image/*,.pdf"
               className="hidden"
               disabled={isUploading}
-              onChange={e => e.target.files?.[0] && onUpload(e.target.files[0])}
+              onClick={e => { (e.currentTarget as HTMLInputElement).value = ''; }}
+              onChange={e => {
+                if (e.target.files?.[0]) {
+                  onUpload(e.target.files[0]);
+                  e.target.value = '';
+                }
+              }}
             />
           </label>
         ) : (

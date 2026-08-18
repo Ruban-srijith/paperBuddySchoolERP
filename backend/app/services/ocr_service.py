@@ -709,48 +709,51 @@ class LocalOCRService:
     def classify_document(self, text: str, filename: str = "") -> Tuple[str, float]:
         """
         Intelligently classifies the document into one of the 10 supported types
-        based on OCR text analysis, official issuing bodies, and keywords.
+        based on OCR text analysis, official issuing bodies, and filename heuristics.
         """
         t = (text + " " + filename).lower()
+        fn = (filename or "").lower()
 
         # 1. Aadhaar UIDAI
-        if any(k in t for k in ["uidai", "aadhaar", "unique identification", "mera aadhaar", "enrollment no", "enrolment no"]) or re.search(r'\b\d{4}\s\d{4}\s\d{4}\b', text):
+        if any(k in t for k in ["uidai", "aadhaar", "aadhar", "adhaar", "unique identification", "mera aadhaar", "mera aadhar", "enrollment no", "enrolment no", "vid"]) or re.search(r'\b[2-9]\d{3}[\s\-]?\d{4}[\s\-]?\d{4}\b', text) or ('government of india' in t and ('dob' in t or 'male' in t or 'female' in t)):
             return "aadhaar", 0.99
+        if any(k in fn for k in ["aadhaar", "aadhar", "adhaar", "uidai"]):
+            return "aadhaar", 0.95
 
         # 2. Income Certificate
-        if any(k in t for k in ["income certificate", "annual income", "annual family income", "per annum", "revenue department", "tahsildar", "taluk", "revenue divisional"]):
+        if any(k in t for k in ["income certificate", "annual income", "family income", "annual family income", "per annum", "p.a.", "revenue department", "tahsildar", "tahasildar", "certificate of income", "income"]) or ("income" in fn):
             return "income", 0.98
 
         # 3. Community / Caste Certificate
-        if any(k in t for k in ["community certificate", "caste certificate", "backward class", "most backward", "obc", "mbc", "scheduled caste", "scheduled tribe", "sc / st", "sub-caste", "caste / community", "caste/community"]):
+        if any(k in t for k in ["community certificate", "caste certificate", "backward class", "most backward", "obc", "mbc", "scheduled caste", "scheduled tribe", "sc / st", "sc/st", "sub-caste", "caste / community", "caste/community", "caste", "community"]) or any(k in fn for k in ["caste", "community", "comm_"]):
             return "community", 0.98
 
         # 4. Transfer Certificate (TC)
-        if any(k in t for k in ["transfer certificate", "school leaving", "tc no", "conduct and character", "qualified for promotion", "scholar no", "admission no", "date of leaving"]):
+        if any(k in t for k in ["transfer certificate", "school leaving", "leaving certificate", "tc no", "t.c.", "conduct and character", "qualified for promotion", "scholar no", "date of leaving", "school last attended"]) or any(k in fn for k in ["tc", "transfer", "leaving"]):
             return "tc", 0.98
 
         # 5. Birth Certificate
-        if any(k in t for k in ["birth certificate", "form no 5", "registration of birth", "place of birth", "date of birth", "name of child", "registrar of birth"]):
+        if any(k in t for k in ["birth certificate", "certificate of birth", "form 5", "form no 5", "form no. 5", "form-5", "registration of birth", "place of birth", "date of birth", "name of child", "name of the child", "registrar of birth", "born on", "municipal corporation", "greater chennai"]) or ("birth" in fn):
             return "birth_cert", 0.98
 
         # 6. Marksheet / Academic Transcript
-        if any(k in t for k in ["marksheet", "mark sheet", "grade card", "statement of marks", "secondary school examination", "board of secondary education", "cbse", "icse", "grade point", "gpa", "total marks", "subject code"]):
+        if any(k in t for k in ["marksheet", "mark sheet", "grade card", "statement of marks", "secondary school examination", "board of secondary education", "cbse", "icse", "matriculation", "grade point", "gpa", "total marks", "subject code", "marks obtained", "pass certificate"]) or any(k in fn for k in ["mark", "grade", "transcript", "10th", "12th"]):
             return "marksheet", 0.98
 
         # 7. Medical Fitness Certificate
-        if any(k in t for k in ["medical certificate", "fitness certificate", "physical fitness", "blood group", "height", "weight", "vision", "medical practitioner", "mci reg", "chest measurement"]):
+        if any(k in t for k in ["medical certificate", "fitness certificate", "physical fitness", "blood group", "medical practitioner", "mci reg", "physically fit", "doctor", "health officer", "clinical"]) or any(k in fn for k in ["medical", "fitness", "blood"]):
             return "medical_fitness", 0.98
 
         # 8. Sports Certificate
-        if any(k in t for k in ["certificate of merit", "sports certificate", "championship", "tournament", "winner", "runner up", "athletic", "olympiad", "inter-school", "district level", "state level", "sports meet"]):
+        if any(k in t for k in ["certificate of merit", "sports certificate", "championship", "tournament", "winner", "runner up", "athletic", "olympiad", "inter-school", "district level", "state level", "sports meet", "medal", "gold medal", "silver medal", "bronze medal", "participated"]) or any(k in fn for k in ["sport", "athletic", "merit"]):
             return "sports_cert", 0.98
 
         # 9. Scholarship Letter
-        if any(k in t for k in ["scholarship", "allotment order", "sanction order", "financial aid", "tuition grant", "merit scholarship", "concession order", "directorate of school education"]):
+        if any(k in t for k in ["scholarship", "allotment order", "sanction order", "financial aid", "tuition grant", "merit scholarship", "concession order", "directorate of school education"]) or ("scholarship" in fn):
             return "scholarship_letter", 0.98
 
         # 10. Parent / Guardian ID
-        if any(k in t for k in ["election commission", "voter id", "epic no", "passport", "driving license", "pan card", "income tax department", "permanent account number"]):
+        if any(k in t for k in ["election commission", "voter id", "voter identity", "epic no", "passport", "driving license", "driving licence", "pan card", "income tax department", "permanent account number"]) or any(k in fn for k in ["voter", "passport", "pan", "parent_id"]):
             return "parent_id", 0.98
 
         # Default fallback
