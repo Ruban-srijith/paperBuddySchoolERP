@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: paperbuddy-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false   # Set manually in Render Dashboard
+      - key: MONGODB_URL
+        sync: false   # Set to MongoDB Atlas URL in Render Dashboard
+      - key: MONGODB_DB_NAME
+        value: paperbuddy_erp
+      - key: SECRET_KEY
+        sync: false   # Set manually in Render Dashboard
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: ALLOWED_ORIGINS
+        sync: false   # Set to your Vercel frontend URL
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OCR_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: google/gemini-2.5-flash
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: DEFAULT_PASSWORD
+        value: school@123
