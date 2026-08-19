@@ -420,7 +420,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 w-full p-4 md:p-6 overflow-y-auto scroll-smooth transform-gpu" style={{ willChange: 'scroll-position' }}>
+        <main className="flex-1 w-full p-4 md:p-6 overflow-y-auto scroll-smooth">
           <div>
             {children}
           </div>
