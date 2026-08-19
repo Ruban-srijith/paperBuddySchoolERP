@@ -1,7 +1,7 @@
 import asyncio
 from typing import Dict, Any, Tuple, Optional
-from app.services.openrouter_service import openrouter_service
-from app.services.ocr_service import ocr_service
+from .openrouter_service import openrouter_service
+from .ocr_service import ocr_service
 
 class ExtractedFormMock:
     def __init__(self, full_name: str, admission_number: str):
@@ -48,8 +48,7 @@ class OpenRouterOCREngine:
             father_name=father_name,
             mother_name=mother_name,
             phone=phone,
-            verified_aadhaar_data=verified_aadhaar_data,
-            filename=filename
+            verified_aadhaar_data=verified_aadhaar_data
         )
 
     async def process_form(self, file_bytes: bytes):

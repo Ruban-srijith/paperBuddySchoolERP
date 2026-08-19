@@ -6,7 +6,7 @@ export default function PageLoader() {
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#F8F9FD] dark:bg-[#0b0f19]">
       <div className="w-64 h-64 md:w-96 md:h-96">
         <DotLottieReact
-          src="https://lottie.host/057444ae-9ed4-4565-9c62-0342d6851089/8qWSdLzTv5.lottie"
+          src="/lottie/loader.lottie"
           loop
           autoplay
         />

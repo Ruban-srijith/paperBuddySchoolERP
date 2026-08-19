@@ -459,13 +459,13 @@ export default function StudentDocumentsPage() {
                 <FileCheck2 className="w-6 h-6" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-600 text-white">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-1">
+                  <span className="text-[10px] md:text-xs uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-indigo-600 text-white whitespace-nowrap">
                     Step 1 (Mandatory Gate)
                   </span>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Aadhaar Card Verification</h2>
+                  <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 leading-tight">Aadhaar Card Verification</h2>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-slate-400 mt-0.5">
+                <p className="text-xs text-gray-600 dark:text-slate-400 mt-1 max-w-sm">
                   Must be verified first to unlock Marksheets, Community, Income, TC & other certificates.
                 </p>
               </div>
