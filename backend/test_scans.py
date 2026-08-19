@@ -64,7 +64,7 @@ async def run_scan_tests():
             id=str(uuid.uuid4()),
             email=f"hod_{uuid.uuid4().hex[:6]}@school.edu",
             full_name="Dr. Grace Hopper",
-            role=UserRole.DEPT_HEAD
+            role=UserRole.VICE_PRINCIPAL
         )
         session.add(hod)
         await session.commit()

@@ -38,9 +38,9 @@ class OpenRouterService:
         """
         Sends completion request to OpenRouter API (supports text and vision).
         """
-        target_model = model_override or settings.OPENROUTER_MODEL or "google/gemini-3.6-flash"
-        if target_model == "luna-pro" or "2.5-flash" in target_model:
-            target_model = "google/gemini-3.6-flash"
+        target_model = model_override or settings.OPENROUTER_MODEL or "qwen/qwen3-vl-32b-instruct"
+        if target_model == "luna-pro":
+            target_model = "qwen/qwen3-vl-32b-instruct"
 
         # Route to Gemini API if key starts with AQ. or GEMINI_API_KEY is available
         api_key_to_use = settings.OPENROUTER_API_KEY or settings.GEMINI_API_KEY

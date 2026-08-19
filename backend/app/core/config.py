@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     OCR_API_KEY: str = os.getenv("OCR_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "google/gemini-2.5-flash")
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "qwen/qwen3-vl-32b-instruct")
     OPENROUTER_SITE_URL: str = os.getenv("OPENROUTER_SITE_URL", "https://paperbuddy.erp")
     OPENROUTER_APP_NAME: str = os.getenv("OPENROUTER_APP_NAME", "PaperBuddy School ERP")
 
