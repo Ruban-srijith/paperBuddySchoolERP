@@ -91,9 +91,7 @@ export default function LandingPage() {
     setMounted(true);
     
     const phrases = [
-      { line1: "Autonomous School", line2: "Operations Platform" },
-      { line1: "Genesis ERP", line2: "For Modern Schools" },
-      { line1: "AI-Powered", line2: "School Management" },
+      { line1: "Genesis", line2: "Build the Future" },
     ];
     let isCancelled = false;
     
@@ -117,6 +115,7 @@ export default function LandingPage() {
         }
         
         // Pause at completion
+        if (phrases.length === 1) return;
         await new Promise((resolve) => setTimeout(resolve, 4000));
         if (isCancelled) return;
         
@@ -222,7 +221,7 @@ export default function LandingPage() {
 
       <main className="relative z-10">
         {/* Enhanced Hero Section */}
-        <section className="pt-24 pb-32 px-4 max-w-4xl mx-auto flex flex-col items-center gap-16 overflow-visible text-center">
+        <section className="pt-24 pb-32 px-4 max-w-5xl mx-auto flex flex-col items-center gap-16 overflow-visible text-center">
           <motion.div 
             variants={staggerContainer}
             initial="hidden"
@@ -234,16 +233,15 @@ export default function LandingPage() {
               <span>v2.0 Next-Gen AI Release</span>
             </motion.div>
 
-            <motion.h1 variants={fadeUpVariant} className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-brand-black hyphens-auto break-words min-h-[120px] lg:min-h-[160px] flex flex-col items-center">
+            <motion.h1 variants={fadeUpVariant} className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-brand-black min-h-[120px] lg:min-h-[160px] flex flex-col items-center">
               <div>
                 {line1}
-                {line1.length > 0 && <br />}
               </div>
-              <div className="inline-flex items-center justify-center">
+              <div className="inline-flex items-center justify-center whitespace-nowrap">
                 <span className="text-brand-blue">
                   {line2}
                 </span>
-                <span className="animate-pulse border-r-4 border-brand-blue h-[1em]"></span>
+                <span className="animate-pulse border-r-4 border-brand-blue h-[1em] ml-1"></span>
               </div>
             </motion.h1>
 

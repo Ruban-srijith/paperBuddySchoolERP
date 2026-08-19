@@ -133,13 +133,13 @@ export default function LoginPage() {
       }, 300);
     }
   };
-
   const handleQuickLogin = async (demoEmail: string, demoPassword?: string) => {
     const pw = demoPassword || 'school@123';
     setEmail(demoEmail);
     setPassword(pw);
     if (!selectedSchool && schools.length > 0) {
-      setSelectedSchool(schools[0]);
+      const otherSchool = schools.find(s => s.code !== 'BMHSS') || schools[0];
+      setSelectedSchool(otherSchool);
     }
     const success = await login(demoEmail, pw);
     if (success) {
@@ -164,6 +164,10 @@ export default function LoginPage() {
     { label: '📚 Librarian', email: 'librarian@school.edu' },
     { label: '🚌 Transport', email: 'transport@school.edu' },
   ];
+
+  const isBharathi = selectedSchool?.code === 'BMHSS' || selectedSchool?.id === 'fcc6aea0-b378-4a72-808f-2cdbd361ed24' || selectedSchool?.name?.toLowerCase().includes('bharathi');
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8F9FD] dark:bg-[#0b0f19] p-4 font-sans overflow-hidden transition-colors duration-300">
@@ -236,7 +240,7 @@ export default function LoginPage() {
                     {selectedSchool ? selectedSchool.name : "Select Your School"}
                   </h1>
                   <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mt-0.5">
-                    {selectedSchool ? "Enter your portal credentials to continue" : "Choose your school workspace or use 1-click demo access"}
+                    {selectedSchool ? "Enter your portal credentials to continue" : "Choose your school workspace to continue"}
                   </p>
                 </div>
               </motion.div>
@@ -270,28 +274,6 @@ export default function LoginPage() {
                         <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-brand-blue dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all shrink-0 ml-2" />
                       </motion.button>
                     ))}
-                  </div>
-
-                  {/* Quick 1-Click Demo Login bar on school screen */}
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-800 flex flex-col items-center">
-                    <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 mb-2 uppercase tracking-wider flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3 text-amber-500" /> Instant 1-Click Demo Logins
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-1.5 max-w-sm">
-                      {quickLogins.map((ql) => (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          key={ql.email}
-                          type="button"
-                          onClick={() => handleQuickLogin(ql.email)}
-                          disabled={isLoading}
-                          className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-brand-blue hover:text-white dark:hover:bg-blue-600 text-[11px] font-bold text-gray-700 dark:text-slate-200 transition-all border border-gray-200/60 dark:border-slate-700"
-                        >
-                          {ql.label}
-                        </motion.button>
-                      ))}
-                    </div>
                   </div>
                 </motion.div>
               ) : (
@@ -374,27 +356,29 @@ export default function LoginPage() {
                     </motion.button>
                   </form>
 
-                  {/* Demo Chips inside School view */}
-                  <div className="mt-5 pt-3.5 border-t border-gray-100 dark:border-slate-800 flex flex-col items-center">
-                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold mb-2 uppercase tracking-wider">
-                      1-Click Role Login
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-1.5">
-                      {quickLogins.map((ql) => (
-                        <motion.button
-                          whileHover={{ scale: 1.06 }}
-                          whileTap={{ scale: 0.94 }}
-                          key={ql.email}
-                          type="button"
-                          onClick={() => handleQuickLogin(ql.email)}
-                          disabled={isLoading}
-                          className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-bold text-gray-700 dark:text-slate-300 hover:bg-brand-blue hover:text-white dark:hover:bg-blue-600 border border-gray-200/60 dark:border-slate-700 transition-colors"
-                        >
-                          {ql.label}
-                        </motion.button>
-                      ))}
+                  {/* Quick Role Login for Demo/Other Schools */}
+                  {!isBharathi && (
+                    <div className="mt-5 pt-3.5 border-t border-gray-100 dark:border-slate-800 flex flex-col items-center">
+                      <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold mb-2 uppercase tracking-wider flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-500" /> 1-Click Role Login
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-1.5">
+                        {quickLogins.map((ql) => (
+                          <motion.button
+                            whileHover={{ scale: 1.06 }}
+                            whileTap={{ scale: 0.94 }}
+                            key={ql.email}
+                            type="button"
+                            onClick={() => handleQuickLogin(ql.email)}
+                            disabled={isLoading}
+                            className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-bold text-gray-700 dark:text-slate-300 hover:bg-brand-blue hover:text-white dark:hover:bg-blue-600 border border-gray-200/60 dark:border-slate-700 transition-colors"
+                          >
+                            {ql.label}
+                          </motion.button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </motion.div>
               )}
             </div>
