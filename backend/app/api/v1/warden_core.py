@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 from uuid import uuid4
 from datetime import datetime, date
 
 from app.db.database import get_db
 from app.db.models import User, UserRole, HostelRoom, HostelAssignment, HostelAttendance, Outpass, IncidentReport, VisitorLog
-from app.api.v1.auth import get_current_user
+from app.core.auth import get_current_user
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -105,8 +105,9 @@ async def get_warden_summary(db: AsyncSession = Depends(get_db), current_user: U
     }
 
 @router.get("/outpasses")
-async def get_outpasses(status: str = None, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    query = select(Outpass).order_by(Outpass.created_at.desc())
+async def get_outpasses(status: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from sqlalchemy.orm import selectinload
+    query = select(Outpass).options(selectinload(Outpass.student)).order_by(Outpass.created_at.desc())
     if status:
         query = query.where(Outpass.status == status)
     
@@ -116,40 +117,65 @@ async def get_outpasses(status: str = None, db: AsyncSession = Depends(get_db), 
     res = await db.execute(query)
     outpasses = res.scalars().all()
 
-    if not outpasses:
-        # Return populated demo outpasses
-        return [
-            {
-                "id": "op-101",
-                "student_id": "stu11111-1111-1111-1111-111111111111",
-                "student_name": "Kishor Kumar",
-                "room_number": "Block B - 204",
-                "reason": "Weekend Family Visit & Medical Checkup",
-                "departure_time": "2026-08-17T17:00:00",
-                "expected_return": "2026-08-18T20:00:00",
-                "status": "approved",
-                "qr_code_token": "EPASS_QR_8912_VALID",
-                "parent_consent_verified": True
-            }
-        ]
-
     return [
         {
             "id": o.id,
             "student_id": o.student_id,
-            "student_name": "Hostel Student",
-            "room_number": "Block A - 102",
+            "student_name": o.student.full_name if o.student else "Unknown Student",
+            "room_number": f"Grade {o.student.assigned_grade}" if o.student and o.student.assigned_grade else "N/A",
             "reason": o.reason,
             "departure_time": str(o.departure_time),
             "expected_return": str(o.expected_return_time),
             "status": o.status,
-            "parent_consent_verified": False
+            "parent_consent_verified": True
         }
         for o in outpasses
     ]
 
+class OutpassCreate(BaseModel):
+    departure_time: datetime
+    expected_return_time: datetime
+    reason: str
+
+@router.post("/outpasses")
+async def create_outpass(req: OutpassCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if current_user.role != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Only students can apply for outpasses")
+
+    outpass = Outpass(
+        id=str(uuid4()),
+        student_id=current_user.id,
+        reason=req.reason,
+        departure_time=req.departure_time,
+        expected_return_time=req.expected_return_time,
+        status="pending"
+    )
+    db.add(outpass)
+    await db.commit()
+    return {"success": True, "message": "Outpass applied successfully"}
+
+class OutpassStatusUpdate(BaseModel):
+    status: str
+
+@router.put("/outpasses/{outpass_id}/status")
+async def update_outpass_status(
+    outpass_id: str, 
+    req: OutpassStatusUpdate, 
+    db: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(get_warden_or_above)
+):
+    res = await db.execute(select(Outpass).where(Outpass.id == outpass_id))
+    outpass = res.scalar_one_or_none()
+    if not outpass:
+        raise HTTPException(status_code=404, detail="Outpass not found")
+        
+    outpass.status = req.status
+    outpass.approved_by = current_user.id
+    await db.commit()
+    return {"success": True, "message": f"Outpass marked as {req.status}"}
+
 @router.get("/attendance")
-async def get_hostel_attendance(target_date: str = None, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+async def get_hostel_attendance(target_date: Optional[str] = None, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
     q_date = date.fromisoformat(target_date) if target_date else date.today()
     res = await db.execute(select(HostelAttendance).where(HostelAttendance.date == q_date))
     records = res.scalars().all()

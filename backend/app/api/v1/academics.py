@@ -23,7 +23,7 @@ from sqlalchemy import func
 from app.db.database import get_db
 from app.db.models import (
     User, Student, Class, Subject, Classroom, Timetable,
-    SyllabusNode, Attendance, FeePayment, Homework, Assignment,
+    SyllabusNode, Attendance, FeePayment, Homework, HomeworkSubmission, Assignment,
     ExamSchedule, StudentQuery, Announcement, UserRole, ClassTopper
 )
 from app.core.auth import get_current_user, require_role
@@ -337,6 +337,14 @@ async def list_homework(
     res = await db.execute(query)
     hw_rows = res.scalars().all()
 
+    # Fetch student submissions
+    submitted_hw_ids = set()
+    if current_user.role == UserRole.STUDENT:
+        sub_res = await db.execute(
+            select(HomeworkSubmission.homework_id).where(HomeworkSubmission.student_id == current_user.id)
+        )
+        submitted_hw_ids = set(sub_res.scalars().all())
+
     if not hw_rows:
         # Return populated demo homeworks
         return [
@@ -351,7 +359,7 @@ async def list_homework(
                 "due_date": "2026-08-08",
                 "submissions_count": 28,
                 "total_students": 32,
-                "status": "active"
+                "status": "submitted" if "hw-1" in submitted_hw_ids else "pending"
             },
             {
                 "id": "hw-2",
@@ -364,7 +372,7 @@ async def list_homework(
                 "due_date": "2026-08-07",
                 "submissions_count": 30,
                 "total_students": 32,
-                "status": "active"
+                "status": "submitted" if "hw-2" in submitted_hw_ids else "pending"
             },
             {
                 "id": "hw-3",
@@ -377,12 +385,20 @@ async def list_homework(
                 "due_date": "2026-08-04",
                 "submissions_count": 32,
                 "total_students": 32,
-                "status": "completed"
+                "status": "submitted"
             }
         ]
 
-    return [
-        {
+    result_list = []
+    for h in hw_rows:
+        status = "active" if h.due_date >= date.today() else "completed"
+        if current_user.role == UserRole.STUDENT:
+            if h.id in submitted_hw_ids:
+                status = "submitted"
+            else:
+                status = "pending"
+        
+        result_list.append({
             "id": h.id,
             "grade": f"{h.school_class.grade}-{h.school_class.section}" if h.school_class else "10-A",
             "subject": h.subject.name if h.subject else "Subject",
@@ -393,10 +409,38 @@ async def list_homework(
             "due_date": str(h.due_date),
             "submissions_count": 29,
             "total_students": 32,
-            "status": "active" if h.due_date >= date.today() else "completed"
-        }
-        for h in hw_rows
-    ]
+            "status": status
+        })
+    return result_list
+
+
+@router.post("/homework/{homework_id}/submit")
+async def submit_homework(
+    homework_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role != UserRole.STUDENT:
+        raise HTTPException(status_code=403, detail="Only students can submit homework")
+    
+    existing = await db.execute(
+        select(HomeworkSubmission).where(
+            HomeworkSubmission.homework_id == homework_id,
+            HomeworkSubmission.student_id == current_user.id
+        )
+    )
+    if existing.scalar_one_or_none():
+        return {"message": "Homework already marked as submitted"}
+        
+    submission = HomeworkSubmission(
+        homework_id=homework_id,
+        student_id=current_user.id,
+        status="submitted"
+    )
+    db.add(submission)
+    await db.commit()
+    return {"message": "Homework marked as submitted successfully"}
+
 
 
 @router.post("/homework")
