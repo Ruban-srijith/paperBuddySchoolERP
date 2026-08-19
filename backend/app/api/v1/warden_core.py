@@ -3,10 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional
 from uuid import uuid4
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 from app.db.database import get_db
-from app.db.models import User, UserRole, HostelRoom, HostelAssignment, HostelAttendance, Outpass, IncidentReport, VisitorLog
+from app.db.models import User, UserRole, HostelRoom, HostelAssignment, HostelAttendance, Outpass, IncidentReport, VisitorLog, MessMenu
 from app.core.auth import get_current_user
 from pydantic import BaseModel
 
@@ -21,10 +21,100 @@ def get_warden_or_above(current_user: User = Depends(get_current_user)):
 
 # --- Endpoints: Rooms ---
 
+class RoomCreate(BaseModel):
+    block_name: str
+    room_number: str
+    capacity: int
+
+class AllocateStudent(BaseModel):
+    student_id: str
+
 @router.get("/rooms")
 async def get_rooms(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
-    result = await db.execute(select(HostelRoom))
-    return result.scalars().all()
+    # Fetch rooms
+    rooms_res = await db.execute(select(HostelRoom))
+    rooms = rooms_res.scalars().all()
+    
+    # Fetch assignments and their related user
+    # Using a simple subquery or just joining manually for now
+    assignments_res = await db.execute(select(HostelAssignment, User).join(User, HostelAssignment.student_id == User.id))
+    assignments = assignments_res.all()
+    
+    room_dict = []
+    for r in rooms:
+        # Get students for this room
+        room_students = []
+        for assign, user in assignments:
+            if assign.room_id == r.id:
+                room_students.append({"id": user.id, "name": user.full_name})
+        
+        room_dict.append({
+            "id": r.id,
+            "block": r.block_name,
+            "number": r.room_number,
+            "type": f"Standard Room • Capacity {r.capacity}",
+            "capacity": r.capacity,
+            "students": room_students
+        })
+    return room_dict
+
+@router.post("/rooms")
+async def create_room(req: RoomCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+    room = HostelRoom(
+        id=str(uuid4()),
+        block_name=req.block_name,
+        room_number=req.room_number,
+        capacity=req.capacity,
+        current_occupancy=0,
+        status="available"
+    )
+    db.add(room)
+    await db.commit()
+    return {"success": True, "room_id": room.id}
+
+@router.post("/rooms/{room_id}/allocate")
+async def allocate_student(room_id: str, req: AllocateStudent, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+    # Check if room exists
+    room_res = await db.execute(select(HostelRoom).where(HostelRoom.id == room_id))
+    room = room_res.scalars().first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+        
+    if room.current_occupancy >= room.capacity:
+        raise HTTPException(status_code=400, detail="Room is already full")
+
+    # Check if student is already assigned somewhere
+    existing = await db.execute(select(HostelAssignment).where(HostelAssignment.student_id == req.student_id))
+    if existing.scalars().first():
+        raise HTTPException(status_code=400, detail="Student is already assigned to a room")
+
+    assignment = HostelAssignment(
+        id=str(uuid4()),
+        student_id=req.student_id,
+        room_id=room_id
+    )
+    db.add(assignment)
+    
+    room.current_occupancy += 1
+    if room.current_occupancy >= room.capacity:
+        room.status = "full"
+        
+    await db.commit()
+    return {"success": True}
+
+@router.get("/available-students")
+async def get_available_students(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+    # Find students who are NOT in HostelAssignment
+    # For simplicity, we just fetch all students and filter in python (or do a left outer join)
+    assigned_res = await db.execute(select(HostelAssignment.student_id))
+    assigned_ids = [row[0] for row in assigned_res.all()]
+    
+    # Fetch all students
+    users_res = await db.execute(select(User).where(User.role == UserRole.STUDENT))
+    all_students = users_res.scalars().all()
+    
+    available = [{"id": s.id, "name": s.full_name} for s in all_students if s.id not in assigned_ids]
+    return available
 
 # --- Endpoints: Incidents ---
 
@@ -71,6 +161,17 @@ async def log_visitor(req: VisitorCreate, db: AsyncSession = Depends(get_db), cu
         logged_by=current_user.id
     )
     db.add(v)
+    await db.commit()
+    return {"success": True}
+
+@router.put("/visitors/{visitor_id}/checkout")
+async def checkout_visitor(visitor_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+    res = await db.execute(select(VisitorLog).where(VisitorLog.id == visitor_id))
+    v = res.scalars().first()
+    if not v:
+        raise HTTPException(status_code=404, detail="Visitor not found")
+    
+    v.check_out = datetime.now(timezone.utc)
     await db.commit()
     return {"success": True}
 
@@ -196,3 +297,93 @@ async def get_hostel_attendance(target_date: Optional[str] = None, db: AsyncSess
         ]
     }
 
+class AttendanceRecordCreate(BaseModel):
+    student_id: str
+    status: str
+
+class AttendanceBatchCreate(BaseModel):
+    date: str
+    records: List[AttendanceRecordCreate]
+
+@router.post("/attendance")
+async def save_hostel_attendance(req: AttendanceBatchCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+    q_date = date.fromisoformat(req.date)
+    
+    # Delete existing records for this date
+    existing_res = await db.execute(select(HostelAttendance).where(HostelAttendance.date == q_date))
+    existing_records = existing_res.scalars().all()
+    for er in existing_records:
+        await db.delete(er)
+        
+    for r in req.records:
+        att = HostelAttendance(
+            id=str(uuid4()),
+            student_id=r.student_id,
+            date=q_date,
+            status=r.status,
+            marked_by=current_user.id
+        )
+        db.add(att)
+        
+    await db.commit()
+    return {"success": True, "message": "Attendance saved successfully"}
+
+# --- Endpoints: Mess & Cafeteria ---
+
+@router.get("/mess/menu")
+async def get_mess_menu(target_date: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+    q_date = date.fromisoformat(target_date)
+    res = await db.execute(select(MessMenu).where(MessMenu.date == q_date))
+    menu = res.scalars().first()
+    
+    if not menu:
+        return {
+            "date": target_date,
+            "breakfast": {"items": "", "desc": "", "status": "Scheduled"},
+            "lunch": {"items": "", "desc": "", "status": "Scheduled"},
+            "dinner": {"items": "", "desc": "", "status": "Scheduled"},
+        }
+        
+    return {
+        "date": target_date,
+        "breakfast": {"items": menu.breakfast_items, "desc": menu.breakfast_desc, "status": menu.breakfast_status},
+        "lunch": {"items": menu.lunch_items, "desc": menu.lunch_desc, "status": menu.lunch_status},
+        "dinner": {"items": menu.dinner_items, "desc": menu.dinner_desc, "status": menu.dinner_status},
+    }
+
+class MessMenuUpdate(BaseModel):
+    date: str
+    breakfast_items: str
+    breakfast_desc: str
+    breakfast_status: str
+    lunch_items: str
+    lunch_desc: str
+    lunch_status: str
+    dinner_items: str
+    dinner_desc: str
+    dinner_status: str
+
+@router.put("/mess/menu")
+async def update_mess_menu(req: MessMenuUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_warden_or_above)):
+    q_date = date.fromisoformat(req.date)
+    res = await db.execute(select(MessMenu).where(MessMenu.date == q_date))
+    menu = res.scalars().first()
+    
+    if not menu:
+        menu = MessMenu(id=str(uuid4()), date=q_date)
+        db.add(menu)
+        
+    menu.breakfast_items = req.breakfast_items
+    menu.breakfast_desc = req.breakfast_desc
+    menu.breakfast_status = req.breakfast_status
+    
+    menu.lunch_items = req.lunch_items
+    menu.lunch_desc = req.lunch_desc
+    menu.lunch_status = req.lunch_status
+    
+    menu.dinner_items = req.dinner_items
+    menu.dinner_desc = req.dinner_desc
+    menu.dinner_status = req.dinner_status
+    
+    await db.commit()
+    return {"success": True, "message": "Menu updated successfully"}

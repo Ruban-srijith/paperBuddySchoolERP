@@ -1,11 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AlertTriangle, Plus, X } from "lucide-react";
+import api from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 export default function WardenIncidents() {
+  const { toast } = useToast();
   const [showIncidentModal, setShowIncidentModal] = useState(false);
+  const [incidents, setIncidents] = useState<any[]>([]);
+  
+  const [category, setCategory] = useState("Disciplinary");
+  const [severity, setSeverity] = useState("Low");
+  const [description, setDescription] = useState("");
+
+  const fetchIncidents = async () => {
+    try {
+      const res = await api.get("/warden/incidents");
+      setIncidents(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchIncidents();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await api.post("/warden/incidents", {
+        category,
+        severity,
+        description
+      });
+      toast.success("Incident logged successfully");
+      setShowIncidentModal(false);
+      setCategory("Disciplinary");
+      setSeverity("Low");
+      setDescription("");
+      fetchIncidents();
+    } catch (err) {
+      toast.error("Failed to log incident");
+    }
+  };
   return (
     <ProtectedRoute allowedRoles={['warden', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-6xl mx-auto">
@@ -37,28 +76,22 @@ export default function WardenIncidents() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              <tr className="hover:bg-gray-100/30 transition-colors">
-                <td className="px-6 py-4 font-bold text-brand-black">Oct 12, 2026</td>
-                <td className="px-6 py-4 text-fuchsia-400 font-bold">Discipline</td>
-                <td className="px-6 py-4">Noise complaint after lights out in Room 101. Warning issued.</td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Medium</span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 border border-gray-500/20">Resolved</span>
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-100/30 transition-colors">
-                <td className="px-6 py-4 font-bold text-brand-black">Oct 12, 2026</td>
-                <td className="px-6 py-4 text-cyan-600 font-bold">Maintenance</td>
-                <td className="px-6 py-4">Water leakage in Block B common bathroom.</td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">High</span>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Open</span>
-                </td>
-              </tr>
+              {incidents.map((inc) => (
+                <tr key={inc.id} className="hover:bg-gray-100/30 transition-colors">
+                  <td className="px-6 py-4 font-bold text-brand-black">{new Date(inc.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                  <td className={`px-6 py-4 font-bold ${inc.category.toLowerCase().includes('discipline') ? 'text-fuchsia-400' : 'text-cyan-600'}`}>{inc.category}</td>
+                  <td className="px-6 py-4">{inc.description}</td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${inc.severity.toLowerCase() === 'high' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : inc.severity.toLowerCase() === 'medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>{inc.severity}</span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${inc.status?.toLowerCase() === 'resolved' ? 'bg-gray-500/10 text-gray-600 border-gray-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>{inc.status || "Open"}</span>
+                  </td>
+                </tr>
+              ))}
+              {incidents.length === 0 && (
+                 <tr><td colSpan={5} className="text-center py-8 text-gray-500">No incidents logged yet.</td></tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -76,7 +109,7 @@ export default function WardenIncidents() {
               <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">Category</label>
-                  <select className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-rose-500">
+                  <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-rose-500">
                     <option>Disciplinary</option>
                     <option>Health/Medical</option>
                     <option>Maintenance</option>
@@ -84,7 +117,7 @@ export default function WardenIncidents() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">Severity</label>
-                  <select className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-rose-500">
+                  <select value={severity} onChange={e => setSeverity(e.target.value)} className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-rose-500">
                     <option>Low</option>
                     <option>Medium</option>
                     <option>High</option>
@@ -92,12 +125,12 @@ export default function WardenIncidents() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">Description</label>
-                  <textarea rows={3} className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-rose-500" placeholder="Describe the incident..."></textarea>
+                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-rose-500" placeholder="Describe the incident..."></textarea>
                 </div>
               </div>
               <div className="p-6 border-t border-gray-200 bg-gray-50/50 flex justify-end gap-3">
                 <button onClick={() => setShowIncidentModal(false)} className="px-4 py-2 rounded-lg text-gray-600 hover:text-brand-black transition-colors">Cancel</button>
-                <button onClick={() => setShowIncidentModal(false)} className="bg-rose-600 hover:bg-rose-700 text-brand-black px-4 py-2 rounded-lg transition-colors">Save Log</button>
+                <button onClick={handleSave} className="bg-rose-600 hover:bg-rose-700 text-brand-black px-4 py-2 rounded-lg transition-colors">Save Log</button>
               </div>
             </div>
           </div>

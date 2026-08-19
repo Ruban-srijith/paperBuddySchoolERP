@@ -1,11 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { BookCopy, Plus, Search, X } from "lucide-react";
+import api from "@/lib/api";
+import { useToast } from "@/components/Toast";
 
 export default function LibrarianInventory() {
+  const { toast } = useToast();
   const [showAddBook, setShowAddBook] = useState(false);
+  const [books, setBooks] = useState<any[]>([]);
+  
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [isbn, setIsbn] = useState("");
+  const [category, setCategory] = useState("Science");
+  const [totalCopies, setTotalCopies] = useState("1");
+  const [search, setSearch] = useState("");
+
+  const fetchBooks = async () => {
+    try {
+      const res = await api.get("/librarian/books");
+      setBooks(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await api.post("/librarian/books", {
+        title,
+        author,
+        isbn,
+        category,
+        total_copies: parseInt(totalCopies) || 1,
+        is_digital: false
+      });
+      toast.success("Book added successfully");
+      setShowAddBook(false);
+      setTitle("");
+      setAuthor("");
+      setIsbn("");
+      setTotalCopies("1");
+      fetchBooks();
+    } catch (err) {
+      toast.error("Failed to add book");
+    }
+  };
+
+  const filteredBooks = books.filter(b => 
+    b.title?.toLowerCase().includes(search.toLowerCase()) || 
+    b.author?.toLowerCase().includes(search.toLowerCase()) || 
+    b.isbn?.toLowerCase().includes(search.toLowerCase())
+  );
   return (
     <ProtectedRoute allowedRoles={['librarian', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -31,6 +83,8 @@ export default function LibrarianInventory() {
               <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-500" />
               <input 
                 type="text" 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
                 placeholder="Search by Title, Author, or ISBN..." 
                 className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-indigo-500"
               />
@@ -57,32 +111,26 @@ export default function LibrarianInventory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
-                <tr className="hover:bg-gray-100/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-brand-black">Advanced Physics Vol 2</div>
-                    <div className="text-xs text-gray-500">ISBN: 978-0134093413</div>
-                  </td>
-                  <td className="px-6 py-4">H.C. Verma</td>
-                  <td className="px-6 py-4">Science</td>
-                  <td className="px-6 py-4 text-center font-bold text-gray-700">12</td>
-                  <td className="px-6 py-4 text-center font-bold text-amber-400">5</td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">High Demand</span>
-                  </td>
-                </tr>
-                <tr className="hover:bg-gray-100/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-brand-black">To Kill a Mockingbird</div>
-                    <div className="text-xs text-gray-500">ISBN: 978-0060935467</div>
-                  </td>
-                  <td className="px-6 py-4">Harper Lee</td>
-                  <td className="px-6 py-4">Fiction</td>
-                  <td className="px-6 py-4 text-center font-bold text-gray-700">8</td>
-                  <td className="px-6 py-4 text-center font-bold text-emerald-600">8</td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Available</span>
-                  </td>
-                </tr>
+                {filteredBooks.map((b) => (
+                  <tr key={b.id} className="hover:bg-gray-100/30 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-brand-black">{b.title}</div>
+                      <div className="text-xs text-gray-500">ISBN: {b.isbn || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4">{b.author}</td>
+                    <td className="px-6 py-4">{b.category || 'General'}</td>
+                    <td className="px-6 py-4 text-center font-bold text-gray-700">{b.total_copies}</td>
+                    <td className={`px-6 py-4 text-center font-bold ${b.available_copies > 5 ? 'text-emerald-600' : (b.available_copies > 0 ? 'text-amber-400' : 'text-rose-500')}`}>{b.available_copies}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${b.available_copies > 5 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : (b.available_copies > 0 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20')}`}>
+                        {b.available_copies > 5 ? 'Available' : (b.available_copies > 0 ? 'High Demand' : 'Out of Stock')}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {filteredBooks.length === 0 && (
+                   <tr><td colSpan={6} className="text-center py-8 text-gray-500">No books found.</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -101,25 +149,25 @@ export default function LibrarianInventory() {
               <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">Book Title</label>
-                  <input type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" placeholder="e.g. Advanced Physics" />
+                  <input value={title} onChange={e => setTitle(e.target.value)} type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" placeholder="e.g. Advanced Physics" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">Author</label>
-                  <input type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" placeholder="Author name" />
+                  <input value={author} onChange={e => setAuthor(e.target.value)} type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" placeholder="Author name" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">ISBN</label>
-                    <input type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" placeholder="ISBN-13" />
+                    <input value={isbn} onChange={e => setIsbn(e.target.value)} type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" placeholder="ISBN-13" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Total Copies</label>
-                    <input type="number" defaultValue="1" min="1" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" />
+                    <input value={totalCopies} onChange={e => setTotalCopies(e.target.value)} type="number" min="1" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">Category</label>
-                  <select className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500">
+                  <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500">
                     <option>Science</option>
                     <option>Fiction</option>
                     <option>History</option>
@@ -129,7 +177,7 @@ export default function LibrarianInventory() {
               </div>
               <div className="p-6 border-t border-gray-200 bg-gray-50/50 flex justify-end gap-3">
                 <button onClick={() => setShowAddBook(false)} className="px-4 py-2 rounded-lg text-gray-600 hover:text-brand-black transition-colors">Cancel</button>
-                <button onClick={() => setShowAddBook(false)} className="bg-brand-blue hover:bg-indigo-700 text-brand-black px-4 py-2 rounded-lg transition-colors">Save Book</button>
+                <button onClick={handleSave} className="bg-brand-blue hover:bg-indigo-700 text-brand-black px-4 py-2 rounded-lg transition-colors">Save Book</button>
               </div>
             </div>
           </div>

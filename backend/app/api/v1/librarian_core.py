@@ -109,10 +109,62 @@ async def add_book(req: BookCreate, db: AsyncSession = Depends(get_db), current_
 
 # --- Endpoints: Book Issues ---
 
+from pydantic import BaseModel
+from datetime import timedelta
+
+class IssueCreate(BaseModel):
+    book_id: str
+    user_id: str
+    due_date: date
+
 @router.get("/issues")
 async def get_issues(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_librarian_or_above)):
     result = await db.execute(select(BookIssue).order_by(BookIssue.issue_date.desc()))
     return result.scalars().all()
+
+@router.post("/issues")
+async def issue_book(req: IssueCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_librarian_or_above)):
+    # Verify book exists and has available copies
+    book_res = await db.execute(select(Book).where(Book.id == req.book_id))
+    book = book_res.scalars().first()
+    if not book or book.available_copies <= 0:
+        raise HTTPException(status_code=400, detail="Book not available")
+
+    issue = BookIssue(
+        id=str(uuid4()),
+        book_id=req.book_id,
+        user_id=req.user_id,
+        due_date=datetime.combine(req.due_date, datetime.min.time(), tzinfo=timezone.utc),
+        status="issued"
+    )
+    book.available_copies -= 1
+    db.add(issue)
+    await db.commit()
+    return {"success": True}
+
+@router.put("/issues/{issue_id}/return")
+async def return_book(issue_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_librarian_or_above)):
+    res = await db.execute(select(BookIssue).where(BookIssue.id == issue_id))
+    issue = res.scalars().first()
+    if not issue or issue.status == "returned":
+        raise HTTPException(status_code=400, detail="Issue not found or already returned")
+    
+    issue.return_date = datetime.now(timezone.utc)
+    issue.status = "returned"
+    
+    # Calculate fine if overdue
+    if issue.return_date > issue.due_date:
+        days_overdue = (issue.return_date - issue.due_date).days
+        if days_overdue > 0:
+            issue.fine_amount = days_overdue * 20.0 # Example fine rate
+
+    book_res = await db.execute(select(Book).where(Book.id == issue.book_id))
+    book = book_res.scalars().first()
+    if book:
+        book.available_copies += 1
+
+    await db.commit()
+    return {"success": True}
 
 # --- Endpoints: Book Requests ---
 
@@ -121,9 +173,39 @@ async def get_requests(db: AsyncSession = Depends(get_db), current_user: User = 
     result = await db.execute(select(BookRequest).order_by(BookRequest.created_at.desc()))
     return result.scalars().all()
 
+class RequestStatusUpdate(BaseModel):
+    status: str # 'approved', 'rejected', 'Sent to Finance'
+
+@router.put("/requests/{request_id}/status")
+async def update_request_status(request_id: str, req: RequestStatusUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_librarian_or_above)):
+    res = await db.execute(select(BookRequest).where(BookRequest.id == request_id))
+    b_req = res.scalars().first()
+    if not b_req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    b_req.status = req.status
+    await db.commit()
+    return {"success": True}
+
 # --- Endpoints: Digital Resources ---
 
 @router.get("/digital")
 async def get_digital_resources(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(DigitalResource).order_by(DigitalResource.created_at.desc()))
     return result.scalars().all()
+
+class DigitalResourceCreate(BaseModel):
+    title: str
+    url: str
+    category: str = None
+
+@router.post("/digital")
+async def add_digital_resource(req: DigitalResourceCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_librarian_or_above)):
+    resource = DigitalResource(
+        id=str(uuid4()),
+        title=req.title,
+        url=req.url,
+        category=req.category
+    )
+    db.add(resource)
+    await db.commit()
+    return {"success": True}
