@@ -1,16 +1,94 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Users, Save, CheckCircle2 } from "lucide-react";
+import api from "@/lib/api";
 
 export default function WardenAttendance() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [students, setStudents] = useState<any[]>([]);
+  const [attendanceState, setAttendanceState] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [selectedBlock, setSelectedBlock] = useState("Block A (Boys)");
 
-  const handleSave = () => {
-    setToastMessage("Attendance saved successfully!");
-    setTimeout(() => setToastMessage(null), 3000);
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [roomsRes, attRes] = await Promise.all([
+        api.get("/warden/rooms"),
+        api.get(`/warden/attendance?target_date=${todayStr}`)
+      ]);
+
+      const rooms = roomsRes.data || [];
+      const flattenedStudents: any[] = [];
+      rooms.forEach((room: any) => {
+        room.students.forEach((st: any) => {
+          flattenedStudents.push({
+            student_id: st.id,
+            student_name: st.name,
+            room_number: room.number,
+            block: room.block
+          });
+        });
+      });
+      setStudents(flattenedStudents);
+
+      const existingAtt = attRes.data?.records || [];
+      const newAttState: Record<string, string> = {};
+      
+      // Default to present, or use existing status
+      flattenedStudents.forEach(st => {
+        const found = existingAtt.find((r: any) => r.student_id === st.student_id);
+        newAttState[st.student_id] = found ? found.status : "present";
+      });
+      
+      setAttendanceState(newAttState);
+
+      // Auto select the first available block if there are rooms
+      if (rooms.length > 0) {
+        const blocks = Array.from(new Set(rooms.map((r: any) => r.block)));
+        if (!blocks.includes(selectedBlock)) {
+          setSelectedBlock(blocks[0] as string);
+        }
+      }
+
+    } catch (err) {
+      console.error("Failed to load attendance data", err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const records = Object.entries(attendanceState).map(([student_id, status]) => ({
+        student_id,
+        status
+      }));
+
+      await api.post("/warden/attendance", {
+        date: todayStr,
+        records
+      });
+
+      setToastMessage("Attendance saved successfully!");
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err) {
+      console.error("Failed to save attendance", err);
+    }
+  };
+
+  const filteredStudents = students.filter(s => s.block === selectedBlock);
+
+  const availableBlocks = Array.from(new Set(students.map(s => s.block)));
+
   return (
     <ProtectedRoute allowedRoles={['warden', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-5xl mx-auto">
@@ -32,12 +110,20 @@ export default function WardenAttendance() {
 
         <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 overflow-x-auto">
           <div className="flex justify-between items-center mb-6">
-            <select className="bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500">
-              <option>Block A (Boys)</option>
-              <option>Block B (Boys)</option>
-              <option>Block C (Girls)</option>
+            <select 
+              value={selectedBlock}
+              onChange={(e) => setSelectedBlock(e.target.value)}
+              className="bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500"
+            >
+              {availableBlocks.length > 0 ? (
+                availableBlocks.map(block => (
+                  <option key={block} value={block}>{block}</option>
+                ))
+              ) : (
+                <option>No Blocks Available</option>
+              )}
             </select>
-            <div className="text-gray-600 text-sm whitespace-nowrap ml-4">Date: <strong>Oct 12, 2026</strong></div>
+            <div className="text-gray-600 text-sm whitespace-nowrap ml-4">Date: <strong>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</strong></div>
           </div>
 
           <table className="w-full text-left text-sm text-gray-600 min-w-max">
@@ -51,32 +137,49 @@ export default function WardenAttendance() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              <tr className="hover:bg-gray-100/30 transition-colors">
-                <td className="px-6 py-4 font-bold text-brand-black">101</td>
-                <td className="px-6 py-4">Rahul Sharma</td>
-                <td className="px-6 py-4 text-center">
-                  <input type="radio" name="att_1" className="w-4 h-4 accent-emerald-500" defaultChecked />
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <input type="radio" name="att_1" className="w-4 h-4 accent-rose-500" />
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <input type="radio" name="att_1" className="w-4 h-4 accent-amber-500" />
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-100/30 transition-colors">
-                <td className="px-6 py-4 font-bold text-brand-black">101</td>
-                <td className="px-6 py-4">Amit Kumar</td>
-                <td className="px-6 py-4 text-center">
-                  <input type="radio" name="att_2" className="w-4 h-4 accent-emerald-500" />
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <input type="radio" name="att_2" className="w-4 h-4 accent-rose-500" />
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <input type="radio" name="att_2" className="w-4 h-4 accent-amber-500" defaultChecked />
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Loading attendance data...</td>
+                </tr>
+              ) : filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">No students found in this block.</td>
+                </tr>
+              ) : (
+                filteredStudents.map(student => (
+                  <tr key={student.student_id} className="hover:bg-gray-100/30 transition-colors">
+                    <td className="px-6 py-4 font-bold text-brand-black">{student.room_number}</td>
+                    <td className="px-6 py-4">{student.student_name}</td>
+                    <td className="px-6 py-4 text-center">
+                      <input 
+                        type="radio" 
+                        name={`att_${student.student_id}`} 
+                        className="w-4 h-4 accent-emerald-500" 
+                        checked={attendanceState[student.student_id] === "present"}
+                        onChange={() => setAttendanceState(prev => ({...prev, [student.student_id]: "present"}))}
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <input 
+                        type="radio" 
+                        name={`att_${student.student_id}`} 
+                        className="w-4 h-4 accent-rose-500" 
+                        checked={attendanceState[student.student_id] === "absent"}
+                        onChange={() => setAttendanceState(prev => ({...prev, [student.student_id]: "absent"}))}
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <input 
+                        type="radio" 
+                        name={`att_${student.student_id}`} 
+                        className="w-4 h-4 accent-amber-500" 
+                        checked={attendanceState[student.student_id] === "leave"}
+                        onChange={() => setAttendanceState(prev => ({...prev, [student.student_id]: "leave"}))}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

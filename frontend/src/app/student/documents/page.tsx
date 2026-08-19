@@ -119,6 +119,17 @@ export default function StudentDocumentsPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
 
+    // Remove old data immediately from the UI to reflect re-upload state
+    setData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        uploaded_documents: prev.uploaded_documents.filter(d => d.document_type !== docType),
+        aadhaar_doc: docType === 'aadhaar' ? undefined : prev.aadhaar_doc,
+        is_aadhaar_verified: docType === 'aadhaar' ? false : prev.is_aadhaar_verified
+      };
+    });
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("document_type", docType);
@@ -453,33 +464,35 @@ export default function StudentDocumentsPage() {
 
         {/* STEP 1: MANDATORY AADHAAR CARD GATE */}
         <div className="bg-gradient-to-br from-indigo-900/10 via-purple-900/5 to-slate-900/10 dark:from-indigo-950/40 dark:to-slate-900/60 border border-indigo-200 dark:border-indigo-800/50 rounded-3xl p-6 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
+            <div className="flex items-start gap-3">
+              <div className="p-3 bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-2xl shrink-0 mt-1 lg:mt-0">
                 <FileCheck2 className="w-6 h-6" />
               </div>
               <div>
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-2 mb-1">
-                  <span className="text-[10px] md:text-xs uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-indigo-600 text-white whitespace-nowrap">
+                <div className="flex flex-col items-start gap-1.5 mb-1.5">
+                  <span className="text-[10px] sm:text-xs uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-indigo-600 text-white whitespace-nowrap">
                     Step 1 (Mandatory Gate)
                   </span>
-                  <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100 leading-tight">Aadhaar Card Verification</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-slate-100 leading-tight">Aadhaar Card Verification</h2>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-slate-400 mt-1 max-w-sm">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 max-w-sm leading-relaxed">
                   Must be verified first to unlock Marksheets, Community, Income, TC & other certificates.
                 </p>
               </div>
             </div>
 
-            {data?.is_aadhaar_verified ? (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs rounded-xl border border-emerald-500/20">
-                <CheckCircle2 className="w-4 h-4" /> AI OCR Verified
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs rounded-xl border border-amber-500/20">
-                <Lock className="w-4 h-4" /> Upload Required
-              </span>
-            )}
+            <div className="shrink-0 ml-12 lg:ml-0">
+              {data?.is_aadhaar_verified ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs rounded-xl border border-emerald-500/20 whitespace-nowrap">
+                  <CheckCircle2 className="w-4 h-4" /> AI OCR Verified
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold text-xs rounded-xl border border-amber-500/20 whitespace-nowrap">
+                  <Lock className="w-4 h-4" /> Upload Required
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Aadhaar Content Box */}
@@ -538,7 +551,7 @@ export default function StudentDocumentsPage() {
                     onClick={e => { (e.currentTarget as HTMLInputElement).value = ''; }}
                     onChange={e => {
                       if (e.target.files?.[0]) {
-                        handleFileUpload("aadhaar", e.target.files[0]);
+                        handleUpload("aadhaar", e.target.files[0]);
                         e.target.value = '';
                       }
                     }}
@@ -571,7 +584,7 @@ export default function StudentDocumentsPage() {
                   onClick={e => { (e.currentTarget as HTMLInputElement).value = ''; }}
                   onChange={e => {
                     if (e.target.files?.[0]) {
-                      handleFileUpload("aadhaar", e.target.files[0]);
+                      handleUpload("aadhaar", e.target.files[0]);
                       e.target.value = '';
                     }
                   }}
@@ -628,7 +641,7 @@ export default function StudentDocumentsPage() {
                   icon={cfg.icon}
                   isUnlocked={data?.is_aadhaar_verified ?? false}
                   isUploading={uploadingType === cfg.type}
-                  onUpload={file => handleFileUpload(cfg.type, file)}
+                  onUpload={file => handleUpload(cfg.type, file)}
                   onPreview={d => setPreviewDoc(d)}
                   onUnmask={d => {
                     setUnmaskModalDoc(d);

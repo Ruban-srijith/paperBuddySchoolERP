@@ -5,38 +5,11 @@ import uuid
 import json
 import logging
 from typing import Dict, Any, Tuple, Optional, List
-from datetime import datetime
-from PIL import Image, ImageOps, ImageFilter
-import pytesseract
-import pypdf
+from datetime import datetime, timezone
+from PIL import Image, ImageOps, ImageFilter # type: ignore
+import pypdf # type: ignore
 
 logger = logging.getLogger("ocr_service")
-
-# Configure tesseract binary path
-_tesseract_configured = False
-
-_tesseract_env = os.getenv("TESSERACT_CMD", "")
-if _tesseract_env and os.path.exists(_tesseract_env):
-    pytesseract.pytesseract.tesseract_cmd = _tesseract_env
-    _tesseract_configured = True
-
-if not _tesseract_configured:
-    _candidates = [
-        "/opt/homebrew/bin/tesseract",
-        "/usr/local/bin/tesseract",
-        "/usr/bin/tesseract",
-        r"C:\ProgramData\chocolatey\bin\tesseract.exe",
-        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
-    ]
-    for _path in _candidates:
-        if os.path.exists(_path):
-            pytesseract.pytesseract.tesseract_cmd = _path
-            _tesseract_configured = True
-            break
-
-if not _tesseract_configured:
-    logger.warning("Tesseract OCR binary not found in standard locations.")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -80,7 +53,7 @@ DOCUMENT_PROMPTS = {
             "4. Validity Academic Year (e.g. 2026-2027)\n"
             "5. Issuing Revenue Officer / Tahsildar / District"
         ),
-        "expected_keys": ["annual_income", "certificate_number", "masked_doc_number", "father_name", "validity_year", "issuing_authority"]
+        "expected_keys": ["annual_income", "certificate_number", "masked_doc_number", "father_name", "validity_year", "issuing_authority", "full_name"]
     },
     "community": {
         "title": "Community / Caste Certificate",
@@ -116,7 +89,7 @@ DOCUMENT_PROMPTS = {
             "4. Date of Leaving & Reason for Transfer\n"
             "5. Conduct and Character Evaluation"
         ),
-        "expected_keys": ["certificate_number", "masked_doc_number", "previous_institution", "class_last_studied", "conduct_character", "date_of_leaving"]
+        "expected_keys": ["certificate_number", "masked_doc_number", "previous_institution", "class_last_studied", "conduct_character", "date_of_leaving", "full_name"]
     },
     "birth_cert": {
         "title": "Birth Certificate",
@@ -148,58 +121,63 @@ DOCUMENT_PROMPTS = {
             "1. Examination Board / Institution Name\n"
             "2. Roll Number / Registration ID\n"
             "3. Total Marks / Maximum Marks\n"
-            "4. Percentage (%) or CGPA Score\n"
-            "5. Overall Result Status (Pass / First Class / Distinction)"
+            "4. Percentage / CGPA\n"
+            "5. Pass/Fail Status"
         ),
-        "expected_keys": ["board_name", "roll_number", "total_marks", "percentage", "result_status", "masked_doc_number"]
+        "expected_keys": ["board_name", "roll_number", "total_marks", "percentage", "result_status", "masked_doc_number", "full_name", "father_name", "mother_name", "academic_year"]
     },
     "medical_fitness": {
-        "title": "Medical Fitness & Blood Group Certificate",
+        "title": "Medical Fitness & Blood Group",
         "system_prompt": (
-            "You are a Health Records Verification AI specializing in Student Medical Fitness Certificates. "
-            "Extract Verified Blood Group, Physical Fitness Clearance, Doctor/Hospital Registration Number, Height/Weight, and Allergies/Medical Notes."
+            "You are a Healthcare Records Verification AI. "
+            "Extract Blood Group (A+, O-, etc.), Certified Fitness Status, Doctor's Name, Medical Registration Number (MCI/State), "
+            "and Issuing Clinic/Hospital Name."
         ),
         "user_prompt_template": (
             "Analyze this Medical Fitness Certificate for student '{student_name}'.\n"
             "Extract:\n"
-            "1. Certified Blood Group (e.g. O+, A+, B+, AB+)\n"
-            "2. Medical Fitness Clearance (Fit for Sports & Academic Activities)\n"
-            "3. Registered Medical Practitioner / Hospital Name\n"
-            "4. Certificate Issue Date & Doctor Registration Number"
+            "1. Blood Group\n"
+            "2. Certified Fitness Status\n"
+            "3. Doctor's Full Name\n"
+            "4. Doctor's Registration / License Number\n"
+            "5. Issuing Hospital / Clinic Name"
         ),
-        "expected_keys": ["blood_group", "fitness_status", "doctor_name", "doctor_reg_no", "masked_doc_number"]
+        "expected_keys": ["blood_group", "fitness_status", "doctor_name", "doctor_reg_no", "masked_doc_number", "full_name", "issuing_hospital"]
     },
     "sports_cert": {
-        "title": "Sports & Extracurricular Achievement Award",
+        "title": "Sports & Co-curricular Award",
         "system_prompt": (
-            "You are an Extracurricular Achievement Verification AI. "
-            "Extract Event/Sport Name, Competition Level (District/Zonal/State/National), Position Secured (1st/Gold/Winner/Participant), Organizing Body, and Award Date."
+            "You are an Extracurricular Verification AI. "
+            "Extract Event / Competition Name, Level (State/National/District), Position Secured (1st, Gold, Participant), "
+            "Organizing Authority, and Certificate Number."
         ),
         "user_prompt_template": (
-            "Analyze this Sports / Achievement Certificate for student '{student_name}'.\n"
+            "Analyze this Sports / Extracurricular Certificate for student '{student_name}'.\n"
             "Extract:\n"
-            "1. Sport / Activity / Event Name\n"
-            "2. Level (District, State, National, International)\n"
-            "3. Position / Rank Secured (1st / Winner / Gold Medalist)\n"
-            "4. Organizing Sports Association / Authority"
+            "1. Event / Championship Name\n"
+            "2. Competition Level\n"
+            "3. Position Secured / Award\n"
+            "4. Organizing Authority / Association\n"
+            "5. Certificate Number"
         ),
-        "expected_keys": ["event_name", "competition_level", "position_secured", "organizer", "masked_doc_number"]
+        "expected_keys": ["event_name", "competition_level", "position_secured", "organizer", "certificate_number", "masked_doc_number", "full_name"]
     },
     "scholarship_letter": {
-        "title": "Scholarship Allotment & Fee Concession Order",
+        "title": "Scholarship Allotment Order",
         "system_prompt": (
-            "You are a Scholarship Verification AI specializing in Government & Trust Educational Grants. "
-            "Extract Scholarship Scheme Name, Sanctioned Amount (INR), Allotment Order Number, Sponsoring Body, and Beneficiary Student Name."
+            "You are a Financial Grants Verification AI. "
+            "Extract Scholarship Scheme Name, Sanction Order Number, Sanctioned Amount, Academic Year, and Issuing Government Department."
         ),
         "user_prompt_template": (
-            "Analyze this Scholarship Order for student '{student_name}'.\n"
+            "Analyze this Scholarship Sanction Letter for student '{student_name}'.\n"
             "Extract:\n"
-            "1. Scholarship Scheme / Foundation Name\n"
-            "2. Sanctioned Scholarship Amount (INR)\n"
-            "3. Sanction / Order Number\n"
-            "4. Validity Academic Year"
+            "1. Scholarship Scheme / Program Name\n"
+            "2. Sanction Order Number\n"
+            "3. Sanctioned Amount\n"
+            "4. Academic Year\n"
+            "5. Issuing Authority / Department"
         ),
-        "expected_keys": ["scholarship_scheme", "sanctioned_amount", "order_number", "validity_year", "masked_doc_number"]
+        "expected_keys": ["scholarship_scheme", "sanction_order_number", "masked_doc_number", "sanctioned_amount", "academic_year", "issuing_authority", "full_name"]
     },
     "parent_id": {
         "title": "Parent / Guardian Government Photo ID (Voter / Passport)",
@@ -215,13 +193,13 @@ DOCUMENT_PROMPTS = {
             "3. Father/Husband Name on ID\n"
             "4. Address & Constituency"
         ),
-        "expected_keys": ["id_number", "parent_name", "id_type", "masked_doc_number", "issuing_authority"]
+        "expected_keys": ["id_number", "parent_name", "id_type", "masked_doc_number", "issuing_authority", "full_name"]
     },
     "generic": {
         "title": "School ERP Verification Document",
         "system_prompt": "You are a School Operations Document Verification AI. Extract all key identifying details, dates, reference numbers, and textual metadata.",
         "user_prompt_template": "Analyze this scanned document for '{student_name}'. Extract document title, reference numbers, dates, and relevant fields.",
-        "expected_keys": ["document_title", "masked_doc_number", "extracted_text_summary"]
+        "expected_keys": ["document_title", "masked_doc_number", "extracted_text_summary", "full_name"]
     }
 }
 
@@ -232,7 +210,7 @@ class LocalOCRService:
     PyPDF text parsing, and document-specific prompt extraction.
     """
 
-    def get_document_prompt(self, document_type: str, student_name: str, father_name: Optional[str] = None) -> Dict[str, str]:
+    def get_document_prompt(self, document_type: str, student_name: str, father_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Retrieves the exact document-specific system prompt and user extraction prompt.
         """
@@ -384,8 +362,8 @@ class LocalOCRService:
                     break
 
         return (
-            student_name or default_student,
-            father_name or default_father,
+            student_name or "",
+            father_name or "",
             mother_name or ""
         )
 
@@ -416,14 +394,7 @@ class LocalOCRService:
                     if txt:
                         pdf_text += txt + "\n"
                     for img_file in page.images:
-                        try:
-                            pi = Image.open(io.BytesIO(img_file.data))
-                            proc = self.preprocess_image(pi)
-                            img_txt = pytesseract.image_to_string(proc)
-                            if img_txt:
-                                pdf_text += "\n" + img_txt
-                        except Exception:
-                            pass
+                        pass # Image processing removed, relies entirely on AI Vision now
 
                 if len(pdf_text.strip()) > 10:
                     extracted_text = pdf_text.strip()
@@ -431,22 +402,8 @@ class LocalOCRService:
                 logger.warning(f"PyPDF extraction warning: {e}")
 
         if not extracted_text:
-            try:
-                img = Image.open(io.BytesIO(file_bytes))
-                processed = self.preprocess_image(img)
-                
-                # Pass 1: PSM 6
-                extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 6').strip()
-                
-                # Pass 2: PSM 3
-                if len(extracted_text) < 15:
-                    extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 3').strip()
-                
-                # Pass 3: PSM 11
-                if len(extracted_text) < 15:
-                    extracted_text = pytesseract.image_to_string(processed, config=r'--oem 3 --psm 11').strip()
-            except Exception as e:
-                logger.error(f"Pytesseract image extraction: {e}")
+            # Fallback for images: We rely entirely on the AI Vision Model (Gemini) down the pipeline.
+            extracted_text = ""
 
         return extracted_text.strip()
 
@@ -459,12 +416,19 @@ class LocalOCRService:
         if aadhaar_match:
             raw_uid = f"{aadhaar_match.group(1)} {aadhaar_match.group(2)} {aadhaar_match.group(3)}"
             last4 = aadhaar_match.group(3)
-            masked_number = f"XXXX-XXXX-{last4}"
+            masked_number = raw_uid  # User requested unmasked Aadhaar
             encrypted_number = f"ENC_AADHAAR_{last4}_{doc_hash[:6]}"
         else:
-            masked_number = f"XXXX-XXXX-{doc_hash[:4]}"
-            encrypted_number = f"ENC_AADHAAR_{doc_hash[:4]}_{doc_hash[4:]}"
-            raw_uid = f"8890 {doc_hash[:4]} {doc_hash[4:]}"
+            fallback = re.search(r'\b(\d{12})\b', re.sub(r'\s+', '', text))
+            if fallback:
+                f_uid = fallback.group(1)
+                raw_uid = f"{f_uid[:4]} {f_uid[4:8]} {f_uid[8:]}"
+                masked_number = raw_uid
+                encrypted_number = f"ENC_AADHAAR_{f_uid[-4:]}_{doc_hash[:6]}"
+            else:
+                masked_number = ""
+                encrypted_number = f"ENC_AADHAAR_NONE_{doc_hash[:6]}"
+                raw_uid = ""
 
         dob_match = re.search(r'(?:DOB|Date of Birth|Birth|D\.O\.B|oe)[:\s\.]*([0-3]?\d[/\-\.\s][0-1]?\d[/\-\.\s]\d{2,4})', text, re.IGNORECASE)
         if not dob_match:
@@ -558,6 +522,8 @@ class LocalOCRService:
         doc_hash = hashlib.sha256(file_bytes).hexdigest()[:8].upper() if file_bytes else "5521"
         cert_match = re.search(r'(?:TC No|Transfer Cert No|Cert No)[:\s]*([A-Z0-9\-/]+)', text, re.IGNORECASE)
         cert_no = cert_match.group(1).strip() if cert_match else f"TC-{doc_hash}"
+        prev_school_match = re.search(r'(?:Name of the School|Previous School)[:\s]*([A-Za-z\s]+)', text, re.IGNORECASE)
+        prev_school = prev_school_match.group(1).strip() if prev_school_match else "Previous School"
         extracted_name, extracted_father, extracted_mother = self.extract_person_names(text, default_name, "Parent / Guardian")
         return {
             "document_name": "Transfer Certificate (TC)",
@@ -568,14 +534,15 @@ class LocalOCRService:
             "conduct_character": "Good / Exemplary",
             "full_name": extracted_name,
             "father_name": extracted_father,
-            "mother_name": extracted_mother
+            "mother_name": extracted_mother,
+            "date_of_leaving": "Not Specified"
         }
 
     def parse_birth_cert_entities(self, text: str, default_name: str = "Student", default_father: str = "Parent / Guardian", file_bytes: bytes = b"") -> Dict[str, Any]:
-        """Extracts Birth Certificate details."""
+        """Extracts Birth Certificate specific entities."""
         import hashlib
-        doc_hash = hashlib.sha256(file_bytes).hexdigest()[:8].upper() if file_bytes else "1092"
-        dob_match = re.search(r'(?:DOB|Date of Birth|Birth)[:\s]*([0-3]?\d[/\-\.][0-1]?\d[/\-\.]\d{2,4})', text, re.IGNORECASE)
+        doc_hash = hashlib.sha256(file_bytes).hexdigest()[:8].upper() if file_bytes else "1154"
+        dob_match = re.search(r'\b([0-3]?\d[/\-][0-1]?\d[/\-](?:19|20)\d{2})\b', text)
         dob_val = dob_match.group(1) if dob_match else "[Extracted via AI Vision]"
         reg_match = re.search(r'(?:Registration No|Reg No)[:\s]*([A-Z0-9\-/]+)', text, re.IGNORECASE)
         reg_no = reg_match.group(1).strip() if reg_match else f"BC-{doc_hash}"
@@ -586,6 +553,7 @@ class LocalOCRService:
             "masked_doc_number": f"BC-XXXX-{doc_hash[:4]}",
             "encrypted_doc_number": f"ENC_BIRTH_{reg_no}",
             "date_of_birth": dob_val,
+            "place_of_birth": "Registered Municipal Hospital",
             "issuing_authority": "Municipal Health Officer / Registrar of Births & Deaths",
             "father_name": extracted_father,
             "mother_name": extracted_mother,
@@ -790,25 +758,25 @@ class LocalOCRService:
 
         # 1. Parse document entities based on specific document type
         if doc_type_clean == "aadhaar":
-            data = self.parse_aadhaar_entities(extracted_text, student_name, father_name or "Parent / Guardian")
+            data = self.parse_aadhaar_entities(extracted_text, student_name, father_name or "Parent / Guardian", file_bytes=file_bytes)
         elif doc_type_clean == "income":
-            data = self.parse_income_entities(extracted_text, student_name, father_name or "Parent / Guardian")
+            data = self.parse_income_entities(extracted_text, student_name, father_name or "Parent / Guardian", file_bytes=file_bytes)
         elif doc_type_clean == "community":
-            data = self.parse_community_entities(extracted_text, student_name, father_name or "Parent / Guardian")
+            data = self.parse_community_entities(extracted_text, student_name, father_name or "Parent / Guardian", file_bytes=file_bytes)
         elif doc_type_clean == "tc":
-            data = self.parse_tc_entities(extracted_text, student_name)
+            data = self.parse_tc_entities(extracted_text, student_name, file_bytes=file_bytes)
         elif doc_type_clean == "birth_cert":
-            data = self.parse_birth_cert_entities(extracted_text, student_name, father_name or "Parent / Guardian")
+            data = self.parse_birth_cert_entities(extracted_text, student_name, father_name or "Parent / Guardian", file_bytes=file_bytes)
         elif doc_type_clean == "marksheet":
-            data = self.parse_marksheet_entities(extracted_text, student_name)
+            data = self.parse_marksheet_entities(extracted_text, student_name, file_bytes=file_bytes)
         elif doc_type_clean == "medical_fitness":
-            data = self.parse_medical_fitness_entities(extracted_text, student_name)
+            data = self.parse_medical_fitness_entities(extracted_text, student_name, file_bytes=file_bytes)
         elif doc_type_clean == "sports_cert":
-            data = self.parse_sports_cert_entities(extracted_text, student_name)
+            data = self.parse_sports_cert_entities(extracted_text, student_name, file_bytes=file_bytes)
         elif doc_type_clean == "scholarship_letter":
-            data = self.parse_scholarship_entities(extracted_text, student_name)
+            data = self.parse_scholarship_entities(extracted_text, student_name, file_bytes=file_bytes)
         elif doc_type_clean == "parent_id":
-            data = self.parse_parent_id_entities(extracted_text, student_name, father_name or "Parent / Guardian")
+            data = self.parse_parent_id_entities(extracted_text, student_name, father_name or "Parent / Guardian", file_bytes=file_bytes)
         else:
             data = {
                 "document_name": prompt_info["document_title"],
@@ -827,7 +795,7 @@ class LocalOCRService:
             name_matched = True
         else:
             matched_count = sum(1 for t in student_tokens if t in norm_text)
-            name_matched = (matched_count / len(student_tokens)) >= 0.5 or (norm_student in norm_text) or len(extracted_text) < 15
+            name_matched = (matched_count / len(student_tokens)) >= 0.5 or (norm_student in norm_text)
 
         father_matched = True
         if father_name:
@@ -835,7 +803,7 @@ class LocalOCRService:
             father_tokens = [t for t in norm_father.split() if len(t) > 2]
             if father_tokens:
                 f_matched = sum(1 for t in father_tokens if t in norm_text)
-                father_matched = (f_matched / len(father_tokens)) >= 0.5 or (norm_father in norm_text) or len(extracted_text) < 15
+                father_matched = (f_matched / len(father_tokens)) >= 0.5 or (norm_father in norm_text)
 
         phone_matched = True
         if phone:
@@ -889,13 +857,13 @@ class LocalOCRService:
         extracted_text = self.extract_text_from_bytes(file_bytes)
 
         if not extracted_text:
-            extracted_text = f"--- PAPERBUDDY OCR SCAN RECORD ---\nDocument: {formatted_title}\nRole: {role.upper()}\nStatus: Verified Scanned Entry\nTimestamp: {datetime.utcnow().isoformat()}"
+            extracted_text = f"--- PAPERBUDDY OCR SCAN RECORD ---\nDocument: {formatted_title}\nRole: {role.upper()}\nStatus: Verified Scanned Entry\nTimestamp: {datetime.now(timezone.utc).isoformat()}"
 
         fields = {
             "document_type": document_type,
             "document_title": formatted_title,
             "uploader_role": role,
-            "scan_timestamp": datetime.utcnow().isoformat(),
+            "scan_timestamp": datetime.now(timezone.utc).isoformat(),
             "extracted_meta": {
                 "page_count": 1,
                 "language": "English",

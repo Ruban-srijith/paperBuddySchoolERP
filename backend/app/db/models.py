@@ -723,6 +723,24 @@ class Outpass(Base):
     student = relationship("User", foreign_keys=[student_id])
     approver = relationship("User", foreign_keys=[approved_by])
 
+class MessMenu(Base):
+    __tablename__ = "mess_menus"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    date = Column(Date, unique=True, nullable=False)
+    
+    breakfast_items = Column(String(255), nullable=True)
+    breakfast_desc = Column(String(255), nullable=True)
+    breakfast_status = Column(String(50), default="Scheduled")
+    
+    lunch_items = Column(String(255), nullable=True)
+    lunch_desc = Column(String(255), nullable=True)
+    lunch_status = Column(String(50), default="Scheduled")
+    
+    dinner_items = Column(String(255), nullable=True)
+    dinner_desc = Column(String(255), nullable=True)
+    dinner_status = Column(String(50), default="Scheduled")
+
 # =====================================================================
 # Advanced Finance Models (Phase 5)
 # =====================================================================
@@ -854,7 +872,7 @@ class Book(Base):
     available_copies = Column(Integer, default=1)
     is_digital = Column(Boolean, default=False)
     digital_url = Column(String(500), nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 class BookIssue(Base):
     __tablename__ = "library_issues"
@@ -862,9 +880,9 @@ class BookIssue(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     book_id = Column(String(36), ForeignKey("library_books.id"), nullable=False)
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
-    issue_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    due_date = Column(DateTime, nullable=False)
-    return_date = Column(DateTime, nullable=True)
+    issue_date = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    due_date = Column(DateTime(timezone=True), nullable=False)
+    return_date = Column(DateTime(timezone=True), nullable=True)
     fine_amount = Column(Numeric(10, 2), default=0.0)
     status = Column(String(50), default="issued") # issued, returned, overdue
     
@@ -880,7 +898,7 @@ class BookRequest(Base):
     author = Column(String(255), nullable=True)
     reason = Column(Text, nullable=True)
     status = Column(String(50), default="pending") # pending, approved, rejected, ordered
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     requester = relationship("User")
 
@@ -892,7 +910,7 @@ class DigitalResource(Base):
     url = Column(String(500), nullable=False)
     category = Column(String(100), nullable=True)
     access_count = Column(Integer, default=0)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
 # ─── Transport Management Ecosystem ─────────────────────────────

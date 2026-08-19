@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "@/lib/api";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Home, Users, Plus, X } from "lucide-react";
 
@@ -11,71 +12,61 @@ export default function WardenRooms() {
   const [newRoomBlock, setNewRoomBlock] = useState("Block A (Boys)");
   const [newRoomNumber, setNewRoomNumber] = useState("");
   const [newRoomCapacity, setNewRoomCapacity] = useState(2);
-  const [rooms, setRooms] = useState([
-    {
-      id: 1,
-      block: "Block A",
-      number: "101",
-      type: "Standard Room • Ground Floor",
-      capacity: 3,
-      students: [
-        { name: "Rahul Sharma (Grade 10)" },
-        { name: "Amit Kumar (Grade 10)" }
-      ]
-    },
-    {
-      id: 2,
-      block: "Block A",
-      number: "102",
-      type: "AC Room • Ground Floor",
-      capacity: 2,
-      students: [
-        { name: "Vikram Singh (Grade 12)" },
-        { name: "Arjun Das (Grade 12)" }
-      ]
-    }
-  ]);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [hostelAppliedStudents, setHostelAppliedStudents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSaveRoom = () => {
-    if (!newRoomNumber) return;
-    const newRoom = {
-      id: Date.now(),
-      block: newRoomBlock.split(" ")[0] + " " + newRoomBlock.split(" ")[1],
-      number: newRoomNumber,
-      type: "Standard Room",
-      capacity: newRoomCapacity,
-      students: []
-    };
-    setRooms([...rooms, newRoom]);
-    setShowAddRoom(false);
-    setNewRoomNumber("");
-    setNewRoomCapacity(2);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [roomsRes, studentsRes] = await Promise.all([
+        api.get("/warden/rooms"),
+        api.get("/warden/available-students")
+      ]);
+      setRooms(roomsRes.data || []);
+      setHostelAppliedStudents(studentsRes.data || []);
+    } catch (err) {
+      console.error("Failed to load hostel data", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAllocateStudent = () => {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSaveRoom = async () => {
+    if (!newRoomNumber) return;
+    try {
+      await api.post("/warden/rooms", {
+        block_name: newRoomBlock.split(" ")[0] + " " + (newRoomBlock.split(" ")[1] || ""),
+        room_number: newRoomNumber,
+        capacity: newRoomCapacity
+      });
+      await fetchData();
+      setShowAddRoom(false);
+      setNewRoomNumber("");
+      setNewRoomCapacity(2);
+    } catch (err) {
+      console.error("Failed to add room", err);
+    }
+  };
+
+  const handleAllocateStudent = async () => {
     if (!newStudentName || showAllocateStudent === null) return;
     
-    setRooms(rooms.map(room => {
-      if (room.id === showAllocateStudent) {
-        return {
-          ...room,
-          students: [...room.students, { name: newStudentName }]
-        };
-      }
-      return room;
-    }));
-    
-    setShowAllocateStudent(null);
-    setNewStudentName("");
+    try {
+      await api.post(`/warden/rooms/${showAllocateStudent}/allocate`, {
+        student_id: newStudentName // newStudentName actually holds the student ID from the select value
+      });
+      await fetchData();
+      setShowAllocateStudent(null);
+      setNewStudentName("");
+    } catch (err) {
+      console.error("Failed to allocate student", err);
+    }
   };
-
-  const hostelAppliedStudents = [
-    "Yash Sharma (Grade 11)",
-    "Priya Patel (Grade 10)",
-    "Rohan Gupta (Grade 12)",
-    "Ananya Singh (Grade 9)",
-    "Karthik Reddy (Grade 11)"
-  ];
 
   return (
     <ProtectedRoute allowedRoles={['warden', 'super_admin', 'principal']}>
@@ -202,8 +193,8 @@ export default function WardenRooms() {
                     className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-amber-500"
                   >
                     <option value="" disabled>Select an applied student...</option>
-                    {hostelAppliedStudents.map(student => (
-                      <option key={student} value={student}>{student}</option>
+                    {hostelAppliedStudents.map((student: any) => (
+                      <option key={student.id} value={student.id}>{student.name}</option>
                     ))}
                   </select>
                 </div>
