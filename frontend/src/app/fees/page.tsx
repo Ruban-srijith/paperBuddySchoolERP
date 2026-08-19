@@ -336,33 +336,35 @@ export default function FeesPage() {
         </div>
 
         {/* Financial Metrics Summary */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-            <div className="text-xs text-gray-600">Total Fees Collected (FY 2026)</div>
-            <div className="text-2xl font-bold text-emerald-600">₹4,43,50,000</div>
-            <div className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5" /> 94.6% collection target achieved
+        {isManagement && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
+              <div className="text-xs text-gray-600">Total Fees Collected (FY 2026)</div>
+              <div className="text-2xl font-bold text-emerald-600">₹4,43,50,000</div>
+              <div className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
+                <CheckCircle2 className="w-3.5 h-3.5" /> 94.6% collection target achieved
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
+              <div className="text-xs text-gray-600">Tuition & Term Dues</div>
+              <div className="text-2xl font-bold text-brand-blue">₹2,85,00,000</div>
+              <div className="text-[11px] text-gray-600">All 14 grades LKG–12th</div>
+            </div>
+
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
+              <div className="text-xs text-gray-600">Transport & Hostel</div>
+              <div className="text-2xl font-bold text-cyan-600">₹1,16,00,000</div>
+              <div className="text-[11px] text-gray-600">Bus fleets & Boarding campus</div>
+            </div>
+
+            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
+              <div className="text-xs text-gray-600">Pending Remittances</div>
+              <div className="text-2xl font-bold text-amber-400">₹25,00,000</div>
+              <div className="text-[11px] text-gray-600">Automated SMS/Email reminders sent</div>
             </div>
           </div>
-
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-            <div className="text-xs text-gray-600">Tuition & Term Dues</div>
-            <div className="text-2xl font-bold text-brand-blue">₹2,85,00,000</div>
-            <div className="text-[11px] text-gray-600">All 14 grades LKG–12th</div>
-          </div>
-
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-            <div className="text-xs text-gray-600">Transport & Hostel</div>
-            <div className="text-2xl font-bold text-cyan-600">₹1,16,00,000</div>
-            <div className="text-[11px] text-gray-600">Bus fleets & Boarding campus</div>
-          </div>
-
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-            <div className="text-xs text-gray-600">Pending Remittances</div>
-            <div className="text-2xl font-bold text-amber-400">₹25,00,000</div>
-            <div className="text-[11px] text-gray-600">Automated SMS/Email reminders sent</div>
-          </div>
-        </div>
+        )}
 
         {/* ═══════════════════════════════════════════════════════
             STUDENT / PARENT ONLINE PAYMENT PORTAL
