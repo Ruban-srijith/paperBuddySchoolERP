@@ -36,17 +36,18 @@ export default function LeaveApplyPage() {
   const [leaveHistory, setLeaveHistory] = useState<LeaveApplication[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchLeaveHistory() {
-      try {
-        const res = await api.get("/approvals/leave");
-        setLeaveHistory(Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error("Failed to fetch leave history", err);
-      } finally {
-        setLoading(false);
-      }
+  const fetchLeaveHistory = async () => {
+    try {
+      const res = await api.get("/approvals/leave");
+      setLeaveHistory(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Failed to fetch leave history", err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     fetchLeaveHistory();
   }, []);
 
@@ -58,22 +59,21 @@ export default function LeaveApplyPage() {
     substitute_teacher: "Prof. Alan Turing",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newApp: LeaveApplication = {
-      id: `lv-${Date.now()}`,
-      leave_type: form.leave_type,
-      start_date: form.start_date,
-      end_date: form.end_date,
-      days: 2,
-      reason: form.reason,
-      substitute_teacher: form.substitute_teacher,
-      status: "pending",
-      applied_on: "Today",
-    };
-    setLeaveHistory(prev => [newApp, ...prev]);
-    toast.success("Leave application submitted to Principal for clearance!", "Application Submitted");
-    setForm({ ...form, reason: "" });
+    try {
+      await api.post("/approvals/leave", {
+        leave_type: form.leave_type,
+        start_date: form.start_date,
+        end_date: form.end_date,
+        reason: `${form.reason} (Substitute: ${form.substitute_teacher})`
+      });
+      toast.success("Leave application submitted to Principal for clearance!", "Application Submitted");
+      setForm({ ...form, reason: "" });
+      fetchLeaveHistory(); // Refresh the list from the backend
+    } catch (err) {
+      toast.error("Failed to submit leave request.", "Submission Error");
+    }
   };
 
   return (
