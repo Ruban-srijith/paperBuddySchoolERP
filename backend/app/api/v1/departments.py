@@ -155,6 +155,30 @@ async def update_department(
     await db.commit()
     return {"message": "Department updated successfully"}
 
+@router.post("/{dept_id}/teachers/{teacher_id}")
+async def assign_teacher_to_department(
+    dept_id: str,
+    teacher_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
+):
+    """Assign a teacher to a specific department."""
+    # Check if department exists
+    dept = await db.execute(select(Department).where(Department.id == dept_id))
+    if not dept.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Department not found")
+
+    # Check if teacher exists
+    teacher = await db.execute(select(User).where(User.id == teacher_id, User.role == UserRole.TEACHER))
+    teacher_obj = teacher.scalar_one_or_none()
+    
+    if not teacher_obj:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    teacher_obj.department_id = dept_id
+    await db.commit()
+    return {"message": "Teacher assigned to department successfully"}
+
 @router.delete("/{dept_id}/teachers/{teacher_id}")
 async def remove_teacher_from_department(
     dept_id: str,
