@@ -40,9 +40,23 @@ export default function PendingApprovalsPage() {
   const fetchApprovals = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/approvals-ext/pending-summary");
+      const res = await api.get("/approvals/leave");
       if (res.data && res.data.length > 0) {
-        setItems(res.data);
+        const backendLeaves: ApprovalItem[] = res.data.map((l: any) => ({
+          id: l.id,
+          type: "leave",
+          title: `${l.leave_type} Request`,
+          requester_name: l.applicant_name || "Unknown Faculty",
+          requester_role: l.applicant_role || "Staff",
+          date_or_period: `${l.start_date} to ${l.end_date}`,
+          details: l.reason,
+          status: l.status,
+          created_at: l.created_at
+        }));
+        
+        // Keep non-leave demo items to maintain a rich UI for other approval types
+        const demoItems = getDemoApprovals().filter(d => d.type !== "leave");
+        setItems([...backendLeaves, ...demoItems]);
       } else {
         setItems(getDemoApprovals());
       }
@@ -107,9 +121,11 @@ export default function PendingApprovalsPage() {
   const handleApprove = async (item: ApprovalItem) => {
     try {
       if (item.type === "leave") {
-        await api.patch(`/approvals-ext/leaves/${item.id}/approve`);
+        await api.post(`/approvals/leave/${item.id}`, { status: "approved" });
       }
-    } catch {}
+    } catch (err) {
+      console.error("Approval failed:", err);
+    }
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: "approved" } : i));
     toast.success(`Approved ${item.title} for ${item.requester_name}`, "Approval Granted");
   };
@@ -117,9 +133,11 @@ export default function PendingApprovalsPage() {
   const handleReject = async (item: ApprovalItem) => {
     try {
       if (item.type === "leave") {
-        await api.patch(`/approvals-ext/leaves/${item.id}/reject`, { reason: "Operational conflict" });
+        await api.post(`/approvals/leave/${item.id}`, { status: "rejected" });
       }
-    } catch {}
+    } catch (err) {
+      console.error("Rejection failed:", err);
+    }
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: "rejected" } : i));
     toast.warning(`Rejected ${item.title} for ${item.requester_name}`, "Request Declined");
   };
