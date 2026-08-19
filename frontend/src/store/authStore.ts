@@ -86,6 +86,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'dashboard',
     'scans',
     'admin_documents',
+    'pending_approvals',
     'salary_approvals',
     'event_approvals',
     'revenue',
