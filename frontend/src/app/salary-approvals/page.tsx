@@ -48,7 +48,15 @@ export default function SalaryApprovalsPage() {
     try {
       const res = await api.get("/approvals-ext/salaries");
       if (res.data && res.data.length > 0) {
-        setRecords(res.data);
+        // Map backend properties to frontend interface
+        const mappedRecords = res.data.map((r: any) => ({
+          ...r,
+          basic_salary: r.base_salary,
+          status: r.status === "pending_superadmin" ? "pending" : r.status,
+          rejection_reason: r.remarks,
+          approved_at: r.status === "approved" ? new Date().toISOString() : undefined
+        }));
+        setRecords(mappedRecords);
       } else {
         setRecords(getDemoSalaries());
       }
@@ -121,29 +129,37 @@ export default function SalaryApprovalsPage() {
 
   const handleApprove = async (id: string, name: string) => {
     try {
-      await api.patch(`/approvals-ext/salaries/${id}/approve`);
-      setRecords(prev => prev.map(r => r.id === id ? { ...r, status: "approved", approved_at: new Date().toISOString() } : r));
+      await api.post(`/approvals-ext/salaries/${id}/decision`, { status: "approved" });
+      await fetchSalaries();
       toast.success(`Approved salary clearance for ${name}`, "Payroll Approved");
-    } catch {
-      setRecords(prev => prev.map(r => r.id === id ? { ...r, status: "approved", approved_at: new Date().toISOString() } : r));
-      toast.success(`Approved salary clearance for ${name}`, "Payroll Approved");
+    } catch (err) {
+      toast.error(`Failed to approve salary for ${name}`);
     }
   };
 
   const handleReject = async (id: string, name: string) => {
     try {
-      await api.patch(`/approvals-ext/salaries/${id}/reject`, { reason: "Tax deduction mismatch" });
-      setRecords(prev => prev.map(r => r.id === id ? { ...r, status: "rejected", rejection_reason: "Tax deduction mismatch" } : r));
+      await api.post(`/approvals-ext/salaries/${id}/decision`, { status: "rejected", remarks: "Tax deduction mismatch" });
+      await fetchSalaries();
       toast.warning(`Rejected salary sheet for ${name}`, "Payroll Rejected");
-    } catch {
-      setRecords(prev => prev.map(r => r.id === id ? { ...r, status: "rejected", rejection_reason: "Tax deduction mismatch" } : r));
-      toast.warning(`Rejected salary sheet for ${name}`, "Payroll Rejected");
+    } catch (err) {
+      toast.error(`Failed to reject salary for ${name}`);
     }
   };
 
   const handleApproveAll = async () => {
-    setRecords(prev => prev.map(r => ({ ...r, status: "approved", approved_at: new Date().toISOString() })));
-    toast.success(`Approved all pending faculty payrolls for ${selectedMonth}!`, "Batch Payroll Cleared");
+    const pendingRecords = records.filter(r => r.status === "pending");
+    if (pendingRecords.length === 0) return;
+    
+    try {
+      await Promise.all(
+        pendingRecords.map(r => api.post(`/approvals-ext/salaries/${r.id}/decision`, { status: "approved" }))
+      );
+      await fetchSalaries();
+      toast.success(`Approved all pending faculty payrolls for ${selectedMonth}!`, "Batch Payroll Cleared");
+    } catch (err) {
+      toast.error("Failed to batch approve salaries");
+    }
   };
 
   const pendingCount = records.filter(r => r.status === "pending").length;
