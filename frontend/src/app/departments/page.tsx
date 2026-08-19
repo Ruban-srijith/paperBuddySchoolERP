@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { ROLE_COLORS, UserRole } from '@/store/authStore';
 import api from '@/lib/api';
 import SearchableSelect from '@/components/SearchableSelect';
+import { useToast } from '@/components/Toast';
 
 interface DepartmentItem {
   id: string;
@@ -38,6 +39,7 @@ const DEPT_COLORS = [
 ];
 
 function DepartmentsContent() {
+  const { toast } = useToast();
   const [departments, setDepartments] = useState<DepartmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedDept, setExpandedDept] = useState<string | null>(null);
@@ -100,8 +102,9 @@ function DepartmentsContent() {
       await api.delete(`/departments/${deptId}`);
       if (expandedDept === deptId) setExpandedDept(null);
       fetchDepartments();
+      toast.success("Department removed successfully");
     } catch (err) {
-      console.error("Failed to delete department");
+      toast.error("Failed to delete department");
     }
   };
 
@@ -111,8 +114,10 @@ function DepartmentsContent() {
       await api.delete(`/departments/${expandedDept}/teachers/${teacherId}`);
       const res = await api.get(`/departments/${expandedDept}/teachers`);
       setDeptTeachers(res.data);
+      fetchDepartments();
+      toast.success("Faculty removed from department");
     } catch (err) {
-      console.error("Failed to remove teacher");
+      toast.error("Failed to remove teacher");
     }
   };
 
@@ -347,8 +352,9 @@ function DepartmentsContent() {
                           code: newItemName.substring(0,3).toUpperCase()
                         });
                         fetchDepartments();
+                        toast.success("Department created successfully");
                       } catch (err) {
-                        console.error("Failed to create department");
+                        toast.error("Failed to create department");
                       }
                       setShowAddDeptModal(false);
                       setNewItemName('');
@@ -387,13 +393,13 @@ function DepartmentsContent() {
                   onClick={async () => {
                     if (selectedTeacherId && expandedDept) {
                       try {
-                        await api.put(`/users/${selectedTeacherId}`, {
-                          department_id: expandedDept
-                        });
+                        await api.post(`/departments/${expandedDept}/teachers/${selectedTeacherId}`);
                         const res = await api.get(`/departments/${expandedDept}/teachers`);
                         setDeptTeachers(res.data);
+                        fetchDepartments(); // refresh main list to update count
+                        toast.success("Faculty assigned successfully");
                       } catch (err) {
-                        console.error("Failed to assign teacher");
+                        toast.error("Failed to assign teacher");
                       }
                       setShowAddTeacherModal(false);
                       setSelectedTeacherId('');
