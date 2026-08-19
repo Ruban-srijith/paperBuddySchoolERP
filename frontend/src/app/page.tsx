@@ -90,12 +90,18 @@ export default function LandingPage() {
   useEffect(() => {
     setMounted(true);
     
-    const text1 = "Autonomous School";
-    const text2 = "Operations Platform";
+    const phrases = [
+      { line1: "Autonomous School", line2: "Operations Platform" },
+      { line1: "Genesis ERP", line2: "For Modern Schools" },
+      { line1: "AI-Powered", line2: "School Management" },
+    ];
     let isCancelled = false;
     
     const typeText = async () => {
+      let phraseIndex = 0;
       while (!isCancelled) {
+        const { line1: text1, line2: text2 } = phrases[phraseIndex];
+        
         // Type first line
         for (let i = 0; i <= text1.length; i++) {
           if (isCancelled) return;
@@ -130,6 +136,8 @@ export default function LandingPage() {
         
         // Pause before typing again
         await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        phraseIndex = (phraseIndex + 1) % phrases.length;
       }
     };
     
@@ -229,13 +237,13 @@ export default function LandingPage() {
             <motion.h1 variants={fadeUpVariant} className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-brand-black hyphens-auto break-words min-h-[120px] lg:min-h-[160px] flex flex-col items-center">
               <div>
                 {line1}
-                {line1 === "Autonomous School" && <br />}
+                {line1.length > 0 && <br />}
               </div>
-              <div className="flex items-center">
+              <div className="inline-flex items-center justify-center">
                 <span className="text-brand-blue">
                   {line2}
                 </span>
-                <span className="animate-pulse border-r-4 border-brand-blue ml-1">&nbsp;</span>
+                <span className="animate-pulse border-r-4 border-brand-blue h-[1em]"></span>
               </div>
             </motion.h1>
 
@@ -271,7 +279,7 @@ export default function LandingPage() {
               </MagneticButton>
             </motion.div>
             
-            <motion.div variants={fadeUpVariant} className="mt-12 flex items-center gap-6 justify-center lg:justify-start text-sm text-gray-500 font-bold">
+            <motion.div variants={fadeUpVariant} className="mt-12 flex items-center gap-6 justify-center text-sm text-gray-500 font-bold">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" /> No credit card required
               </div>
