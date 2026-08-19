@@ -44,7 +44,19 @@ export default function EventApprovalsPage() {
     try {
       const res = await api.get("/approvals-ext/events");
       if (res.data && res.data.length > 0) {
-        setEvents(res.data);
+        const mappedEvents = res.data.map((e: any) => ({
+          ...e,
+          category: "General Event",
+          proposed_by_name: e.organizer_name || "Unknown Staff",
+          event_date: e.start_date,
+          end_date: e.end_date,
+          budget_estimate: e.budget || 0,
+          expected_participants: 250, // Default estimate
+          venue: "Main Campus",
+          rejection_reason: e.feedback,
+          approved_at: e.status === "approved" ? new Date().toISOString() : undefined
+        }));
+        setEvents(mappedEvents);
       } else {
         setEvents(getDemoEvents());
       }
@@ -103,18 +115,22 @@ export default function EventApprovalsPage() {
 
   const handleApprove = async (id: string, title: string) => {
     try {
-      await api.patch(`/approvals-ext/events/${id}/approve`);
-    } catch {}
-    setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "approved", approved_at: new Date().toISOString() } : e));
-    toast.success(`Sanctioned and approved: ${title}`, "Event Clearance Granted");
+      await api.post(`/approvals-ext/events/${id}/decision`, { status: "approved" });
+      await fetchEvents();
+      toast.success(`Sanctioned and approved: ${title}`, "Event Clearance Granted");
+    } catch (err) {
+      toast.error(`Failed to approve event: ${title}`);
+    }
   };
 
   const handleReject = async (id: string, title: string) => {
     try {
-      await api.patch(`/approvals-ext/events/${id}/reject`, { reason: "Budget revision required" });
-    } catch {}
-    setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "rejected", rejection_reason: "Budget revision required" } : e));
-    toast.warning(`Proposal rejected for budget revision: ${title}`, "Event Rejected");
+      await api.post(`/approvals-ext/events/${id}/decision`, { status: "rejected", remarks: "Budget revision required" });
+      await fetchEvents();
+      toast.warning(`Proposal rejected for budget revision: ${title}`, "Event Rejected");
+    } catch (err) {
+      toast.error(`Failed to reject event: ${title}`);
+    }
   };
 
   return (
