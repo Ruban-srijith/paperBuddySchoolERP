@@ -3,11 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 
-from app.db.database import get_db
-from app.db.models import User, UserRole, Payroll
-from app.api.v1.auth import get_current_user
+from ...db.database import get_db
+from ...db.models import User, UserRole, Payroll
+from .auth import get_current_user
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -30,12 +30,17 @@ async def get_staff(db: AsyncSession = Depends(get_db), current_user: User = Dep
     staff_result = await db.execute(select(User).where(User.role.in_(staff_roles)))
     staff = staff_result.scalars().all()
     
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    payrolls_res = await db.execute(select(Payroll).where(Payroll.month == current_month))
+    paid_staff_ids = {p.staff_id for p in payrolls_res.scalars().all()}
+    
     return [
         {
             "id": s.id,
             "full_name": s.full_name,
             "role": s.role,
-            "department_id": s.department_id
+            "department_id": s.department_id,
+            "is_paid": s.id in paid_staff_ids
         } for s in staff
     ]
 
@@ -66,14 +71,14 @@ async def process_salary(request: ProcessSalaryRequest, db: AsyncSession = Depen
         deductions=request.deductions,
         net_salary=net_salary,
         status="paid",
-        paid_on=datetime.utcnow()
+        paid_on=datetime.now(timezone.utc)
     )
 
     db.add(payroll)
     try:
         await db.commit()
         await db.refresh(payroll)
-        return {"success": True, "payroll_id": payroll.id, "net_salary": float(payroll.net_salary)}
+        return {"success": True, "payroll_id": payroll.id, "net_salary": float(str(payroll.net_salary))}
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail="Failed to process salary")
@@ -83,7 +88,7 @@ async def get_payroll_summary(db: AsyncSession = Depends(get_db), current_user: 
     records_res = await db.execute(select(Payroll))
     payrolls = records_res.scalars().all()
 
-    total_disbursed = sum(float(p.net_salary) for p in payrolls) if payrolls else 485000.0
+    total_disbursed = sum(float(str(p.net_salary)) for p in payrolls) if payrolls else 485000.0
     paid_count = len(payrolls) if payrolls else 12
 
     return {

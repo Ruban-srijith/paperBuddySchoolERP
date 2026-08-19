@@ -61,7 +61,7 @@ export default function PayrollPortal() {
       if (response.data.success) {
         toast.success(`Successfully processed ₹${response.data.net_salary} for ${selectedStaff.full_name}`, 'Payroll Success');
         setShowModal(false);
-        // Optionally mark them as paid in the local state or refetch
+        fetchStaff(); // Refresh staff to show updated paid status
       }
     } catch (err: any) {
       toast.error(err.response?.data?.detail || "Failed to process salary.", "Payroll Error");
@@ -121,13 +121,20 @@ export default function PayrollPortal() {
                       </td>
                       <td className="px-6 py-4">{s.department_id || 'N/A'}</td>
                       <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => openProcessModal(s)}
-                          className="inline-flex items-center gap-2 bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 border border-teal-500/30 px-4 py-2 rounded-lg font-medium transition-colors"
-                        >
-                          <DollarSign className="w-4 h-4" />
-                          Process Salary
-                        </button>
+                        {s.is_paid ? (
+                          <span className="inline-flex items-center gap-2 bg-gray-100 text-gray-400 border border-gray-200 px-4 py-2 rounded-lg font-medium cursor-not-allowed">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            Paid
+                          </span>
+                        ) : (
+                          <button 
+                            onClick={() => openProcessModal(s)}
+                            className="inline-flex items-center gap-2 bg-teal-500/20 text-teal-600 hover:bg-teal-500/30 border border-teal-500/30 px-4 py-2 rounded-lg font-medium transition-colors"
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            Process Salary
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

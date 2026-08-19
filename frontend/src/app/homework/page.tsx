@@ -118,9 +118,14 @@ export default function HomeworkPage() {
     setShowModal(false);
   };
 
-  const handleMarkSubmitted = (id: string, title: string) => {
-    setHomeworkList(prev => prev.map(h => h.id === id ? { ...h, status: "submitted" } : h));
-    toast.success(`Marked "${title}" as submitted!`, "Homework Submitted");
+  const handleMarkSubmitted = async (id: string, title: string) => {
+    try {
+      await api.post(`/academics/homework/${id}/submit`);
+      setHomeworkList(prev => prev.map(h => h.id === id ? { ...h, status: "submitted" } : h));
+      toast.success(`Marked "${title}" as submitted!`, "Homework Submitted");
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to submit homework");
+    }
   };
 
   return (

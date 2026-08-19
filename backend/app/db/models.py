@@ -531,6 +531,22 @@ class Homework(Base):
     teacher = relationship("User")
 
 
+class HomeworkSubmission(Base):
+    __tablename__ = "homework_submissions"
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    homework_id = Column(String(36), ForeignKey("homeworks.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String(20), nullable=False, default="submitted")
+    submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (UniqueConstraint('homework_id', 'student_id', name='uq_homework_student_submission'),)
+    
+    homework = relationship("Homework")
+    student = relationship("User")
+
+
 class Assignment(Base):
     __tablename__ = "assignments"
     school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)

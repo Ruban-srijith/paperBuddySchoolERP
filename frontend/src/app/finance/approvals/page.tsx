@@ -76,7 +76,7 @@ export default function ApprovalsPortal() {
                       <td className="px-6 py-4">{r.department_name}</td>
                       <td className="px-6 py-4 font-bold text-amber-400">₹{parseFloat(r.amount).toLocaleString()}</td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                        <span className={`inline-flex whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium border ${
                           r.status.includes('approved') ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 
                           r.status === 'rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
                           'bg-amber-500/10 text-amber-400 border-amber-500/20'
