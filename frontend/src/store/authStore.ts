@@ -246,7 +246,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_BASE}/auth/login`, { email, password });
+      const cleanEmail = (email || '').trim().toLowerCase();
+      const response = await axios.post(`${API_BASE}/auth/login`, { email: cleanEmail, password });
       const data = response.data;
 
       const user: AuthUser = {
@@ -275,7 +276,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       return true;
     } catch (err: any) {
-      const message = err.response?.data?.detail || 'Login failed. Please check your credentials.';
+      let message = 'Login failed. Please check your credentials.';
+      if (err.response?.data?.detail) {
+        message = typeof err.response.data.detail === 'string'
+          ? err.response.data.detail
+          : JSON.stringify(err.response.data.detail);
+      } else if (!err.response) {
+        message = `Login failed: Cannot reach backend API at ${API_BASE}. If testing locally, open http://localhost:3000 instead of Vercel production deployment.`;
+      }
       set({ isLoading: false, error: message });
       return false;
     }

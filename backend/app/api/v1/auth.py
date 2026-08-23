@@ -8,6 +8,7 @@ POST /auth/change-password — Change own password.
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func
 from sqlalchemy.future import select
 from app.db.database import get_db
 from app.db.models import User, UserRole, Department
@@ -27,7 +28,8 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/login", response_model=TokenResponse)
 async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate user with email + password and return a JWT token."""
-    result = await db.execute(select(User).where(User.email == req.email))
+    email_clean = (req.email or "").strip().lower()
+    result = await db.execute(select(User).where(func.lower(User.email) == email_clean))
     user = result.scalars().first()
 
     if not user:
