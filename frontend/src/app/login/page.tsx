@@ -356,14 +356,25 @@ export default function LoginPage() {
                     </motion.button>
                   </form>
 
-                  {/* Quick Role Login for Demo/Other Schools */}
-                  {!isBharathi && (
-                    <div className="mt-5 pt-3.5 border-t border-gray-100 dark:border-slate-800 flex flex-col items-center">
-                      <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold mb-2 uppercase tracking-wider flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-amber-500" /> 1-Click Role Login
-                      </p>
-                      <div className="flex flex-wrap justify-center gap-1.5">
-                        {quickLogins.map((ql) => (
+                  {/* Quick Role Login */}
+                  <div className="mt-5 pt-3.5 border-t border-gray-100 dark:border-slate-800 flex flex-col items-center">
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold mb-2 uppercase tracking-wider flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-amber-500" /> 1-Click Quick Login
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-1.5">
+                      {isBharathi ? (
+                        <motion.button
+                          whileHover={{ scale: 1.06 }}
+                          whileTap={{ scale: 0.94 }}
+                          type="button"
+                          onClick={() => handleQuickLogin('admin@bharathischool.edu')}
+                          disabled={isLoading}
+                          className="px-3 py-1.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue/90 transition-colors flex items-center gap-1.5"
+                        >
+                          🌟 Bharathi Admin (admin@bharathischool.edu)
+                        </motion.button>
+                      ) : (
+                        quickLogins.map((ql) => (
                           <motion.button
                             whileHover={{ scale: 1.06 }}
                             whileTap={{ scale: 0.94 }}
@@ -375,10 +386,10 @@ export default function LoginPage() {
                           >
                             {ql.label}
                           </motion.button>
-                        ))}
-                      </div>
+                        ))
+                      )}
                     </div>
-                  )}
+                  </div>
                 </motion.div>
               )}
             </div>
