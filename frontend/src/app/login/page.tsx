@@ -152,6 +152,7 @@ export default function LoginPage() {
   };
 
   const quickLogins = [
+    { label: '🏫 Bharathi Admin', email: 'admin@bharathischool.edu' },
     { label: '🌟 Founder', email: 'superadmin@school.edu' },
     { label: '💼 Correspondent', email: 'correspondent@school.edu' },
     { label: '🎓 Principal', email: 'principal@school.edu' },
@@ -359,35 +360,22 @@ export default function LoginPage() {
                   {/* Quick Role Login */}
                   <div className="mt-5 pt-3.5 border-t border-gray-100 dark:border-slate-800 flex flex-col items-center">
                     <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold mb-2 uppercase tracking-wider flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-amber-500" /> 1-Click Quick Login
+                      <Sparkles className="w-3 h-3 text-amber-500" /> 1-Click Role Login
                     </p>
                     <div className="flex flex-wrap justify-center gap-1.5">
-                      {isBharathi ? (
+                      {quickLogins.map((ql) => (
                         <motion.button
                           whileHover={{ scale: 1.06 }}
                           whileTap={{ scale: 0.94 }}
+                          key={ql.email}
                           type="button"
-                          onClick={() => handleQuickLogin('admin@bharathischool.edu')}
+                          onClick={() => handleQuickLogin(ql.email)}
                           disabled={isLoading}
-                          className="px-3 py-1.5 rounded-full bg-brand-blue text-white text-xs font-bold shadow-md hover:bg-brand-blue/90 transition-colors flex items-center gap-1.5"
+                          className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-bold text-gray-700 dark:text-slate-300 hover:bg-brand-blue hover:text-white dark:hover:bg-blue-600 border border-gray-200/60 dark:border-slate-700 transition-colors"
                         >
-                          🌟 Bharathi Admin (admin@bharathischool.edu)
+                          {ql.label}
                         </motion.button>
-                      ) : (
-                        quickLogins.map((ql) => (
-                          <motion.button
-                            whileHover={{ scale: 1.06 }}
-                            whileTap={{ scale: 0.94 }}
-                            key={ql.email}
-                            type="button"
-                            onClick={() => handleQuickLogin(ql.email)}
-                            disabled={isLoading}
-                            className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-bold text-gray-700 dark:text-slate-300 hover:bg-brand-blue hover:text-white dark:hover:bg-blue-600 border border-gray-200/60 dark:border-slate-700 transition-colors"
-                          >
-                            {ql.label}
-                          </motion.button>
-                        ))
-                      )}
+                      ))}
                     </div>
                   </div>
                 </motion.div>
