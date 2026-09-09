@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+import { getApiBaseUrl } from '@/lib/config';
 
 export type UserRole = 
   | 'super_admin' 
@@ -245,9 +244,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
+    const apiBase = getApiBaseUrl();
     try {
       const cleanEmail = (email || '').trim().toLowerCase();
-      const response = await axios.post(`${API_BASE}/auth/login`, { email: cleanEmail, password });
+      const response = await axios.post(`${apiBase}/auth/login`, { email: cleanEmail, password });
       const data = response.data;
 
       const user: AuthUser = {
@@ -282,7 +282,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           ? err.response.data.detail
           : JSON.stringify(err.response.data.detail);
       } else if (!err.response) {
-        message = `Login failed: Cannot reach backend API at ${API_BASE}. If testing locally, open http://localhost:3000 instead of Vercel production deployment.`;
+        message = `Login failed: Cannot reach backend API at ${apiBase}. If testing locally, open http://localhost:3000 instead of Vercel production deployment.`;
       }
       set({ isLoading: false, error: message });
       return false;
@@ -319,8 +319,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           const user = JSON.parse(userStr) as AuthUser;
           set({ token, user, isAuthenticated: true });
           
+          const apiBase = getApiBaseUrl();
           // Background refresh to get latest profile (e.g. assigned_grade updates)
-          axios.get(`${API_BASE}/auth/me`, {
+          axios.get(`${apiBase}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` }
           }).then(res => {
             const freshUser: AuthUser = {
@@ -355,7 +356,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const token = get().token;
     if (!token) return;
     try {
-      const res = await axios.get(`${API_BASE}/auth/me`, {
+      const apiBase = getApiBaseUrl();
+      const res = await axios.get(`${apiBase}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const freshUser: AuthUser = {

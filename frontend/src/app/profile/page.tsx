@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import axios from 'axios';
+import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { 
   UserCircle, Settings, Shield, Bell, Key, Camera,
@@ -38,11 +38,9 @@ export default function ProfilePage() {
     reader.onloadend = async () => {
       try {
         const base64String = reader.result as string;
-        const token = localStorage.getItem('pb_token') || localStorage.getItem('token');
-        await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/auth/me/profile-picture`,
-          { profile_picture: base64String },
-          { headers: { Authorization: `Bearer ${token}` } }
+        await api.patch(
+          '/auth/me/profile-picture',
+          { profile_picture: base64String }
         );
         useAuthStore.getState().checkAuth(); // refresh user
         showToast("Profile picture updated!");
