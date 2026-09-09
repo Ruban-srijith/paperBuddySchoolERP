@@ -117,10 +117,10 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (hasChecked && isAuthenticated && user) {
-      window.location.replace(getRoleDestination(user.role));
+    if (hasChecked && isAuthenticated && user && !isSuccessMorphing) {
+      router.replace(getRoleDestination(user.role));
     }
-  }, [isAuthenticated, hasChecked, user]);
+  }, [isAuthenticated, hasChecked, user, router, isSuccessMorphing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +129,7 @@ export default function LoginPage() {
       setIsSuccessMorphing(true);
       const currentUser = useAuthStore.getState().user;
       setTimeout(() => {
-        window.location.replace(getRoleDestination(currentUser?.role));
+        router.replace(getRoleDestination(currentUser?.role));
       }, 300);
     }
   };
@@ -146,7 +146,7 @@ export default function LoginPage() {
       setIsSuccessMorphing(true);
       const currentUser = useAuthStore.getState().user;
       setTimeout(() => {
-        window.location.replace(getRoleDestination(currentUser?.role));
+        router.replace(getRoleDestination(currentUser?.role));
       }, 300);
     }
   };

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from "@/store/authStore";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import PageLoader from "@/components/PageLoader";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
@@ -160,7 +161,7 @@ function DashboardContent() {
     }
   };
 
-  if (!user) return null;
+  if (!user) return <PageLoader />;
 
   const roleLabel = ROLE_LABELS[user.role];
   const roleColor = ROLE_COLORS[user.role];

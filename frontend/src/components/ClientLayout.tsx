@@ -134,9 +134,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (hasChecked && pathname !== '/login' && pathname !== '/' && pathname !== '/register' && !isAuthenticated) {
-      window.location.replace('/login');
+      router.replace('/login');
     }
-  }, [pathname, isAuthenticated, hasChecked]);
+  }, [pathname, isAuthenticated, hasChecked, router]);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -183,7 +183,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    window.location.href = '/login';
+    router.replace('/login');
   };
 
   return (

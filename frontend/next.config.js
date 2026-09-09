@@ -3,6 +3,9 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
+  },
   async rewrites() {
     return [
       {

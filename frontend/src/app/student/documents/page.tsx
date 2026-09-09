@@ -135,9 +135,7 @@ export default function StudentDocumentsPage() {
     formData.append("document_type", docType);
 
     try {
-      const res = await api.post("/student-documents/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const res = await api.post("/student-documents/upload", formData);
       await fetchDocuments();
       const detected = res.data?.document_title || docType.replace('_', ' ').toUpperCase();
       setSuccessMessage(`✅ Successfully uploaded and verified ${detected}! Profile database synchronized.`);
@@ -159,9 +157,7 @@ export default function StudentDocumentsPage() {
     formData.append("document_type", "auto");
 
     try {
-      const res = await api.post("/student-documents/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const res = await api.post("/student-documents/upload", formData);
       await fetchDocuments();
       const detected = res.data?.document_title || "Document";
       setSuccessMessage(`🎯 AI Detected & Verified: ${detected}! Database records updated automatically.`);

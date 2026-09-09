@@ -159,7 +159,8 @@ async def upload_and_process_scan(
     return format_scan_response(saved_scan)
 
 
-@router.get("/", response_model=List[ScanRecordResponse])
+@router.get("", response_model=List[ScanRecordResponse])
+@router.get("/", response_model=List[ScanRecordResponse], include_in_schema=False)
 async def list_scans(
     role: Optional[UserRole] = Query(None),
     status: Optional[ScanStatus] = Query(None),

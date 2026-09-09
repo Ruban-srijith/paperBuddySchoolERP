@@ -60,7 +60,7 @@ export default function UniversalScansPage() {
   const fetchScans = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/scans");
+      const res = await api.get("/scans/");
       if (res.data) {
         setScans(res.data);
       }
@@ -86,7 +86,8 @@ export default function UniversalScansPage() {
     }
   };
 
-  const handleUploadAndScan = async () => {
+  const handleUploadAndScan = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (!selectedFile || !selectedType) return;
     setIsProcessing(true);
     setErrorMsg(null);
@@ -96,9 +97,7 @@ export default function UniversalScansPage() {
     formData.append("document_type", selectedType);
 
     try {
-      const res = await api.post("/scans/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const res = await api.post("/scans/upload", formData);
       if (res.data) {
         setLatestScanResult(res.data);
         await fetchScans();
@@ -248,7 +247,8 @@ export default function UniversalScansPage() {
 
             {/* Run OCR Scan Button */}
             <button
-              onClick={handleUploadAndScan}
+              type="button"
+              onClick={e => handleUploadAndScan(e)}
               disabled={!selectedFile || isProcessing}
               className="w-full py-3 bg-gradient-to-r from-brand-blue to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
             >

@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore, UserRole } from '@/store/authStore';
 
+import { useRouter } from 'next/navigation';
+import PageLoader from '@/components/PageLoader';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: UserRole[];
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const router = useRouter();
   const { isAuthenticated, user, checkAuth } = useAuthStore();
   const [hasChecked, setHasChecked] = useState(false);
 
@@ -19,12 +23,12 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   useEffect(() => {
     if (hasChecked && !isAuthenticated) {
-      window.location.replace('/login');
+      router.replace('/login');
     }
-  }, [isAuthenticated, hasChecked]);
+  }, [isAuthenticated, hasChecked, router]);
 
   if (!hasChecked || !isAuthenticated || !user) {
-    return null;
+    return <PageLoader />;
   }
 
   return <>{children}</>;

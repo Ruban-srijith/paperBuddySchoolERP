@@ -331,11 +331,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               school_id: res.data.school_id,
               department_id: res.data.department_id,
               assigned_grade: res.data.assigned_grade,
+              profile_picture: res.data.profile_picture,
             };
             localStorage.setItem('pb_user', JSON.stringify(freshUser));
             set({ user: freshUser });
-          }).catch(() => {
-             // Silently fail, keep local state
+          }).catch((err) => {
+            if (err.response?.status === 401) {
+              localStorage.removeItem('pb_token');
+              localStorage.removeItem('pb_user');
+              set({ token: null, user: null, isAuthenticated: false });
+            }
           });
         } catch {
           set({ token: null, user: null, isAuthenticated: false });
@@ -361,6 +366,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         school_id: res.data.school_id,
         department_id: res.data.department_id,
         assigned_grade: res.data.assigned_grade,
+        profile_picture: res.data.profile_picture,
       };
       if (typeof window !== 'undefined') {
         localStorage.setItem('pb_user', JSON.stringify(freshUser));

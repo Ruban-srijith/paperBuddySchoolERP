@@ -10,7 +10,6 @@ import {
   Quote, AlertTriangle, Calendar, Award, BellRing, Megaphone, Download
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import PageLoader from '@/components/PageLoader';
 
 const staggerContainer = {
@@ -147,7 +146,7 @@ export default function LandingPage() {
     };
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) return <PageLoader />;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0b0f19] text-brand-black overflow-x-hidden selection:bg-brand-blue/20 font-sans">
