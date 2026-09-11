@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func
 from sqlalchemy.future import select
 from app.db.database import get_db
-from app.db.models import User, UserRole, Department
+from app.db.models import User, UserRole, Department, PlatformUser, Permission, RolePermission, UserRoleAssociation, Role
 from app.core.auth import (
     hash_password, verify_password, create_access_token,
     get_current_user, require_role
@@ -25,26 +25,68 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+async def resolve_user_permissions_and_roles(user_id: str, db: AsyncSession):
+    # Query permissions
+    perm_stmt = (
+        select(Permission.code)
+        .join(RolePermission, Permission.id == RolePermission.permission_id)
+        .join(UserRoleAssociation, RolePermission.role_id == UserRoleAssociation.role_id)
+        .where(UserRoleAssociation.user_id == user_id)
+    )
+    perm_res = await db.execute(perm_stmt)
+    permissions = list(set(perm_res.scalars().all()))
+
+    # Query role codes
+    role_stmt = (
+        select(Role.code)
+        .join(UserRoleAssociation, Role.id == UserRoleAssociation.role_id)
+        .where(UserRoleAssociation.user_id == user_id)
+    )
+    role_res = await db.execute(role_stmt)
+    roles = list(set(role_res.scalars().all()))
+
+    return roles, permissions
+
+
 @router.post("/login", response_model=TokenResponse)
 async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """Authenticate user with email + password and return a JWT token."""
+    """Authenticate user (school user or platform admin) with email + password and return JWT token."""
     email_clean = (req.email or "").strip().lower()
+
+    # 1. Check PlatformUser table first
+    plat_res = await db.execute(select(PlatformUser).where(func.lower(PlatformUser.email) == email_clean))
+    plat_user = plat_res.scalars().first()
+
+    if plat_user:
+        if not verify_password(req.password, plat_user.password_hash):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+        if not plat_user.is_active:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Platform admin account is deactivated.")
+
+        token = create_access_token(
+            user_id=plat_user.id,
+            role=plat_user.platform_role,
+            email=plat_user.email,
+            is_platform=True
+        )
+
+        return TokenResponse(
+            access_token=token,
+            user_id=plat_user.id,
+            school_id=None,
+            email=plat_user.email,
+            full_name=plat_user.full_name,
+            role=plat_user.platform_role,
+            platform_role=plat_user.platform_role,
+            roles=[plat_user.platform_role],
+            permissions=["*"]
+        )
+
+    # 2. Check school_users (User table)
     result = await db.execute(select(User).where(func.lower(User.email) == email_clean))
     user = result.scalars().first()
 
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-        )
-
-    if not user.password_hash:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account has no password set. Contact administrator.",
-        )
-
-    if not verify_password(req.password, user.password_hash):
+    if not user or not user.password_hash or not verify_password(req.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
@@ -55,6 +97,10 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is deactivated. Contact administrator.",
         )
+
+    roles, permissions = await resolve_user_permissions_and_roles(user.id, db)
+    if not roles:
+        roles = [user.role.value]
 
     access_token = create_access_token(
         user_id=user.id,
@@ -70,6 +116,8 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
         email=user.email,
         full_name=user.full_name,
         role=user.role.value,
+        roles=roles,
+        permissions=permissions,
         department_id=user.department_id,
         assigned_grade=user.assigned_grade,
     )
@@ -88,12 +136,18 @@ async def get_me(
         if dept:
             dept_name = dept.name
 
+    roles, permissions = await resolve_user_permissions_and_roles(current_user.id, db)
+    if not roles:
+        roles = [current_user.role.value]
+
     return UserProfileResponse(
         id=current_user.id,
         school_id=current_user.school_id,
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role.value,
+        roles=roles,
+        permissions=permissions,
         department_id=current_user.department_id,
         department_name=dept_name,
         assigned_grade=current_user.assigned_grade,

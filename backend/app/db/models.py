@@ -109,6 +109,87 @@ class User(Base):
     department = relationship("Department", foreign_keys=[department_id], backref="members")
     headed_department = relationship("Department", foreign_keys=[Department.dean_id], back_populates="dean", uselist=False)
     mentor_assignments = relationship("MentorAssignment", back_populates="mentor", foreign_keys="MentorAssignment.mentor_id")
+    user_roles = relationship("UserRoleAssociation", back_populates="user", cascade="all, delete-orphan")
+    position_attributes = relationship("PositionAttribute", back_populates="user", cascade="all, delete-orphan")
+
+
+# ─── 3-LAYER RBAC MODELS ───────────────────────────────────────────
+
+class PlatformUser(Base):
+    """Internal cross-tenant team only (platform_super_admin, platform_support)."""
+    __tablename__ = "platform_users"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    full_name = Column(String(100), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    platform_role = Column(String(50), nullable=False)  # 'platform_super_admin', 'platform_support'
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class Permission(Base):
+    """Capability-based permission registry (e.g. 'attendance:write:own_class')."""
+    __tablename__ = "permissions"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    code = Column(String(100), unique=True, nullable=False, index=True)  # resource:action:scope
+    description = Column(String(255), nullable=True)
+    resource = Column(String(50), nullable=False)
+    action = Column(String(50), nullable=False)
+    scope = Column(String(50), nullable=False)  # 'own_class', 'own_school', 'all_schools'
+
+    roles = relationship("RolePermission", back_populates="permission", cascade="all, delete-orphan")
+
+
+class Role(Base):
+    """Tenant-scoped or global role definition."""
+    __tablename__ = "roles"
+    __table_args__ = (UniqueConstraint('school_id', 'code', name='uix_school_role_code'),)
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    school_id = Column(String(36), ForeignKey("schools.id", ondelete="CASCADE"), nullable=True)
+    name = Column(String(100), nullable=False)
+    code = Column(String(50), nullable=False, index=True)  # 'owner', 'teacher', 'finance_manager', etc.
+    is_custom = Column(Boolean, default=False, nullable=False)
+
+    permissions = relationship("RolePermission", back_populates="role", cascade="all, delete-orphan")
+    users = relationship("UserRoleAssociation", back_populates="role", cascade="all, delete-orphan")
+
+
+class RolePermission(Base):
+    """Many-to-Many mapping of Roles to Permissions."""
+    __tablename__ = "role_permissions"
+
+    role_id = Column(String(36), ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+    permission_id = Column(String(36), ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True)
+
+    role = relationship("Role", back_populates="permissions")
+    permission = relationship("Permission", back_populates="roles")
+
+
+class UserRoleAssociation(Base):
+    """Many-to-Many mapping of School Users to Roles."""
+    __tablename__ = "user_roles"
+
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    role_id = Column(String(36), ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+
+    user = relationship("User", back_populates="user_roles")
+    role = relationship("Role", back_populates="users")
+
+
+class PositionAttribute(Base):
+    """Functional position assignments (not roles)."""
+    __tablename__ = "position_attributes"
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    attribute_type = Column(String(50), nullable=False)  # 'class_teacher_of', 'subject_taught', 'mentor_of_grade'
+    attribute_value = Column(String(100), nullable=False)  # e.g. class_id, subject_id, grade string
+
+    user = relationship("User", back_populates="position_attributes")
+
 
 
 class MentorAssignment(Base):

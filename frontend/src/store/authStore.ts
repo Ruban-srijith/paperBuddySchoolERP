@@ -20,6 +20,9 @@ export interface AuthUser {
   email: string;
   full_name: string;
   role: UserRole;
+  platform_role?: 'platform_super_admin' | 'platform_support' | string | null;
+  roles: string[];
+  permissions: string[];
   school_id?: string | null;
   department_id?: string | null;
   assigned_grade?: string | null;
@@ -33,6 +36,8 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
 
+  hasPermission: (permissionCode: string) => boolean;
+  hasAnyRole: (roleCodes: string[]) => boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   getAuthHeaders: () => Record<string, string>;
@@ -242,6 +247,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: false,
   error: null,
 
+  hasPermission: (permissionCode: string) => {
+    const user = get().user;
+    if (!user) return false;
+    if (user.platform_role === 'platform_super_admin' || (user.permissions && user.permissions.includes('*'))) {
+      return true;
+    }
+    return user.permissions ? user.permissions.includes(permissionCode) : false;
+  },
+
+  hasAnyRole: (roleCodes: string[]) => {
+    const user = get().user;
+    if (!user) return false;
+    if (user.platform_role === 'platform_super_admin') return true;
+    if (user.roles && user.roles.some(r => roleCodes.includes(r))) return true;
+    return roleCodes.includes(user.role);
+  },
+
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
     const apiBase = getApiBaseUrl();
@@ -255,6 +277,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email: data.email,
         full_name: data.full_name,
         role: data.role as UserRole,
+        platform_role: data.platform_role || null,
+        roles: data.roles || [data.role],
+        permissions: data.permissions || [],
         school_id: data.school_id,
         department_id: data.department_id,
         assigned_grade: data.assigned_grade,
@@ -329,6 +354,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               email: res.data.email,
               full_name: res.data.full_name,
               role: res.data.role,
+              platform_role: res.data.platform_role || null,
+              roles: res.data.roles || [res.data.role],
+              permissions: res.data.permissions || [],
               school_id: res.data.school_id,
               department_id: res.data.department_id,
               assigned_grade: res.data.assigned_grade,
@@ -365,6 +393,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         email: res.data.email,
         full_name: res.data.full_name,
         role: res.data.role,
+        platform_role: res.data.platform_role || null,
+        roles: res.data.roles || [res.data.role],
+        permissions: res.data.permissions || [],
         school_id: res.data.school_id,
         department_id: res.data.department_id,
         assigned_grade: res.data.assigned_grade,

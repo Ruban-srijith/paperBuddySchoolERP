@@ -14,7 +14,8 @@ from app.db.models import (
     TeacherSubstitution, BusRoute, AcademicCalendarEvent,
     SalaryRecord, SchoolEventProposal, ExamSchedule,
     Homework, Assignment, StudentQuery, Announcement,
-    FeeStructure, FeeTransaction
+    FeeStructure, FeeTransaction, PlatformUser, Permission,
+    Role, RolePermission, UserRoleAssociation, PositionAttribute
 )
 from app.core.auth import hash_password
 
@@ -70,7 +71,8 @@ async def seed(drop_first: bool = False):
             if "postgresql" in str(engine.url):
                 try:
                     await conn.execute(text(
-                        "DROP TABLE IF EXISTS parent_student_maps, leave_requests, teacher_substitutions, bus_routes, "
+                        "DROP TABLE IF EXISTS position_attributes, user_roles, role_permissions, roles, permissions, platform_users, "
+                        "parent_student_maps, leave_requests, teacher_substitutions, bus_routes, "
                         "academic_calendar_events, salary_records, school_event_proposals, exam_schedules, homeworks, "
                         "assignments, student_queries, announcements, fee_transactions, fee_payments, fee_structures, "
                         "mentor_logs, mentor_assignments, lab_assignments, syllabus_nodes, classrooms, subjects, "
@@ -86,7 +88,105 @@ async def seed(drop_first: bool = False):
 
     async with AsyncSessionLocal() as session:
         # ═══════════════════════════════════════════════════════
-        # 0. REGISTERED SCHOOLS
+        # 0. PLATFORM USERS & SYSTEM PERMISSIONS / ROLES
+        # ═══════════════════════════════════════════════════════
+        plat_super_admin = PlatformUser(
+            id="psa11111-1111-1111-1111-111111111111",
+            email="platformadmin@paperbuddy.erp",
+            full_name="Platform Super Admin",
+            password_hash=DEFAULT_PWD,
+            platform_role="platform_super_admin"
+        )
+        plat_support = PlatformUser(
+            id="psup1111-1111-1111-1111-111111111111",
+            email="support@paperbuddy.erp",
+            full_name="Platform Support Agent",
+            password_hash=DEFAULT_PWD,
+            platform_role="platform_support"
+        )
+        session.add_all([plat_super_admin, plat_support])
+
+        permissions_data = [
+            ("attendance:read:own_class", "View class attendance", "attendance", "read", "own_class"),
+            ("attendance:write:own_class", "Mark class attendance", "attendance", "write", "own_class"),
+            ("attendance:read:own_school", "View all school attendance", "attendance", "read", "own_school"),
+            ("attendance:write:own_school", "Modify all school attendance", "attendance", "write", "own_school"),
+            ("scans:read:own", "Read own uploaded scans", "scans", "read", "own"),
+            ("scans:read:own_school", "Read all school scans", "scans", "read", "own_school"),
+            ("scans:upload:own_school", "Upload OCR scans", "scans", "upload", "own_school"),
+            ("payroll:manage:own_school", "Manage staff salary and payroll", "payroll", "manage", "own_school"),
+            ("payroll:read:own_school", "Read payroll records", "payroll", "read", "own_school"),
+            ("fees:manage:own_school", "Manage fee structures & transactions", "fees", "manage", "own_school"),
+            ("fees:read:own_school", "Read fee structures", "fees", "read", "own_school"),
+            ("fees:read:own", "Read own fee statements", "fees", "read", "own"),
+            ("hostel:manage:own_school", "Manage hostel rooms and outpasses", "hostel", "manage", "own_school"),
+            ("hostel:read:own_school", "View hostel status", "hostel", "read", "own_school"),
+            ("transport:manage:own_school", "Manage transport routes and buses", "transport", "manage", "own_school"),
+            ("transport:read:own_school", "View transport routes", "transport", "read", "own_school"),
+            ("library:manage:own_school", "Manage library books and issues", "library", "manage", "own_school"),
+            ("library:read:own_school", "Read library catalog", "library", "read", "own_school"),
+            ("approvals:manage:own_school", "Approve leaves, proposals, salaries", "approvals", "manage", "own_school"),
+            ("academics:write:own_class", "Create homework, assignments, grades", "academics", "write", "own_class"),
+            ("academics:read:own_school", "View academic records", "academics", "read", "own_school"),
+            ("students:manage:own_school", "Manage student profiles and documents", "students", "manage", "own_school"),
+            ("schools:manage:all_schools", "Cross-tenant school management", "schools", "manage", "all_schools"),
+        ]
+
+        perm_objects = {}
+        for code, desc, res, act, scope in permissions_data:
+            p = Permission(id=str(uuid.uuid4()), code=code, description=desc, resource=res, action=act, scope=scope)
+            session.add(p)
+            perm_objects[code] = p
+
+        await session.flush()
+
+        role_codes = {
+            "owner": "School Owner / Correspondent",
+            "principal": "School Principal",
+            "vice_principal": "Vice Principal",
+            "teacher": "Academic Teacher",
+            "mentor": "Student Mentor",
+            "finance_manager": "Finance Manager",
+            "hostel_warden": "Hostel Warden",
+            "transport_admin": "Transport Admin",
+            "librarian": "Librarian",
+            "student": "Student",
+            "parent": "Parent"
+        }
+
+        role_objects = {}
+        for r_code, r_name in role_codes.items():
+            r = Role(id=str(uuid.uuid4()), school_id=None, name=r_name, code=r_code, is_custom=False)
+            session.add(r)
+            role_objects[r_code] = r
+
+        await session.flush()
+
+        role_perm_mappings = {
+            "owner": list(perm_objects.keys()),
+            "principal": [k for k in perm_objects.keys() if k != "schools:manage:all_schools"],
+            "vice_principal": [k for k in perm_objects.keys() if k != "schools:manage:all_schools"],
+            "teacher": ["attendance:read:own_class", "attendance:write:own_class", "academics:write:own_class", "academics:read:own_school", "scans:read:own", "scans:upload:own_school", "fees:read:own"],
+            "mentor": ["attendance:read:own_class", "academics:read:own_school", "scans:read:own", "students:manage:own_school"],
+            "finance_manager": ["payroll:manage:own_school", "payroll:read:own_school", "fees:manage:own_school", "fees:read:own_school", "scans:read:own_school", "scans:upload:own_school"],
+            "hostel_warden": ["hostel:manage:own_school", "hostel:read:own_school", "scans:read:own_school", "scans:upload:own_school"],
+            "transport_admin": ["transport:manage:own_school", "transport:read:own_school", "scans:read:own_school"],
+            "librarian": ["library:manage:own_school", "library:read:own_school", "scans:read:own_school"],
+            "student": ["fees:read:own", "scans:read:own", "attendance:read:own_class", "library:read:own_school"],
+            "parent": ["fees:read:own", "attendance:read:own_class"]
+        }
+
+        for r_code, p_codes in role_perm_mappings.items():
+            role_obj = role_objects[r_code]
+            for p_code in p_codes:
+                if p_code in perm_objects:
+                    rp = RolePermission(role_id=role_obj.id, permission_id=perm_objects[p_code].id)
+                    session.add(rp)
+
+        await session.flush()
+
+        # ═══════════════════════════════════════════════════════
+        # 0.1 REGISTERED SCHOOLS
         # ═══════════════════════════════════════════════════════
         school1 = School(
             id=SCHOOL_1_ID,
@@ -252,6 +352,48 @@ async def seed(drop_first: bool = False):
             st1_u, st2_u, st3_u, st4_u, st5_u,
             fin_user, warden_user, lib_user, trans_user
         ])
+        await session.flush()
+
+        user_role_map = [
+            (super_admin, "owner"),
+            (correspondent, "owner"),
+            (principal, "principal"),
+            (vice_principal, "vice_principal"),
+            (t1, "teacher"),
+            (t2, "teacher"),
+            (t3, "teacher"),
+            (mentor1, "mentor"),
+            (mentor2, "mentor"),
+            (st1_u, "student"),
+            (st2_u, "student"),
+            (st3_u, "student"),
+            (st4_u, "student"),
+            (st5_u, "student"),
+            (fin_user, "finance_manager"),
+            (warden_user, "hostel_warden"),
+            (lib_user, "librarian"),
+            (trans_user, "transport_admin"),
+        ]
+
+        for u, r_code in user_role_map:
+            if r_code in role_objects:
+                ur = UserRoleAssociation(user_id=u.id, role_id=role_objects[r_code].id)
+                session.add(ur)
+
+        # Multi-role test case: t1 is both a Teacher and a Mentor
+        ur_t1_mentor = UserRoleAssociation(user_id=t1.id, role_id=role_objects["mentor"].id)
+        session.add(ur_t1_mentor)
+
+        # Position Attributes
+        pos_attrs = [
+            PositionAttribute(user_id=t1.id, attribute_type="class_teacher_of", attribute_value="10-A"),
+            PositionAttribute(user_id=t1.id, attribute_type="subject_taught", attribute_value="Physics"),
+            PositionAttribute(user_id=t2.id, attribute_type="subject_taught", attribute_value="Computer Science"),
+            PositionAttribute(user_id=t3.id, attribute_type="subject_taught", attribute_value="Chemistry"),
+            PositionAttribute(user_id=mentor1.id, attribute_type="mentor_of_grade", attribute_value="10"),
+            PositionAttribute(user_id=mentor2.id, attribute_type="mentor_of_grade", attribute_value="10"),
+        ]
+        session.add_all(pos_attrs)
         await session.flush()
 
         # ═══════════════════════════════════════════════════════

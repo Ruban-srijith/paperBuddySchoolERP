@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class LoginRequest(BaseModel):
@@ -14,6 +14,9 @@ class TokenResponse(BaseModel):
     email: str
     full_name: str
     role: str
+    platform_role: Optional[str] = None
+    roles: List[str] = Field(default_factory=list)
+    permissions: List[str] = Field(default_factory=list)
     department_id: Optional[str] = None
     assigned_grade: Optional[str] = None
     profile_picture: Optional[str] = None
@@ -32,6 +35,9 @@ class UserProfileResponse(BaseModel):
     email: str
     full_name: str
     role: str
+    platform_role: Optional[str] = None
+    roles: List[str] = Field(default_factory=list)
+    permissions: List[str] = Field(default_factory=list)
     department_id: Optional[str] = None
     department_name: Optional[str] = None
     assigned_grade: Optional[str] = None
