@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const rawBackend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const rawBackend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://paperbuddy-backend-rjtq.onrender.com';
 const BACKEND_URL = rawBackend.replace(/\/api\/v1\/?$/, '');
 
 const nextConfig = {
