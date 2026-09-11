@@ -252,7 +252,6 @@ async def seed():
             fin_user, warden_user, lib_user, trans_user
         ])
         await session.flush()
-        dept_sci.dean_id = DEAN_SCI_ID
 
         # ═══════════════════════════════════════════════════════
         class_map = {}  # (grade, section) -> Class object
