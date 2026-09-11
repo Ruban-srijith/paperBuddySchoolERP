@@ -107,6 +107,7 @@ export default function LoginPage() {
 
   const getRoleDestination = (role?: string) => {
     switch (role) {
+      case 'super_admin': return '/superadmin';
       case 'student': return '/student/documents';
       case 'parent': return '/parent';
       case 'warden': return '/warden/rooms';
