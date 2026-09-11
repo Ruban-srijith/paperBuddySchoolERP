@@ -186,33 +186,15 @@ async def seed(drop_first: bool = False):
         await session.flush()
 
         # ═══════════════════════════════════════════════════════
-        # 0.1 REGISTERED SCHOOLS
+        # 0.1 REGISTERED SCHOOL (PRIMARY TENANT)
         # ═══════════════════════════════════════════════════════
-        school1 = School(
+        primary_school = School(
             id=SCHOOL_1_ID,
             name="Bharathi Matriculation Hr. Sec. School",
             address="104 Gandhi Road, Anna Nagar, Chennai, Tamil Nadu",
             contact_email="admin@bharathischool.edu"
         )
-        school2 = School(
-            id=SCHOOL_2_ID,
-            name="Delhi Public International School (DPS)",
-            address="Sector 4, Dwarka, New Delhi",
-            contact_email="contact@dpsinternational.edu"
-        )
-        school3 = School(
-            id=SCHOOL_3_ID,
-            name="St. Xavier's Model Academy",
-            address="30 Park Street, Kolkata, West Bengal",
-            contact_email="info@stxaviersacademy.edu"
-        )
-        school4 = School(
-            id=SCHOOL_4_ID,
-            name="PaperBuddy Demonstration Academy",
-            address="Tech Park Avenue, Bengaluru, Karnataka",
-            contact_email="demo@paperbuddy.erp"
-        )
-        session.add_all([school1, school2, school3, school4])
+        session.add(primary_school)
         await session.flush()
 
         # ═══════════════════════════════════════════════════════
