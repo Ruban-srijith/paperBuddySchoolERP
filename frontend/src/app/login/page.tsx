@@ -142,8 +142,8 @@ export default function LoginPage() {
   };
 
   const quickLogins = [
-    { label: '🏫 School Admin', email: 'admin@bharathischool.edu' },
-    { label: '🌟 Founder', email: 'superadmin@school.edu' },
+    { label: '⚡ Super Admin', email: 'superadmin@school.edu' },
+    { label: '👑 Platform Admin', email: 'platformadmin@paperbuddy.erp' },
     { label: '💼 Correspondent', email: 'correspondent@school.edu' },
     { label: '🎓 Principal', email: 'principal@school.edu' },
     { label: '🏛️ VP', email: 'vp@school.edu' },
