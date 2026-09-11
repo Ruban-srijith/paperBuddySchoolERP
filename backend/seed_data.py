@@ -62,26 +62,27 @@ GRADES = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11",
 SECTIONS = ["A", "B"]
 
 
-async def seed():
+async def seed(drop_first: bool = False):
     print("Connecting to database and preparing tables...")
-    async with engine.begin() as conn:
-        from sqlalchemy import text
-        if "postgresql" in str(engine.url):
-            try:
-                await conn.execute(text(
-                    "DROP TABLE IF EXISTS parent_student_maps, leave_requests, teacher_substitutions, bus_routes, "
-                    "academic_calendar_events, salary_records, school_event_proposals, exam_schedules, homeworks, "
-                    "assignments, student_queries, announcements, fee_transactions, fee_payments, fee_structures, "
-                    "mentor_logs, mentor_assignments, lab_assignments, syllabus_nodes, classrooms, subjects, "
-                    "classes, students, departments, users, schools CASCADE;"
-                ))
-            except Exception as e:
-                print(f"Drop notice: {e}")
-        else:
-            await conn.run_sync(Base.metadata.drop_all)
-        print("Creating table schema...")
-        await conn.run_sync(Base.metadata.create_all)
-    print("Table schema created! Inserting seed data...")
+    if drop_first:
+        async with engine.begin() as conn:
+            from sqlalchemy import text
+            if "postgresql" in str(engine.url):
+                try:
+                    await conn.execute(text(
+                        "DROP TABLE IF EXISTS parent_student_maps, leave_requests, teacher_substitutions, bus_routes, "
+                        "academic_calendar_events, salary_records, school_event_proposals, exam_schedules, homeworks, "
+                        "assignments, student_queries, announcements, fee_transactions, fee_payments, fee_structures, "
+                        "mentor_logs, mentor_assignments, lab_assignments, syllabus_nodes, classrooms, subjects, "
+                        "classes, students, departments, users, schools CASCADE;"
+                    ))
+                except Exception as e:
+                    print(f"Drop notice: {e}")
+            else:
+                await conn.run_sync(Base.metadata.drop_all)
+            print("Creating table schema...")
+            await conn.run_sync(Base.metadata.create_all)
+        print("Table schema created! Inserting seed data...")
 
     async with AsyncSessionLocal() as session:
         # ═══════════════════════════════════════════════════════
@@ -681,4 +682,4 @@ async def seed():
         print("=" * 60)
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    asyncio.run(seed(drop_first=True))

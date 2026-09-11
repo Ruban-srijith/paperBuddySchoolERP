@@ -27,6 +27,21 @@ async def lifespan(app: FastAPI):
     
     if "neon" in str(engine.url).lower():
         logger.info("the neon db is connected to verify")
+
+    # Auto-seed initial admin and demo data if relational DB contains 0 users
+    try:
+        from app.db.database import AsyncSessionLocal
+        from app.db.models import User
+        from sqlalchemy import select, func
+        async with AsyncSessionLocal() as session:
+            user_count = (await session.execute(select(func.count(User.id)))).scalar()
+            if user_count == 0:
+                logger.info("Database contains 0 users. Executing initial auto-seed...")
+                from seed_data import seed
+                await seed(drop_first=False)
+                logger.info("Auto-seed completed successfully!")
+    except Exception as seed_err:
+        logger.warning(f"Auto-seed check/execution notice: {seed_err}")
     
     # Initialize & verify MongoDB Local connection
     mongo_ok = await ping_mongodb()
