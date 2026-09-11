@@ -141,6 +141,7 @@ async def seed(drop_first: bool = False):
         await session.flush()
 
         role_codes = {
+            "super_admin": "Super Admin (Full System Control)",
             "owner": "School Owner / Correspondent",
             "principal": "School Principal",
             "vice_principal": "Vice Principal",
@@ -163,6 +164,7 @@ async def seed(drop_first: bool = False):
         await session.flush()
 
         role_perm_mappings = {
+            "super_admin": list(perm_objects.keys()),
             "owner": list(perm_objects.keys()),
             "principal": [k for k in perm_objects.keys() if k != "schools:manage:all_schools"],
             "vice_principal": [k for k in perm_objects.keys() if k != "schools:manage:all_schools"],
@@ -337,6 +339,7 @@ async def seed(drop_first: bool = False):
         await session.flush()
 
         user_role_map = [
+            (super_admin, "super_admin"),
             (super_admin, "owner"),
             (correspondent, "owner"),
             (principal, "principal"),

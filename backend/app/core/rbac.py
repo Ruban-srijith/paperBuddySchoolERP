@@ -36,10 +36,18 @@ class SecurityContext:
     def has_permission(self, permission_code: str) -> bool:
         if self.is_platform_admin:
             return True
+        if self.user and (self.user.role == UserRole.SUPER_ADMIN or getattr(self.user.role, 'value', self.user.role) == 'super_admin'):
+            return True
+        if 'super_admin' in self.roles or '*' in self.permissions:
+            return True
         return permission_code in self.permissions
 
     def has_any_role(self, role_codes: List[str]) -> bool:
         if self.is_platform_admin:
+            return True
+        if self.user and (self.user.role == UserRole.SUPER_ADMIN or getattr(self.user.role, 'value', self.user.role) == 'super_admin'):
+            return True
+        if 'super_admin' in self.roles:
             return True
         return any(r in self.roles for r in role_codes)
 
