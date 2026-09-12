@@ -844,36 +844,5 @@ class LocalOCRService:
             "document_prompt": prompt_info
         }
 
-    def process_universal_document(
-        self,
-        file_bytes: bytes,
-        role: str,
-        document_type: str
-    ) -> Tuple[str, Dict[str, Any], float]:
-        """
-        Universal OCR for role scans (teacher answer sheets, admin receipts, student homework, etc.)
-        """
-        formatted_title = document_type.replace('_', ' ').title()
-        extracted_text = self.extract_text_from_bytes(file_bytes)
-
-        if not extracted_text:
-            extracted_text = f"--- PAPERBUDDY OCR SCAN RECORD ---\nDocument: {formatted_title}\nRole: {role.upper()}\nStatus: Verified Scanned Entry\nTimestamp: {datetime.now(timezone.utc).isoformat()}"
-
-        fields = {
-            "document_type": document_type,
-            "document_title": formatted_title,
-            "uploader_role": role,
-            "scan_timestamp": datetime.now(timezone.utc).isoformat(),
-            "extracted_meta": {
-                "page_count": 1,
-                "language": "English",
-                "character_count": len(extracted_text),
-                "ocr_engine": "Tesseract 5.5.1 / Vision Ensemble"
-            },
-            "field_summary": f"Digitized {formatted_title} successfully processed and indexed."
-        }
-
-        return extracted_text, fields, 0.985
-
 
 ocr_service = LocalOCRService()
