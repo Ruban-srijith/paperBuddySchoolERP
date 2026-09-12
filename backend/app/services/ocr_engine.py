@@ -14,17 +14,10 @@ class VisionModelResultMock:
 
 class OpenRouterOCREngine:
     """
-    Unified AI Vision & OCR Engine for Student Profile Documents and Role Scans.
+    Unified AI Vision & OCR Engine for Student Profile Documents.
     All document extraction, verification, and field audits are routed through
     the real OCR pipeline and OpenRouter AI Vision Consensus.
     """
-
-    async def process_universal_document(self, file_bytes: bytes, role: str, document_type: str) -> Tuple[str, Dict[str, Any], float]:
-        """
-        Processes any role-specific scanned document image/PDF.
-        Returns: (extracted_text, extracted_fields_dict, confidence_score)
-        """
-        return await openrouter_service.process_document_ocr(file_bytes, role, document_type)
 
     async def verify_student_document_with_ai(
         self,
