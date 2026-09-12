@@ -127,6 +127,8 @@ async def get_department_subjects(
             "id": s.id,
             "code": s.code,
             "name": s.name,
+            "standard_level": s.standard_level,
+            "applicable_grades": s.applicable_grades,
         }
         for s in subjects
     ]

@@ -943,3 +943,63 @@ async def get_classroom_allocations(
         {"room_name": "CS Lab 1 (Block C)", "type": "Computer Lab", "capacity": 45, "allocated_to": "Grades 9-12 Computer Science", "utilization": "95%", "status": "High Demand"},
         {"room_name": "Auditorium / Exam Hall", "type": "Multi-Purpose Hall", "capacity": 250, "allocated_to": "Mid-Term Examinations & Events", "utilization": "60%", "status": "Available for Booking"},
     ]
+
+
+# ─────────────────────────────────────────────────────────────
+# 11. STANDARD-AWARE SUBJECTS DIRECTORY
+# ─────────────────────────────────────────────────────────────
+
+@router.get("/subjects")
+async def list_academic_subjects(
+    grade: Optional[str] = Query(None, description="Filter subjects by grade (e.g. LKG, 5, 10, 12)"),
+    standard_level: Optional[str] = Query(None, description="Filter by level: kindergarten, primary, middle, secondary, higher_secondary"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve curriculum subjects filtered by student standard or grade level."""
+    # If user is a student and no grade specified, auto-detect their grade
+    target_grade = grade
+    if not target_grade and current_user.role == UserRole.STUDENT:
+        student_res = await db.execute(
+            select(Student).options(selectinload(Student.school_class)).where(Student.user_id == current_user.id)
+        )
+        student_prof = student_res.scalar_one_or_none()
+        if student_prof and student_prof.school_class:
+            target_grade = student_prof.school_class.grade
+
+    query = select(Subject).options(selectinload(Subject.department))
+
+    if standard_level:
+        query = query.where(Subject.standard_level == standard_level)
+
+    result = await db.execute(query)
+    all_subjects = result.scalars().all()
+
+    # If grade is specified, filter by applicable_grades
+    if target_grade:
+        norm_grade = target_grade.strip().upper().replace("GRADE ", "").replace("TH", "")
+        filtered = []
+        for s in all_subjects:
+            if not s.applicable_grades:
+                filtered.append(s)
+            else:
+                grades_list = [g.strip().upper() for g in s.applicable_grades.split(",")]
+                if norm_grade in grades_list or (norm_grade in ["LKG", "UKG"] and norm_grade in grades_list):
+                    filtered.append(s)
+        subjects_to_return = filtered
+    else:
+        subjects_to_return = all_subjects
+
+    return [
+        {
+            "id": s.id,
+            "code": s.code,
+            "name": s.name,
+            "department_id": s.department_id,
+            "department_name": s.department.name if s.department else "General Academics",
+            "standard_level": s.standard_level or "all_standards",
+            "applicable_grades": s.applicable_grades or "All Grades",
+        }
+        for s in subjects_to_return
+    ]
+
