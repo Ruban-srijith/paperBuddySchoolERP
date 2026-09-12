@@ -50,39 +50,9 @@ async def resolve_user_permissions_and_roles(user_id: str, db: AsyncSession):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
-    """Authenticate user (school user or platform admin) with email + password and return JWT token."""
+    """Authenticate user with email + password and return JWT token."""
     email_clean = (req.email or "").strip().lower()
 
-    # 1. Check PlatformUser table first
-    plat_res = await db.execute(select(PlatformUser).where(func.lower(PlatformUser.email) == email_clean))
-    plat_user = plat_res.scalars().first()
-
-    if plat_user:
-        if not verify_password(req.password, plat_user.password_hash):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-        if not plat_user.is_active:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Platform admin account is deactivated.")
-
-        token = create_access_token(
-            user_id=plat_user.id,
-            role=plat_user.platform_role,
-            email=plat_user.email,
-            is_platform=True
-        )
-
-        return TokenResponse(
-            access_token=token,
-            user_id=plat_user.id,
-            school_id=None,
-            email=plat_user.email,
-            full_name=plat_user.full_name,
-            role=plat_user.platform_role,
-            platform_role=plat_user.platform_role,
-            roles=[plat_user.platform_role],
-            permissions=["*"]
-        )
-
-    # 2. Check school_users (User table)
     result = await db.execute(select(User).where(func.lower(User.email) == email_clean))
     user = result.scalars().first()
 

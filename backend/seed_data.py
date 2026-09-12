@@ -88,23 +88,8 @@ async def seed(drop_first: bool = False):
 
     async with AsyncSessionLocal() as session:
         # ═══════════════════════════════════════════════════════
-        # 0. PLATFORM USERS & SYSTEM PERMISSIONS / ROLES
+        # 0. SYSTEM PERMISSIONS & ROLES
         # ═══════════════════════════════════════════════════════
-        plat_super_admin = PlatformUser(
-            id="psa11111-1111-1111-1111-111111111111",
-            email="platformadmin@paperbuddy.erp",
-            full_name="Platform Super Admin",
-            password_hash=DEFAULT_PWD,
-            platform_role="platform_super_admin"
-        )
-        plat_support = PlatformUser(
-            id="psup1111-1111-1111-1111-111111111111",
-            email="support@paperbuddy.erp",
-            full_name="Platform Support Agent",
-            password_hash=DEFAULT_PWD,
-            platform_role="platform_support"
-        )
-        session.add_all([plat_super_admin, plat_support])
 
         permissions_data = [
             ("attendance:read:own_class", "View class attendance", "attendance", "read", "own_class"),
