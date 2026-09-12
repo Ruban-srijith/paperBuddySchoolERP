@@ -29,9 +29,13 @@ SCHOOL_3_ID = "school33-3333-3333-3333-333333333333"
 SCHOOL_4_ID = "school44-4444-4444-4444-444444444444"
 
 # Departments
-DEPT_SCI_ID = "dept1111-1111-1111-1111-111111111111"
-DEPT_CS_ID  = "dept2222-2222-2222-2222-222222222222"
-DEPT_HUM_ID = "dept3333-3333-3333-3333-333333333333"
+DEPT_SCI_ID  = "dept1111-1111-1111-1111-111111111111"
+DEPT_CS_ID   = "dept2222-2222-2222-2222-222222222222"
+DEPT_HUM_ID  = "dept3333-3333-3333-3333-333333333333"
+DEPT_LANG_ID = "dept4444-4444-4444-4444-444444444444"
+DEPT_MATH_ID = "dept5555-5555-5555-5555-555555555555"
+DEPT_PRI_ID  = "dept6666-6666-6666-6666-666666666666"
+DEPT_COM_ID  = "dept7777-7777-7777-7777-777777777777"
 
 # Users
 SUPER_ADMIN_ID   = "sa111111-1111-1111-1111-111111111111"
@@ -184,10 +188,14 @@ async def seed(drop_first: bool = False):
         # ═══════════════════════════════════════════════════════
         # 1. DEPARTMENTS
         # ═══════════════════════════════════════════════════════
-        dept_sci = Department(id=DEPT_SCI_ID, school_id=SCHOOL_1_ID, name="Science", code="SCI")
-        dept_cs  = Department(id=DEPT_CS_ID, school_id=SCHOOL_1_ID, name="Computer Science", code="CS")
-        dept_hum = Department(id=DEPT_HUM_ID, school_id=SCHOOL_1_ID, name="Humanities", code="HUM")
-        session.add_all([dept_sci, dept_cs, dept_hum])
+        dept_sci  = Department(id=DEPT_SCI_ID, school_id=SCHOOL_1_ID, name="Science", code="SCI")
+        dept_cs   = Department(id=DEPT_CS_ID, school_id=SCHOOL_1_ID, name="Computer Science", code="CS")
+        dept_hum  = Department(id=DEPT_HUM_ID, school_id=SCHOOL_1_ID, name="Humanities", code="HUM")
+        dept_lang = Department(id=DEPT_LANG_ID, school_id=SCHOOL_1_ID, name="Languages", code="LANG")
+        dept_math = Department(id=DEPT_MATH_ID, school_id=SCHOOL_1_ID, name="Mathematics", code="MATH")
+        dept_pri  = Department(id=DEPT_PRI_ID, school_id=SCHOOL_1_ID, name="Primary & Early Childhood", code="PRI")
+        dept_com  = Department(id=DEPT_COM_ID, school_id=SCHOOL_1_ID, name="Commerce & Business", code="COM")
+        session.add_all([dept_sci, dept_cs, dept_hum, dept_lang, dept_math, dept_pri, dept_com])
         await session.flush()
 
         # ═══════════════════════════════════════════════════════
@@ -393,12 +401,80 @@ async def seed(drop_first: bool = False):
         session.add_all([ma1, ma2])
 
         # ═══════════════════════════════════════════════════════
-        # 5. SUBJECTS (with department association)
+        # 5. SUBJECTS (Standard-Specific with Department Association)
         # ═══════════════════════════════════════════════════════
-        sub1 = Subject(id="s1111111-1111-1111-1111-111111111111", code="PHY101", name="Physics", department_id=DEPT_SCI_ID)
-        sub2 = Subject(id="s2222222-2222-2222-2222-222222222222", code="CS102", name="Computer Science", department_id=DEPT_CS_ID)
-        sub3 = Subject(id="s3333333-3333-3333-3333-333333333333", code="CHEM103", name="Chemistry", department_id=DEPT_SCI_ID)
-        session.add_all([sub1, sub2, sub3])
+        sub1 = Subject(
+            id="s1111111-1111-1111-1111-111111111111", code="PHY101", name="Physics",
+            department_id=DEPT_SCI_ID, school_id=SCHOOL_1_ID,
+            standard_level="higher_secondary", applicable_grades="11,12"
+        )
+        sub2 = Subject(
+            id="s2222222-2222-2222-2222-222222222222", code="CS102", name="Computer Science",
+            department_id=DEPT_CS_ID, school_id=SCHOOL_1_ID,
+            standard_level="higher_secondary", applicable_grades="11,12"
+        )
+        sub3 = Subject(
+            id="s3333333-3333-3333-3333-333333333333", code="CHEM103", name="Chemistry",
+            department_id=DEPT_SCI_ID, school_id=SCHOOL_1_ID,
+            standard_level="higher_secondary", applicable_grades="11,12"
+        )
+
+        all_curriculum_subjects = [sub1, sub2, sub3]
+
+        curriculum_spec = [
+            # Kindergarten (LKG, UKG)
+            ("ENG-KG", "English & Phonics", DEPT_PRI_ID, "kindergarten", "LKG,UKG"),
+            ("MATH-KG", "Basic Mathematics & Numbers", DEPT_MATH_ID, "kindergarten", "LKG,UKG"),
+            ("EVS-KG", "Environmental Awareness", DEPT_PRI_ID, "kindergarten", "LKG,UKG"),
+            ("RHY-KG", "Rhymes & Storytelling", DEPT_LANG_ID, "kindergarten", "LKG,UKG"),
+            ("ART-KG", "Drawing, Art & Craft", DEPT_HUM_ID, "kindergarten", "LKG,UKG"),
+            # Primary School (Grades 1 to 5)
+            ("ENG-PRI", "English Language & Literature", DEPT_LANG_ID, "primary", "1,2,3,4,5"),
+            ("TAM-PRI", "Tamil Language", DEPT_LANG_ID, "primary", "1,2,3,4,5"),
+            ("MATH-PRI", "Mathematics", DEPT_MATH_ID, "primary", "1,2,3,4,5"),
+            ("EVS-PRI", "Environmental Studies (EVS)", DEPT_PRI_ID, "primary", "1,2,3,4,5"),
+            ("CS-PRI", "Computer Basics & Coding", DEPT_CS_ID, "primary", "1,2,3,4,5"),
+            ("GK-PRI", "General Knowledge & Moral Science", DEPT_HUM_ID, "primary", "1,2,3,4,5"),
+            ("PE-PRI", "Physical Education & Arts", DEPT_HUM_ID, "primary", "1,2,3,4,5"),
+            # Middle School (Grades 6 to 8)
+            ("ENG-MID", "English Language & Literature", DEPT_LANG_ID, "middle", "6,7,8"),
+            ("TAM-MID", "Tamil Language", DEPT_LANG_ID, "middle", "6,7,8"),
+            ("HIN-MID", "Hindi (Third Language)", DEPT_LANG_ID, "middle", "6,7,8"),
+            ("MATH-MID", "Mathematics", DEPT_MATH_ID, "middle", "6,7,8"),
+            ("SCI-MID", "General Science", DEPT_SCI_ID, "middle", "6,7,8"),
+            ("SOC-MID", "Social Science", DEPT_HUM_ID, "middle", "6,7,8"),
+            ("CS-MID", "Computer Science & Coding", DEPT_CS_ID, "middle", "6,7,8"),
+            # Secondary School (Grades 9 & 10)
+            ("ENG-SEC", "English Language & Literature", DEPT_LANG_ID, "secondary", "9,10"),
+            ("TAM-SEC", "Tamil (Language II)", DEPT_LANG_ID, "secondary", "9,10"),
+            ("MATH-SEC", "Mathematics", DEPT_MATH_ID, "secondary", "9,10"),
+            ("SCI-SEC", "Science (Physics, Chemistry, Biology)", DEPT_SCI_ID, "secondary", "9,10"),
+            ("SOC-SEC", "Social Science", DEPT_HUM_ID, "secondary", "9,10"),
+            ("IT-SEC", "Information Technology & AI", DEPT_CS_ID, "secondary", "9,10"),
+            # Higher Secondary (Grades 11 & 12)
+            ("ENG-HSC", "English Core", DEPT_LANG_ID, "higher_secondary", "11,12"),
+            ("MATH-HSC", "Higher Mathematics", DEPT_MATH_ID, "higher_secondary", "11,12"),
+            ("BIO-HSC", "Biology (Botany & Zoology)", DEPT_SCI_ID, "higher_secondary", "11,12"),
+            ("ACC-HSC", "Accountancy & Financial Accounting", DEPT_COM_ID, "higher_secondary", "11,12"),
+            ("COM-HSC", "Commerce & Business Studies", DEPT_COM_ID, "higher_secondary", "11,12"),
+            ("ECO-HSC", "Economics", DEPT_COM_ID, "higher_secondary", "11,12"),
+        ]
+
+        subject_by_code = {"PHY101": sub1, "CS102": sub2, "CHEM103": sub3}
+        for code, name, dept_id, std_level, app_grades in curriculum_spec:
+            s_obj = Subject(
+                id=str(uuid.uuid4()),
+                code=code,
+                name=name,
+                department_id=dept_id,
+                school_id=SCHOOL_1_ID,
+                standard_level=std_level,
+                applicable_grades=app_grades
+            )
+            all_curriculum_subjects.append(s_obj)
+            subject_by_code[code] = s_obj
+
+        session.add_all(all_curriculum_subjects)
 
         # ═══════════════════════════════════════════════════════
         # 6. CLASSROOMS
@@ -416,7 +492,13 @@ async def seed(drop_first: bool = False):
         node3 = SyllabusNode(id="n3333333-3333-3333-3333-333333333333", subject_id=sub1.id, chapter_name="Thermodynamics", topic_name="First Law of Thermodynamics", weightage_percent=25.0, is_completed=False)
         node4 = SyllabusNode(id="n4444444-4444-4444-4444-444444444444", subject_id=sub2.id, chapter_name="Data Structures", topic_name="Arrays & Linked Lists", weightage_percent=30.0, is_completed=True, completed_at=datetime.now(timezone.utc))
         node5 = SyllabusNode(id="n5555555-5555-5555-5555-555555555555", subject_id=sub2.id, chapter_name="Algorithms", topic_name="Sorting & Binary Search", weightage_percent=35.0, is_completed=False)
-        session.add_all([node1, node2, node3, node4, node5])
+
+        node_kg1 = SyllabusNode(id=str(uuid.uuid4()), subject_id=subject_by_code["ENG-KG"].id, chapter_name="Alphabet & Sounds", topic_name="Phonics A through Z", weightage_percent=50.0, is_completed=True, completed_at=datetime.now(timezone.utc))
+        node_pri1 = SyllabusNode(id=str(uuid.uuid4()), subject_id=subject_by_code["EVS-PRI"].id, chapter_name="Our Environment", topic_name="Plants & Animals in Habitat", weightage_percent=40.0, is_completed=True, completed_at=datetime.now(timezone.utc))
+        node_sec1 = SyllabusNode(id=str(uuid.uuid4()), subject_id=subject_by_code["MATH-SEC"].id, chapter_name="Algebra", topic_name="Quadratic Equations & Polynomials", weightage_percent=30.0, is_completed=True, completed_at=datetime.now(timezone.utc))
+        node_sec2 = SyllabusNode(id=str(uuid.uuid4()), subject_id=subject_by_code["SCI-SEC"].id, chapter_name="Electricity", topic_name="Ohm's Law & Circuit Analysis", weightage_percent=25.0, is_completed=True, completed_at=datetime.now(timezone.utc))
+
+        session.add_all([node1, node2, node3, node4, node5, node_kg1, node_pri1, node_sec1, node_sec2])
 
         # ═══════════════════════════════════════════════════════
         # 8. STUDENT PROFILES

@@ -164,8 +164,22 @@ export default function TimetablePage() {
   };
 
   const generateGradeDemoSchedule = (grade: string, sec: string): TimetableSlot[] => {
-    const subjects = ["Mathematics", "Physics", "Chemistry", "Computer Science", "English", "Physical Ed", "Biology"];
-    const classRooms = ["Room 101", "Room 102", "Physics Lab", "CS Lab 1", "Main Ground"];
+    let subjects = ["English Language", "Mathematics", "Science", "Social Studies", "Computer Science", "Tamil", "Physical Ed"];
+    const normGrade = grade.toUpperCase().replace("GRADE ", "");
+
+    if (["LKG", "UKG"].includes(normGrade)) {
+      subjects = ["English & Phonics", "Basic Numbers", "Environmental Awareness", "Rhymes & Storytelling", "Drawing & Craft", "Play Activity"];
+    } else if (["1", "2", "3", "4", "5"].includes(normGrade)) {
+      subjects = ["English Language", "Tamil", "Mathematics", "Environmental Studies (EVS)", "Computer Basics", "General Knowledge", "Physical Education"];
+    } else if (["6", "7", "8"].includes(normGrade)) {
+      subjects = ["English Literature", "Tamil", "Mathematics", "General Science", "Social Science", "Computer Science", "Hindi"];
+    } else if (["9", "10"].includes(normGrade)) {
+      subjects = ["English Language", "Tamil", "Mathematics", "Science (Phy/Chem/Bio)", "Social Science", "Information Technology", "Physical Education"];
+    } else if (["11", "12"].includes(normGrade)) {
+      subjects = ["Physics", "Chemistry", "Higher Mathematics", "Computer Science", "English Core", "Biology / Accountancy", "Practical Lab"];
+    }
+
+    const classRooms = ["Room 101", "Room 102", "Science Lab", "Computer Lab 1", "Activity Hall", "Main Ground"];
     const slots: TimetableSlot[] = [];
     let id = 1;
 

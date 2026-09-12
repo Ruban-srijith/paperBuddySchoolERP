@@ -275,6 +275,8 @@ class Subject(Base):
     code = Column(String(20), unique=True, nullable=False)
     name = Column(String(100), nullable=False)
     department_id = Column(String(36), ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
+    standard_level = Column(String(50), nullable=True)  # kindergarten, primary, middle, secondary, higher_secondary
+    applicable_grades = Column(String(100), nullable=True)  # e.g., 'LKG,UKG', '1,2,3,4,5', '6,7,8', '9,10', '11,12'
 
     department = relationship("Department")
 
