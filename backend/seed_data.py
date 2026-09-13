@@ -15,7 +15,8 @@ from app.db.models import (
     SalaryRecord, SchoolEventProposal, ExamSchedule,
     Homework, Assignment, StudentQuery, Announcement,
     FeeStructure, FeeTransaction, PlatformUser, Permission,
-    Role, RolePermission, UserRoleAssociation, PositionAttribute
+    Role, RolePermission, UserRoleAssociation, PositionAttribute,
+    ClassTopper, Outpass, TransportRoute, TransportStop, StudentTransport
 )
 from app.core.auth import hash_password
 
@@ -859,6 +860,127 @@ async def seed(drop_first: bool = False):
             priority="high",
         )
         session.add(anc1)
+
+        # ═══════════════════════════════════════════════════════
+        # 15. MERIT TOPPERS (Fixes #12)
+        # ═══════════════════════════════════════════════════════
+        toppers = [
+            ClassTopper(
+                id="top11111-1111-1111-1111-111111111111",
+                class_id=c10a.id,
+                student_id=STU_1_ID,
+                rank=1,
+                term="Term 1 Final",
+                total_marks=492,
+                percentage=98.4,
+                gpa=9.8,
+                attendance_pct=99.2,
+                top_subjects=["Mathematics", "Science", "Computer Science"]
+            ),
+            ClassTopper(
+                id="top22222-2222-2222-2222-222222222222",
+                class_id=class_map[("9", "A")].id,
+                student_id=STU_2_ID,
+                rank=1,
+                term="Term 1 Final",
+                total_marks=486,
+                percentage=97.2,
+                gpa=9.7,
+                attendance_pct=98.5,
+                top_subjects=["Tamil", "Mathematics", "Science"]
+            ),
+            ClassTopper(
+                id="top33333-3333-3333-3333-333333333333",
+                class_id=class_map[("9", "A")].id,
+                student_id=STU_3_ID,
+                rank=2,
+                term="Term 1 Final",
+                total_marks=478,
+                percentage=95.6,
+                gpa=9.5,
+                attendance_pct=97.0,
+                top_subjects=["English", "Social Science"]
+            ),
+            ClassTopper(
+                id="top44444-4444-4444-4444-444444444444",
+                class_id=class_map[("9", "B")].id,
+                student_id=STU_4_ID,
+                rank=1,
+                term="Term 1 Final",
+                total_marks=490,
+                percentage=98.0,
+                gpa=9.8,
+                attendance_pct=99.0,
+                top_subjects=["Science", "Mathematics"]
+            ),
+            ClassTopper(
+                id="top55555-5555-5555-5555-555555555555",
+                class_id=class_map[("9", "B")].id,
+                student_id=STU_5_ID,
+                rank=2,
+                term="Term 1 Final",
+                total_marks=482,
+                percentage=96.4,
+                gpa=9.6,
+                attendance_pct=98.2,
+                top_subjects=["Mathematics", "English"]
+            ),
+        ]
+        session.add_all(toppers)
+
+        # ═══════════════════════════════════════════════════════
+        # 16. OUTPASSES & HOSTEL (Fixes #28)
+        # ═══════════════════════════════════════════════════════
+        seeded_outpasses = [
+            Outpass(
+                id="outp1111-1111-1111-1111-111111111111",
+                student_id=STU_1_ID,
+                reason="Weekend Home Visit with Family",
+                departure_time=datetime.now(timezone.utc),
+                expected_return_time=datetime.now(timezone.utc) + timedelta(days=2),
+                status="pending",
+                parent_consent=True
+            ),
+            Outpass(
+                id="outp2222-2222-2222-2222-222222222222",
+                student_id=STU_2_ID,
+                reason="State-level Athletics Championship Trial",
+                departure_time=datetime.now(timezone.utc) - timedelta(days=1),
+                expected_return_time=datetime.now(timezone.utc) + timedelta(days=1),
+                status="approved",
+                approved_by=PRINCIPAL_ID,
+                parent_consent=True
+            ),
+        ]
+        session.add_all(seeded_outpasses)
+
+        # ═══════════════════════════════════════════════════════
+        # 17. TRANSPORT ROUTES & STOPS (Fixes #33)
+        # ═══════════════════════════════════════════════════════
+        r1 = TransportRoute(
+            id="route111-1111-1111-1111-111111111111",
+            name="Route 01 — Anna Nagar to Main Campus",
+            start_point="Anna Nagar Tower",
+            end_point="Bharathi School Main Gate",
+            total_stops=5
+        )
+        r2 = TransportRoute(
+            id="route222-2222-2222-2222-222222222222",
+            name="Route 02 — T. Nagar / Guindy Express",
+            start_point="Panagal Park, T. Nagar",
+            end_point="Bharathi School Main Gate",
+            total_stops=5
+        )
+        session.add_all([r1, r2])
+
+        r1_stops = [
+            TransportStop(route_id=r1.id, stop_name="Anna Nagar Roundtana", pickup_time="07:15", drop_time="16:15", stop_order=1),
+            TransportStop(route_id=r1.id, stop_name="Shanti Colony", pickup_time="07:25", drop_time="16:05", stop_order=2),
+            TransportStop(route_id=r1.id, stop_name="Thirumangalam Metro", pickup_time="07:35", drop_time="15:55", stop_order=3),
+            TransportStop(route_id=r1.id, stop_name="Koyambedu Junction", pickup_time="07:45", drop_time="15:45", stop_order=4),
+            TransportStop(route_id=r1.id, stop_name="Campus North Gate", pickup_time="08:00", drop_time="15:30", stop_order=5),
+        ]
+        session.add_all(r1_stops)
 
         await session.commit()
         print("=" * 60)

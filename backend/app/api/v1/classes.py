@@ -1,11 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete, update
 from sqlalchemy.orm import selectinload
 from typing import List
 
 from app.db.database import get_db
-from app.db.models import Class, User, UserRole
+from app.db.models import (
+    Class, User, UserRole, Student, Timetable, Attendance,
+    DailyWorkLog, LabAssignment, Homework, HomeworkSubmission,
+    Assignment, MentorAssignment, ClassTopper
+)
 from app.schemas.classes import ClassResponse, ClassCreate, AssignTeacherRequest
 from app.core.auth import require_role, get_current_user
 
@@ -40,12 +45,15 @@ async def create_class(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
 ):
+    grade = str(class_data.grade).strip()
+    section = str(class_data.section).strip().upper()
+
     # Check if class already exists
-    existing = await db.execute(select(Class).where(Class.grade == class_data.grade, Class.section == class_data.section))
+    existing = await db.execute(select(Class).where(Class.grade == grade, Class.section == section))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Class already exists")
         
-    new_class = Class(grade=class_data.grade, section=class_data.section)
+    new_class = Class(grade=grade, section=section)
     db.add(new_class)
     await db.commit()
     await db.refresh(new_class)
@@ -55,6 +63,45 @@ async def create_class(
         grade=new_class.grade,
         section=new_class.section
     )
+
+@router.delete("/{class_id}")
+async def delete_class(
+    class_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
+):
+    result = await db.execute(select(Class).where(Class.id == class_id))
+    db_class = result.scalar_one_or_none()
+    if not db_class:
+        raise HTTPException(status_code=404, detail="Class not found")
+        
+    # Unassign teacher if assigned
+    if db_class.class_teacher_id:
+        teacher_res = await db.execute(select(User).where(User.id == db_class.class_teacher_id))
+        teacher = teacher_res.scalar_one_or_none()
+        if teacher and teacher.assigned_grade == db_class.grade:
+            teacher.assigned_grade = None
+
+    # Unassign students from this class
+    await db.execute(update(Student).where(Student.class_id == class_id).values(class_id=None))
+
+    # Clean up dependent records safely
+    hw_res = await db.execute(select(Homework.id).where(Homework.class_id == class_id))
+    hw_ids = hw_res.scalars().all()
+    if hw_ids:
+        await db.execute(delete(HomeworkSubmission).where(HomeworkSubmission.homework_id.in_(hw_ids)))
+    await db.execute(delete(Homework).where(Homework.class_id == class_id))
+    await db.execute(delete(Assignment).where(Assignment.class_id == class_id))
+    await db.execute(delete(Timetable).where(Timetable.class_id == class_id))
+    await db.execute(delete(MentorAssignment).where(MentorAssignment.class_id == class_id))
+    await db.execute(delete(Attendance).where(Attendance.class_id == class_id))
+    await db.execute(delete(DailyWorkLog).where(DailyWorkLog.class_id == class_id))
+    await db.execute(delete(LabAssignment).where(LabAssignment.class_id == class_id))
+    await db.execute(delete(ClassTopper).where(ClassTopper.class_id == class_id))
+
+    await db.delete(db_class)
+    await db.commit()
+    return {"message": "Class deleted successfully"}
 
 @router.put("/{class_id}/assign")
 async def assign_teacher(

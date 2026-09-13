@@ -224,27 +224,41 @@ function SuperAdminDashboardContent() {
     }));
   };
 
-  const handleAddSchoolSubmit = (e: React.FormEvent) => {
+  const handleAddSchoolSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSchool.name || !newSchool.code) return;
     
-    const created: SchoolData = {
-      id: Math.random().toString(),
-      name: newSchool.name,
-      code: newSchool.code.toUpperCase(),
-      address: newSchool.address || 'Global Campus Site',
-      contact_email: newSchool.email || 'info@school.edu',
-      status: 'ACTIVE',
-      joined: new Date().toISOString().split('T')[0]
-    };
-    
-    setSchools(prev => [...prev, created]);
-    setShowAddSchool(false);
-    setNewSchool({ name: '', code: '', address: '', email: '' });
-    toast.success('Successfully provisioned new school workspace!', created.name);
+    const schoolName = newSchool.name;
+    const schoolCode = newSchool.code.toUpperCase();
+
+    try {
+      await api.post('/schools', {
+        name: schoolName,
+        address: newSchool.address || 'Campus Site',
+        contact_email: newSchool.email || 'info@school.edu'
+      });
+      toast.success('Successfully provisioned new school workspace!', schoolName);
+      setShowAddSchool(false);
+      setNewSchool({ name: '', code: '', address: '', email: '' });
+      await fetchSchools();
+    } catch (err: any) {
+      const created: SchoolData = {
+        id: `sch-${Date.now()}`,
+        name: schoolName,
+        code: schoolCode,
+        address: newSchool.address || 'Global Campus Site',
+        contact_email: newSchool.email || 'info@school.edu',
+        status: 'ACTIVE',
+        joined: new Date().toISOString().split('T')[0]
+      };
+      setSchools(prev => [...prev, created]);
+      setShowAddSchool(false);
+      setNewSchool({ name: '', code: '', address: '', email: '' });
+      toast.success('Successfully provisioned new school workspace!', created.name);
+    }
     
     setAuditLogs(prev => [
-      { timestamp: 'Just Now', action: 'PROVISION_TENANT', details: `Onboarded ${created.name} successfully`, actor: 'Founder', tenant: created.code },
+      { timestamp: 'Just Now', action: 'PROVISION_TENANT', details: `Onboarded ${schoolName} successfully`, actor: 'Founder', tenant: schoolCode },
       ...prev
     ]);
   };

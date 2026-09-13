@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { PieChart, Plus, Download } from "lucide-react";
+import { PieChart, Plus, Download, Trash2 } from "lucide-react";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
 
@@ -50,6 +50,17 @@ export default function BudgetsPortal() {
     }
   };
 
+  const handleDeleteBudget = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to remove the budget allocation for "${name}"?`)) return;
+    try {
+      await api.delete(`/finance/core/budgets/${id}`);
+      toast.success(`Removed budget allocation for ${name}`, "Budget Deleted");
+      fetchBudgets();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to delete budget");
+    }
+  };
+
   return (
     <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'finance']}>
       <div className="space-y-6 max-w-6xl mx-auto">
@@ -81,8 +92,20 @@ export default function BudgetsPortal() {
 
               return (
                 <div key={b.id} className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200">
-                  <h3 className="text-gray-600 font-medium">{b.department_name}</h3>
-                  <div className="mt-2 text-2xl font-bold text-brand-black">₹{(allocated / 1000000).toFixed(1)}M <span className="text-sm font-normal text-gray-500">Allocated</span></div>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-gray-900 font-bold text-base">{b.department_name}</h3>
+                      <span className="text-[11px] text-gray-500 font-medium">AY {b.academic_year || '2026-27'}</span>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteBudget(b.id, b.department_name)}
+                      title="Delete Budget Allocation"
+                      className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="mt-3 text-2xl font-bold text-brand-black">₹{allocated.toLocaleString('en-IN')} <span className="text-xs font-normal text-gray-500">Allocated</span></div>
                   <div className="mt-4 w-full bg-gray-100 rounded-full h-2">
                     <div 
                       className={`${isHigh ? 'bg-rose-400' : 'bg-brand-blue'} h-2 rounded-full`} 

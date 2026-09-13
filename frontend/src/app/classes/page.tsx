@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Building2, Plus, X } from 'lucide-react';
+import { Building2, Plus, X, Trash2, AlertTriangle } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import api from '@/lib/api';
 
@@ -21,6 +21,8 @@ function ClassesPageContent() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [classToDelete, setClassToDelete] = useState<ClassItem | null>(null);
 
   const [newClass, setNewClass] = useState({
     grade: '10',
@@ -57,6 +59,20 @@ function ClassesPageContent() {
     setCreating(false);
   };
 
+  const handleDelete = async () => {
+    if (!classToDelete) return;
+    setDeletingId(classToDelete.id);
+    try {
+      await api.delete(`/classes/${classToDelete.id}`);
+      setClassToDelete(null);
+      fetchClasses();
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to delete class');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -87,13 +103,22 @@ function ClassesPageContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {classes.map((cls) => (
-            <div key={cls.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+            <div key={cls.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group relative">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center text-brand-blue font-bold text-lg">
                   {cls.grade}
                 </div>
-                <div className="px-3 py-1 bg-gray-50 rounded-lg border border-gray-200 text-sm font-bold text-gray-600">
-                  Sec {cls.section}
+                <div className="flex items-center gap-2">
+                  <div className="px-3 py-1 bg-gray-50 rounded-lg border border-gray-200 text-sm font-bold text-gray-600">
+                    Sec {cls.section}
+                  </div>
+                  <button
+                    onClick={() => setClassToDelete(cls)}
+                    title="Delete Class"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
               <h3 className="font-bold text-brand-black mb-1">Grade {cls.grade} - {cls.section}</h3>
@@ -107,6 +132,41 @@ function ClassesPageContent() {
               No classes created yet. Click "Create Class" to get started.
             </div>
           )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {classToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 space-y-4">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="p-3 bg-red-100 rounded-xl">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-brand-black">Delete Class</h3>
+            </div>
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete <span className="font-bold text-brand-black">Grade {classToDelete.grade} - Section {classToDelete.section}</span>?
+              Students assigned to this class will become unassigned.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setClassToDelete(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deletingId !== null}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deletingId ? 'Deleting...' : 'Confirm Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

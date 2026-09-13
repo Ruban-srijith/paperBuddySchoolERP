@@ -17,6 +17,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import { exportToCsv } from "@/lib/exportUtils";
 
 interface TeacherWorkloadItem {
   teacher_id: string;
@@ -127,9 +128,33 @@ export default function WorkloadPage() {
     }
   ];
 
+  const SUBJECT_ALIASES: Record<string, string[]> = {
+    "cs": ["computer science", "python", "coding", "informatics", "it"],
+    "it": ["information technology", "computer science", "coding"],
+    "math": ["mathematics", "maths"],
+    "phy": ["physics"],
+    "chem": ["chemistry"],
+    "bio": ["biology"],
+    "eng": ["english"],
+    "soc": ["social science", "history", "geography", "civics"],
+    "pe": ["physical education", "sports"]
+  };
+
   const filteredTeachers = teachers.filter(t => {
-    const matchesSearch = t.teacher_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.subjects.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
+    const q = searchTerm.trim().toLowerCase();
+    const matchesSearch = !q || 
+      t.teacher_name.toLowerCase().includes(q) ||
+      t.subjects.some(s => {
+        const sLower = s.toLowerCase();
+        if (sLower.includes(q)) return true;
+        // Acronym match (e.g. "CS" matches "Computer Science")
+        const initials = sLower.split(/\s+/).map(w => w[0]).join('');
+        if (initials.includes(q)) return true;
+        // Alias match
+        const aliases = SUBJECT_ALIASES[q];
+        if (aliases && aliases.some(a => sLower.includes(a))) return true;
+        return false;
+      });
     const matchesDept = deptFilter === "all" || t.department === deptFilter;
     return matchesSearch && matchesDept;
   });
@@ -158,7 +183,22 @@ export default function WorkloadPage() {
           </div>
 
           <button
-            onClick={() => toast.info("Exporting workload metrics report (CSV)", "Exporting")}
+            onClick={() => {
+              const headers = ["Teacher Name", "Department", "Assigned Classes", "Subjects Taught", "Weekly Periods", "Max Cap", "Syllabus Completed (%)", "Target (%)", "Status"];
+              const rows = filteredTeachers.map(t => [
+                t.teacher_name,
+                t.department,
+                t.assigned_classes.join(", "),
+                t.subjects.join(", "),
+                t.weekly_periods,
+                t.max_periods_cap,
+                `${t.syllabus_completed_pct}%`,
+                `${t.target_pct}%`,
+                t.status.toUpperCase()
+              ]);
+              exportToCsv("Teacher_Workload_Syllabus_Report", headers, rows);
+              toast.success("Workload report exported successfully!", "Export Completed");
+            }}
             className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
           >
             <Download className="w-4 h-4 text-gray-600" />

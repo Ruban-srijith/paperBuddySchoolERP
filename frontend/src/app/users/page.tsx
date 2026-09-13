@@ -16,6 +16,8 @@ interface UserItem {
   assigned_grade: string | null;
   is_active: boolean;
   created_at: string;
+  roll_number?: string | null;
+  admission_number?: string | null;
 }
 
 interface DeptItem {
@@ -52,19 +54,7 @@ function UsersPageContent() {
     setLoading(true);
     try {
       const res = await api.get('/users');
-      const allowedEmails = [
-        'correspondent@school.edu',
-        'principal@school.edu',
-        'vp@school.edu',
-        'sarah.connor@school.edu',
-        'mentor.10a@school.edu',
-        'kishor.k@school.edu',
-        'finance@school.edu',
-        'warden@school.edu',
-        'librarian@school.edu',
-        'transport@school.edu'
-      ];
-      setUsers(res.data.filter((u: UserItem) => allowedEmails.includes(u.email)));
+      setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setUsers([]);
     }
@@ -83,11 +73,17 @@ function UsersPageContent() {
     fetchDepartments();
   }, []);
 
-  const filteredUsers = users.filter(u =>
-    (roleFilter === '' || u.role === roleFilter) &&
-    (u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesRole = roleFilter === '' || u.role === roleFilter;
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return matchesRole;
+    const matchesSearch =
+      u.full_name?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      (u.roll_number && u.roll_number.toLowerCase().includes(q)) ||
+      (u.admission_number && u.admission_number.toLowerCase().includes(q));
+    return matchesRole && matchesSearch;
+  });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -17,6 +17,7 @@ export default function LibrarianInventory() {
   const [category, setCategory] = useState("Science");
   const [totalCopies, setTotalCopies] = useState("1");
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
   const fetchBooks = async () => {
     try {
@@ -53,11 +54,17 @@ export default function LibrarianInventory() {
     }
   };
 
-  const filteredBooks = books.filter(b => 
-    b.title?.toLowerCase().includes(search.toLowerCase()) || 
-    b.author?.toLowerCase().includes(search.toLowerCase()) || 
-    b.isbn?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredBooks = books.filter(b => {
+    const matchesCategory = selectedCategory === "All Categories" || 
+      (b.category && b.category.toLowerCase() === selectedCategory.toLowerCase());
+    const q = search.toLowerCase().trim();
+    if (!q) return matchesCategory;
+    const matchesSearch =
+      b.title?.toLowerCase().includes(q) || 
+      b.author?.toLowerCase().includes(q) || 
+      b.isbn?.toLowerCase().includes(q);
+    return matchesCategory && matchesSearch;
+  });
   return (
     <ProtectedRoute allowedRoles={['librarian', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -89,12 +96,19 @@ export default function LibrarianInventory() {
                 className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-indigo-500"
               />
             </div>
-            <select className="w-full md:w-auto bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500">
-              <option>All Categories</option>
-              <option>Science</option>
-              <option>Fiction</option>
-              <option>History</option>
-              <option>Reference</option>
+            <select 
+              value={selectedCategory}
+              onChange={e => setSelectedCategory(e.target.value)}
+              className="w-full md:w-auto bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="All Categories">All Categories</option>
+              <option value="Science">Science</option>
+              <option value="Fiction">Fiction</option>
+              <option value="History">History</option>
+              <option value="Reference">Reference</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="General">General</option>
             </select>
           </div>
 

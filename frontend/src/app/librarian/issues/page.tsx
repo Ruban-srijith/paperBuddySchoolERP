@@ -18,6 +18,9 @@ export default function LibrarianIssues() {
   const [dueDate, setDueDate] = useState("");
   const [returnIssueId, setReturnIssueId] = useState("");
 
+  const [books, setBooks] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+
   const fetchIssues = async () => {
     try {
       const res = await api.get("/librarian/issues");
@@ -27,42 +30,81 @@ export default function LibrarianIssues() {
     }
   };
 
+  const fetchAuxiliaryData = async () => {
+    try {
+      const [booksRes, studentsRes] = await Promise.all([
+        api.get("/librarian/books"),
+        api.get("/students")
+      ]);
+      setBooks(booksRes.data || []);
+      setStudents(studentsRes.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchIssues();
+    fetchAuxiliaryData();
+    // Default due date: 14 days from today
+    const twoWeeks = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+    setDueDate(twoWeeks);
   }, []);
 
   const handleIssue = async () => {
+    if (!bookId || !studentId) {
+      toast.error("Please select both a book and a student");
+      return;
+    }
     try {
       await api.post("/librarian/issues", {
         book_id: bookId,
         user_id: studentId,
-        due_date: dueDate
+        due_date: dueDate || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0]
       });
       toast.success("Book issued successfully");
       setShowIssueModal(false);
       setBookId("");
       setStudentId("");
-      setDueDate("");
       fetchIssues();
+      fetchAuxiliaryData();
     } catch (err) {
       toast.error("Failed to issue book");
     }
   };
 
   const handleReturn = async (issueId: string) => {
+    if (!issueId) {
+      toast.error("Please select a book issue to return");
+      return;
+    }
     try {
       await api.put(`/librarian/issues/${issueId}/return`);
       toast.success("Book returned successfully");
       fetchIssues();
+      fetchAuxiliaryData();
     } catch (err) {
       toast.error("Failed to return book");
     }
   };
 
-  const filteredIssues = issues.filter(i => 
-    i.user_id?.toLowerCase().includes(search.toLowerCase()) || 
-    i.book_id?.toLowerCase().includes(search.toLowerCase())
-  );
+  const getBookTitle = (id: string) => {
+    const b = books.find(x => x.id === id);
+    return b ? b.title : `Book ${id?.substring(0, 8) || ''}`;
+  };
+
+  const getStudentName = (id: string) => {
+    const s = students.find(x => x.id === id || x.user_id === id);
+    return s ? s.full_name : `Student ${id?.substring(0, 8) || ''}`;
+  };
+
+  const filteredIssues = issues.filter(i => {
+    const q = search.toLowerCase().trim();
+    if (!q) return true;
+    const bTitle = getBookTitle(i.book_id).toLowerCase();
+    const sName = getStudentName(i.user_id).toLowerCase();
+    return bTitle.includes(q) || sName.includes(q) || i.user_id?.toLowerCase().includes(q) || i.book_id?.toLowerCase().includes(q);
+  });
   return (
     <ProtectedRoute allowedRoles={['librarian', 'super_admin', 'principal']}>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -131,9 +173,9 @@ export default function LibrarianIssues() {
                   
                   return (
                     <tr key={issue.id} className="hover:bg-gray-100/30 transition-colors">
-                      <td className="px-6 py-4 font-bold text-brand-black">Book ID: {issue.book_id.substring(0,8)}</td>
+                      <td className="px-6 py-4 font-bold text-brand-black">{getBookTitle(issue.book_id)}</td>
                       <td className="px-6 py-4">
-                        <div className="text-gray-700 font-medium">User: {issue.user_id.substring(0,8)}</div>
+                        <div className="text-gray-700 font-medium">{getStudentName(issue.user_id)}</div>
                       </td>
                       <td className="px-6 py-4 text-gray-600">{issueDate}</td>
                       <td className={`px-6 py-4 font-bold ${isOverdue ? 'text-rose-400' : 'text-emerald-600'}`}>{due}</td>
@@ -170,8 +212,8 @@ export default function LibrarianIssues() {
         {/* Issue Book Modal */}
         {showIssueModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl w-full max-w-md overflow-hidden">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                 <h3 className="text-xl font-bold text-brand-black">Issue Book</h3>
                 <button onClick={() => setShowIssueModal(false)} className="text-gray-600 hover:text-brand-black transition-colors">
                   <X className="w-5 h-5" />
@@ -179,21 +221,48 @@ export default function LibrarianIssues() {
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Student ID</label>
-                  <input value={studentId} onChange={e => setStudentId(e.target.value)} type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500" placeholder="e.g. STU1234 or User UUID" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Student</label>
+                  <select 
+                    value={studentId} 
+                    onChange={e => setStudentId(e.target.value)} 
+                    className="w-full bg-gray-50 border border-gray-300 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 text-sm"
+                  >
+                    <option value="">-- Choose Student --</option>
+                    {students.map(s => (
+                      <option key={s.id} value={s.id || s.user_id}>
+                        {s.full_name} {s.admission_number ? `(ADM: ${s.admission_number})` : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Book ID</label>
-                  <input value={bookId} onChange={e => setBookId(e.target.value)} type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500" placeholder="Book UUID" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Book</label>
+                  <select 
+                    value={bookId} 
+                    onChange={e => setBookId(e.target.value)} 
+                    className="w-full bg-gray-50 border border-gray-300 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 text-sm"
+                  >
+                    <option value="">-- Choose Book Catalog --</option>
+                    {books.map(b => (
+                      <option key={b.id} value={b.id} disabled={b.available_copies <= 0}>
+                        {b.title} — {b.author} ({b.available_copies} available)
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Due Date</label>
-                  <input value={dueDate} onChange={e => setDueDate(e.target.value)} type="date" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                  <input 
+                    value={dueDate} 
+                    onChange={e => setDueDate(e.target.value)} 
+                    type="date" 
+                    className="w-full bg-gray-50 border border-gray-300 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 text-sm font-mono" 
+                  />
                 </div>
               </div>
-              <div className="p-6 border-t border-gray-200 bg-gray-50/50 flex justify-end gap-3">
-                <button onClick={() => setShowIssueModal(false)} className="px-4 py-2 rounded-lg text-gray-600 hover:text-brand-black transition-colors">Cancel</button>
-                <button onClick={handleIssue} className="bg-emerald-600 hover:bg-emerald-700 text-brand-black px-4 py-2 rounded-lg transition-colors">Confirm Issue</button>
+              <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                <button onClick={() => setShowIssueModal(false)} className="px-4 py-2 rounded-lg text-gray-600 hover:text-brand-black transition-colors font-medium">Cancel</button>
+                <button onClick={handleIssue} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">Confirm Issue</button>
               </div>
             </div>
           </div>
@@ -202,8 +271,8 @@ export default function LibrarianIssues() {
         {/* Process Return Modal */}
         {showReturnModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl w-full max-w-md overflow-hidden">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+            <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                 <h3 className="text-xl font-bold text-brand-black">Process Return</h3>
                 <button onClick={() => setShowReturnModal(false)} className="text-gray-600 hover:text-brand-black transition-colors">
                   <X className="w-5 h-5" />
@@ -211,13 +280,30 @@ export default function LibrarianIssues() {
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Issue ID</label>
-                  <input value={returnIssueId} onChange={e => setReturnIssueId(e.target.value)} type="text" className="w-full bg-gray-100 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500" placeholder="Enter Issue ID" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Select Issued Book</label>
+                  <select 
+                    value={returnIssueId} 
+                    onChange={e => setReturnIssueId(e.target.value)} 
+                    className="w-full bg-gray-50 border border-gray-300 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 text-sm"
+                  >
+                    <option value="">-- Choose Issued Record to Return --</option>
+                    {issues.filter(i => i.status !== 'returned').map(i => (
+                      <option key={i.id} value={i.id}>
+                        {getBookTitle(i.book_id)} — Borrowed by {getStudentName(i.user_id)}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-              <div className="p-6 border-t border-gray-200 bg-gray-50/50 flex justify-end gap-3">
-                <button onClick={() => setShowReturnModal(false)} className="px-4 py-2 rounded-lg text-gray-600 hover:text-brand-black transition-colors">Cancel</button>
-                <button onClick={() => { handleReturn(returnIssueId); setShowReturnModal(false); }} className="bg-gray-100 hover:bg-gray-700 text-brand-black border border-gray-200 px-4 py-2 rounded-lg transition-colors">Process Return</button>
+              <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                <button onClick={() => setShowReturnModal(false)} className="px-4 py-2 rounded-lg text-gray-600 hover:text-brand-black transition-colors font-medium">Cancel</button>
+                <button 
+                  onClick={() => { handleReturn(returnIssueId); setShowReturnModal(false); }} 
+                  disabled={!returnIssueId}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Process Return
+                </button>
               </div>
             </div>
           </div>

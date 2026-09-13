@@ -1,3 +1,4 @@
+import random
 from ortools.sat.python import cp_model
 from typing import List, Dict, Any
 
@@ -20,10 +21,16 @@ class TimetableSolver:
         subjects: List[Dict[str, Any]],
         classrooms: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
+        if not classes or not teachers or not subjects:
+            return []
+
+        # If classrooms list is empty, provide a fallback virtual classroom
+        if not classrooms:
+            classrooms = [{"id": "default-room", "name": "Standard Room"}]
+
         model = cp_model.CpModel()
 
         # Decision variables: x[(c, t, s, r, d, slot)] = 1 if assigned, 0 otherwise
-        # To simplify solver for demo, assign required subject periods per class
         assignments = {}
         for c in range(len(classes)):
             for t in range(len(teachers)):
@@ -67,20 +74,29 @@ class TimetableSolver:
                         for s in range(len(subjects))
                     )
 
-        # Constraint 4: Ensure every class gets exactly 1 lesson per available day/slot for rich schedule
+        # Constraint 4: Subject variety per day (at most 2 periods of the same subject per day for each class)
         for c in range(len(classes)):
-            for d in range(len(self.DAYS)):
-                for slot in range(len(self.TIME_SLOTS)):
+            for s in range(len(subjects)):
+                for d in range(len(self.DAYS)):
                     model.Add(
                         sum(
                             assignments[(c, t, s, r, d, slot)]
                             for t in range(len(teachers))
-                            for s in range(len(subjects))
                             for r in range(len(classrooms))
-                        ) == 1
+                            for slot in range(len(self.TIME_SLOTS))
+                        ) <= 2
                     )
 
+        # Objective: Maximize total scheduled periods with randomized weights to produce diverse schedules on re-generation
+        model.Maximize(
+            sum(
+                assignments[(c, t, s, r, d, slot)] * random.randint(10, 25)
+                for (c, t, s, r, d, slot) in assignments
+            )
+        )
+
         solver = cp_model.CpSolver()
+        solver.parameters.random_seed = random.randint(1, 1000000)
         solver.parameters.max_time_in_seconds = 10.0
         status = solver.Solve(model)
 
@@ -108,3 +124,4 @@ class TimetableSolver:
         return schedule_result
 
 timetable_solver = TimetableSolver()
+

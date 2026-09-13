@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Users, 
   UserCheck, 
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useToast } from "@/components/Toast";
+import api from "@/lib/api";
 
 export default function StaffManagementPage() {
   const { toast } = useToast();
@@ -46,11 +47,64 @@ export default function StaffManagementPage() {
     attendees: "All Teaching Faculty",
   });
 
-  const handleCreateMeeting = (e: React.FormEvent) => {
+  useEffect(() => {
+    const saved = localStorage.getItem("pb_staff_meetings");
+    if (saved) {
+      try {
+        setMeetings(JSON.parse(saved));
+      } catch {}
+    }
+    // Also sync with backend calendar
+    api.get("/calendar/events?event_type=Meeting").then(res => {
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        const fromApi = res.data.map((e: any) => ({
+          id: e.id,
+          title: e.title,
+          date: e.start_date,
+          venue: e.description?.includes("Venue:") ? e.description.split("Venue:")[1].split("|")[0].trim() : "Conference Room",
+          attendees: e.description?.includes("Attendees:") ? e.description.split("Attendees:")[1].trim() : "All Faculty",
+          status: "Scheduled"
+        }));
+        setMeetings(prev => {
+          const combined = [...fromApi];
+          prev.forEach(p => {
+            if (!combined.some(c => c.title === p.title)) combined.push(p);
+          });
+          localStorage.setItem("pb_staff_meetings", JSON.stringify(combined));
+          return combined;
+        });
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleCreateMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMeetings(prev => [{ id: `m-${Date.now()}`, ...newMeeting, status: "Scheduled" }, ...prev]);
+    const created = { id: `m-${Date.now()}`, ...newMeeting, status: "Scheduled" };
+    setMeetings(prev => {
+      const updated = [created, ...prev];
+      localStorage.setItem("pb_staff_meetings", JSON.stringify(updated));
+      return updated;
+    });
+
+    try {
+      await api.post("/calendar/events", {
+        title: newMeeting.title,
+        description: `Venue: ${newMeeting.venue} | Attendees: ${newMeeting.attendees}`,
+        start_date: newMeeting.date || new Date().toISOString().split("T")[0],
+        end_date: newMeeting.date || new Date().toISOString().split("T")[0],
+        event_type: "Meeting",
+        grade_scope: "all"
+      });
+    } catch {}
+
     toast.success(`Scheduled staff council meeting: ${newMeeting.title}`, "Meeting Scheduled");
     setShowMeetingModal(false);
+    setNewMeeting({
+      title: "",
+      date: "",
+      venue: "Faculty Conference Room",
+      attendees: "All Teaching Faculty",
+    });
   };
 
   const filteredStaff = staffList.filter(s => 
@@ -278,7 +332,13 @@ export default function StaffManagementPage() {
             <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
               <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                 <h3 className="text-base font-bold text-brand-black">Schedule Staff Council Meeting</h3>
-                <button onClick={() => setShowMeetingModal(false)} className="text-gray-600 hover:text-brand-black">
+                <button 
+                  onClick={() => {
+                    setShowMeetingModal(false);
+                    setNewMeeting({ title: "", date: "", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
+                  }} 
+                  className="text-gray-600 hover:text-brand-black"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -320,7 +380,10 @@ export default function StaffManagementPage() {
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => setShowMeetingModal(false)}
+                    onClick={() => {
+                      setShowMeetingModal(false);
+                      setNewMeeting({ title: "", date: "", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
+                    }}
                     className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel

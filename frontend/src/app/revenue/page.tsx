@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useToast } from "@/components/Toast";
+import { exportToCsv } from "@/lib/exportUtils";
 
 export default function RevenuePage() {
   const { toast } = useToast();
@@ -59,7 +60,19 @@ export default function RevenuePage() {
           </div>
 
           <button
-            onClick={() => toast.info("Exporting financial balance sheet (FY 2026-27)", "Export Started")}
+            onClick={() => {
+              const headers = ["Month", "Tuition Fee (₹)", "Transport Fee (₹)", "Hostel Fee (₹)", "Lab Kit Fee (₹)", "Total Collections (₹)"];
+              const rows = monthlyCollections.map(m => [
+                m.month,
+                m.tuition,
+                m.transport,
+                m.hostel,
+                m.lab,
+                m.total
+              ]);
+              exportToCsv("Financial_Balance_Sheet_FY2026_27", headers, rows);
+              toast.success("Balance sheet exported successfully!", "Export Completed");
+            }}
             className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
           >
             <Download className="w-4 h-4 text-gray-600" />

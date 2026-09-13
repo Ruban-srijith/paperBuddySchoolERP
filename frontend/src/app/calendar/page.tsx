@@ -162,21 +162,45 @@ export default function AcademicCalendarPage() {
     fetchEvents();
   }, []);
 
+  const resetEventForm = () => {
+    setNewEvent({
+      title: "",
+      category: "cultural",
+      start_date: "",
+      end_date: "",
+      description: "",
+      target_audience: "all",
+    });
+  };
+
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const created: CalendarEvent = {
-      id: `ev-${Date.now()}`,
-      title: newEvent.title,
-      category: newEvent.category as any,
-      start_date: newEvent.start_date,
-      end_date: newEvent.end_date,
-      description: newEvent.description,
-      target_audience: newEvent.target_audience,
-      is_all_day: true,
-    };
-    setEvents(prev => [created, ...prev]);
+    try {
+      await api.post("/calendar/events", {
+        title: newEvent.title,
+        description: newEvent.description,
+        start_date: newEvent.start_date,
+        end_date: newEvent.end_date || newEvent.start_date,
+        event_type: newEvent.category,
+        grade_scope: newEvent.target_audience || "all"
+      });
+      fetchEvents();
+    } catch {
+      const created: CalendarEvent = {
+        id: `ev-${Date.now()}`,
+        title: newEvent.title,
+        category: newEvent.category as any,
+        start_date: newEvent.start_date,
+        end_date: newEvent.end_date || newEvent.start_date,
+        description: newEvent.description,
+        target_audience: newEvent.target_audience,
+        is_all_day: true,
+      };
+      setEvents(prev => [created, ...prev]);
+    }
     toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
     setShowAddModal(false);
+    resetEventForm();
   };
 
   const filteredEvents = events.filter(e => categoryFilter === "all" || e.category === categoryFilter);
@@ -323,7 +347,13 @@ export default function AcademicCalendarPage() {
             <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
               <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                 <h3 className="text-base font-bold text-brand-black">Create Academic Calendar Event</h3>
-                <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-brand-black">
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    resetEventForm();
+                  }} 
+                  className="text-gray-600 hover:text-brand-black"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -406,7 +436,10 @@ export default function AcademicCalendarPage() {
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      resetEventForm();
+                    }}
                     className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel
