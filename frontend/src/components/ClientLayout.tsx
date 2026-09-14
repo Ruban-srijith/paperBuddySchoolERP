@@ -113,12 +113,16 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout, checkAuth } = useAuthStore();
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setShowMobileMenu(false);
+  }, [pathname]);
 
   // Hardware-accelerated native smooth scroll is applied via CSS
 
@@ -262,74 +266,40 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <span>FastAPI & Live Engine Active</span>
           </div>
 
-          {/* User Profile Dropdown */}
-          <div className="relative">
-            <motion.button 
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-3 pl-4 border-l border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
-            >
-              <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${roleColor} flex items-center justify-center text-white font-semibold text-xs shadow-md overflow-hidden`}>
-                {user.profile_picture ? (
-                  <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  user.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'
+          {/* User Profile Pill -> Direct Link to Profile */}
+          <Link
+            href="/profile"
+            className="flex items-center space-x-2 sm:space-x-3 pl-2 sm:pl-4 border-l border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/60 rounded-lg px-2 sm:px-3 py-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-blue/20 group"
+            title="View Profile"
+          >
+            <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${roleColor} flex items-center justify-center text-white font-semibold text-xs shadow-md overflow-hidden group-hover:ring-2 group-hover:ring-brand-blue/40 transition-all shrink-0`}>
+              {user.profile_picture ? (
+                <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                user.full_name ? user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2) : 'U'
+              )}
+            </div>
+            <div className="text-left hidden md:block">
+              <p className="text-xs font-semibold text-brand-black dark:text-slate-100 group-hover:text-brand-blue dark:group-hover:text-blue-400 transition-colors">{user.full_name}</p>
+              <div className="flex items-center gap-1">
+                <Shield className="w-2.5 h-2.5 text-brand-blue dark:text-blue-400" />
+                <p className="text-[10px] text-gray-500 dark:text-slate-400 font-medium">{roleLabel}</p>
+                {user.assigned_grade && (
+                  <span className="text-[10px] text-brand-blue dark:text-blue-400 ml-1 font-medium">• Grade {user.assigned_grade}</span>
                 )}
               </div>
-              <div className="text-left hidden md:block">
-                <p className="text-xs font-semibold text-brand-black dark:text-slate-100">{user.full_name}</p>
-                <div className="flex items-center gap-1">
-                  <Shield className="w-2.5 h-2.5 text-brand-blue dark:text-blue-400" />
-                  <p className="text-[10px] text-gray-500 dark:text-slate-400 font-medium">{roleLabel}</p>
-                  {user.assigned_grade && (
-                    <span className="text-[10px] text-brand-blue dark:text-blue-400 ml-1 font-medium">• Grade {user.assigned_grade}</span>
-                  )}
-                </div>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
-            </motion.button>
+            </div>
+          </Link>
 
-            {/* Dropdown Menu */}
-            {showUserMenu && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)}></div>
-                <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-900 rounded-[24px] border border-gray-100 dark:border-slate-800 shadow-xl z-50 overflow-hidden">
-                  <div className="p-4 border-b border-gray-100 dark:border-slate-800">
-                    <p className="font-semibold text-sm text-brand-black dark:text-slate-100">{user.full_name}</p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{user.email}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r ${roleColor} text-white font-medium`}>
-                        {roleLabel}
-                      </span>
-                      {user.assigned_grade && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-blue/10 dark:bg-blue-500/20 text-brand-blue dark:text-blue-400 font-medium">
-                          Grade {user.assigned_grade}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="p-2">
-                    <Link 
-                      href="/profile"
-                      onClick={() => setShowUserMenu(false)}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-brand-black dark:hover:text-white transition-colors"
-                    >
-                      <UserCircle className="w-4 h-4" />
-                      My Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+          {/* Dedicated Sign Out Button in Navbar */}
+          <button
+            onClick={handleLogout}
+            title="Sign Out"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/40 transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </button>
         </div>
       </header>
 
