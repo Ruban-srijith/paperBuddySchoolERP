@@ -8,7 +8,7 @@ import {
   UserCircle, Settings, Shield, Bell, Key, Camera,
   Briefcase, Clock, Calendar, CheckCircle2,
   FileSignature, PieChart, Users, BookOpen, AlertTriangle, Building, CreditCard,
-  MapPin, Phone, Mail, Activity, GraduationCap, TrendingUp, Loader2, Upload
+  MapPin, Phone, Mail, Activity, GraduationCap, TrendingUp, Loader2, Upload, Trash2
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -152,6 +152,56 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDeleteSignature = async (isBroadcast: boolean = false) => {
+    try {
+      if (isBroadcast) {
+        setBroadcastSignature("");
+        await api.put('/auth/me', { broadcast_signature: "" });
+      } else {
+        setSignature("");
+        try {
+          await api.delete('/auth/me/signature');
+        } catch {
+          await api.put('/auth/me', { signature: "" });
+        }
+      }
+      await useAuthStore.getState().refreshUser();
+      showToast(isBroadcast ? "Broadcast signature text removed." : "Official digital signature & stamp removed successfully!");
+    } catch (err: any) {
+      showToast(err.response?.data?.detail || "Failed to remove signature.");
+    }
+  };
+
+  const handleRemoveProfilePicture = async () => {
+    setIsUploading(true);
+    try {
+      try {
+        await api.delete('/auth/me/profile-picture');
+      } catch {
+        await api.patch('/auth/me/profile-picture', { profile_picture: "" });
+      }
+
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('pb_user');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            parsed.profile_picture = null;
+            localStorage.setItem('pb_user', JSON.stringify(parsed));
+          } catch (e) {}
+        }
+      }
+      useAuthStore.getState().checkAuth();
+      await useAuthStore.getState().refreshUser();
+      showToast("Profile photo removed successfully.");
+    } catch (err: any) {
+      console.error("Failed to remove profile picture", err);
+      showToast("Failed to remove profile photo.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSaveOfficeHours = () => {
     if (typeof window !== 'undefined' && user?.id) {
       localStorage.setItem(`pb_principal_office_hours_${user.id}`, officeHours);
@@ -244,9 +294,28 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => fileInputRef.current?.click()}>
+            
+            {/* Camera Change Icon */}
+            <div 
+              className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg cursor-pointer hover:bg-gray-50 transition-colors" 
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload new profile photo"
+            >
               <Camera className="w-4 h-4 text-gray-500" />
             </div>
+
+            {/* Remove Photo Icon on Avatar */}
+            {user.profile_picture && (
+              <button
+                onClick={handleRemoveProfilePicture}
+                disabled={isUploading}
+                title="Remove profile photo"
+                className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-lg transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             <input 
               type="file" 
               ref={fileInputRef}
@@ -264,13 +333,23 @@ export default function ProfilePage() {
             <h1 className="text-3xl md:text-4xl font-bold text-brand-black mb-2">{fullName || user.full_name}</h1>
             <p className="text-gray-500 text-lg mb-4">{user.email}</p>
             
-            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+            <div className="flex flex-wrap gap-3 justify-center md:justify-start items-center">
               <button 
                 onClick={() => showToast("Password reset link sent to email.")}
                 className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-brand-black text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <Key className="w-4 h-4" /> Change Password
               </button>
+
+              {user.profile_picture && (
+                <button 
+                  onClick={handleRemoveProfilePicture}
+                  disabled={isUploading}
+                  className="px-4 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm font-medium transition-colors flex items-center gap-2 border border-rose-200 shadow-sm"
+                >
+                  <Trash2 className="w-4 h-4" /> Remove Photo
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -543,9 +622,20 @@ export default function ProfilePage() {
                           }
                         }}
                       />
-                      <label htmlFor="signatureUpload" className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
-                        {signature ? "Replace Signature" : "Upload Signature"}
-                      </label>
+                      <div className="flex items-center gap-2 flex-wrap justify-center">
+                        <label htmlFor="signatureUpload" className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
+                          {signature ? "Replace Signature" : "Upload Signature"}
+                        </label>
+                        {signature && (
+                          <button
+                            onClick={() => handleDeleteSignature(false)}
+                            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Signature & Stamp
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -644,9 +734,20 @@ export default function ProfilePage() {
                           }
                         }}
                       />
-                      <label htmlFor="principalSignatureUpload" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
-                        {signature ? "Replace Signature" : "Upload Digital Signature"}
-                      </label>
+                      <div className="flex items-center gap-2 flex-wrap justify-center">
+                        <label htmlFor="principalSignatureUpload" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
+                          {signature ? "Replace Signature" : "Upload Digital Signature"}
+                        </label>
+                        {signature && (
+                          <button
+                            onClick={() => handleDeleteSignature(false)}
+                            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Signature & Seal
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -712,12 +813,23 @@ export default function ProfilePage() {
                       placeholder="e.g. Dr. K. Bharathi, Principal&#10;Bharathi Matriculation Higher Secondary School&#10;Excellence in Education" 
                       className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 text-xs focus:outline-none focus:border-amber-500 mb-3" 
                     />
-                    <button 
-                      onClick={() => handleSaveSignature(broadcastSignature, true)} 
-                      className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors text-xs font-bold shadow-sm"
-                    >
-                      Save Signature Text
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button 
+                        onClick={() => handleSaveSignature(broadcastSignature, true)} 
+                        className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors text-xs font-bold shadow-sm"
+                      >
+                        Save Signature Text
+                      </button>
+                      {broadcastSignature && (
+                        <button
+                          onClick={() => handleDeleteSignature(true)}
+                          className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Clear Text
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </>
