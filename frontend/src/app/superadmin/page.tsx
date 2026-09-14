@@ -5,7 +5,7 @@ import {
   Building2, Users, School as SchoolIcon, Activity, 
   ArrowRight, ShieldCheck, DollarSign, Sparkles, 
   History, CreditCard, Plus, Check, X, ShieldAlert,
-  ChevronRight, RefreshCw, KeyRound, AlertTriangle, Megaphone
+  ChevronRight, RefreshCw, KeyRound, AlertTriangle, Megaphone, Trash2
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import api from '@/lib/api';
@@ -80,11 +80,12 @@ function SuperAdminDashboardContent() {
   const [loading, setLoading] = useState(true);
   const [showAddSchool, setShowAddSchool] = useState(false);
   const [showAddAdmin, setShowAddAdmin] = useState(false);
-
   // Forms states
   const [newSchool, setNewSchool] = useState({ name: '', code: '', address: '', email: '' });
   const [newAdmin, setNewAdmin] = useState({ name: '', username: '', collegeId: '' });
-  const [broadcasts, setBroadcasts] = useState<SystemBroadcast[]>([
+
+  // Default Initial Broadcasts
+  const DEFAULT_BROADCASTS: SystemBroadcast[] = [
     {
       id: '1',
       title: 'Scheduled Database Migration & Maintenance',
@@ -107,7 +108,40 @@ function SuperAdminDashboardContent() {
       created: '2026-08-15',
       views: 12
     }
-  ]);
+  ];
+
+  const [broadcasts, setBroadcasts] = useState<SystemBroadcast[]>(DEFAULT_BROADCASTS);
+
+  // Sync Broadcasts from localStorage on initial load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('pb_system_broadcasts');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setBroadcasts(parsed);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse persisted broadcasts', e);
+      }
+    }
+  }, []);
+
+  const updateBroadcasts = (newBroadcasts: SystemBroadcast[] | ((prev: SystemBroadcast[]) => SystemBroadcast[])) => {
+    setBroadcasts(prev => {
+      const updated = typeof newBroadcasts === 'function' ? newBroadcasts(prev) : newBroadcasts;
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('pb_system_broadcasts', JSON.stringify(updated));
+        } catch (e) {
+          console.error('Failed to persist broadcasts', e);
+        }
+      }
+      return updated;
+    });
+  };
 
   const [newBroad, setNewBroad] = useState({
     title: '',
@@ -226,41 +260,40 @@ function SuperAdminDashboardContent() {
 
   const handleAddSchoolSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSchool.name || !newSchool.code) return;
+    if (!newSchool.name.trim()) {
+      toast.error('School name is required');
+      return;
+    }
     
-    const schoolName = newSchool.name;
-    const schoolCode = newSchool.code.toUpperCase();
-
     try {
-      await api.post('/schools', {
-        name: schoolName,
-        address: newSchool.address || 'Campus Site',
-        contact_email: newSchool.email || 'info@school.edu'
-      });
-      toast.success('Successfully provisioned new school workspace!', schoolName);
+      const payload = {
+        name: newSchool.name.trim(),
+        address: newSchool.address ? newSchool.address.trim() : '',
+        contact_email: newSchool.email ? newSchool.email.trim() : undefined,
+      };
+
+      const res = await api.post('/schools', payload);
+      const savedSchool = res.data;
+
+      toast.success('Successfully provisioned new school workspace!', savedSchool.name || newSchool.name);
       setShowAddSchool(false);
       setNewSchool({ name: '', code: '', address: '', email: '' });
       await fetchSchools();
+      
+      setAuditLogs(prev => [
+        { 
+          timestamp: 'Just Now', 
+          action: 'PROVISION_TENANT', 
+          details: `Onboarded ${savedSchool.name || newSchool.name} successfully`, 
+          actor: 'Founder', 
+          tenant: newSchool.code ? newSchool.code.toUpperCase() : 'SCH' 
+        },
+        ...prev
+      ]);
     } catch (err: any) {
-      const created: SchoolData = {
-        id: `sch-${Date.now()}`,
-        name: schoolName,
-        code: schoolCode,
-        address: newSchool.address || 'Global Campus Site',
-        contact_email: newSchool.email || 'info@school.edu',
-        status: 'ACTIVE',
-        joined: new Date().toISOString().split('T')[0]
-      };
-      setSchools(prev => [...prev, created]);
-      setShowAddSchool(false);
-      setNewSchool({ name: '', code: '', address: '', email: '' });
-      toast.success('Successfully provisioned new school workspace!', created.name);
+      console.error('Failed to create school:', err);
+      toast.error(err.response?.data?.detail || 'Failed to save institution');
     }
-    
-    setAuditLogs(prev => [
-      { timestamp: 'Just Now', action: 'PROVISION_TENANT', details: `Onboarded ${schoolName} successfully`, actor: 'Founder', tenant: schoolCode },
-      ...prev
-    ]);
   };
 
   const handleAddAdminSubmit = (e: React.FormEvent) => {
@@ -696,11 +729,11 @@ function SuperAdminDashboardContent() {
 
                       <form onSubmit={(e) => {
                         e.preventDefault();
-                        if (!newBroad.title || !newBroad.content) return;
-                        const created = {
-                          id: Math.random().toString(),
-                          title: newBroad.title,
-                          content: newBroad.content,
+                        if (!newBroad.title.trim() || !newBroad.content.trim()) return;
+                        const created: SystemBroadcast = {
+                          id: Date.now().toString(),
+                          title: newBroad.title.trim(),
+                          content: newBroad.content.trim(),
                           type: newBroad.type,
                           targetRoles: newBroad.targetRoles.length === 0 ? ['All'] : newBroad.targetRoles,
                           priority: newBroad.priority,
@@ -708,9 +741,9 @@ function SuperAdminDashboardContent() {
                           created: new Date().toISOString().split('T')[0],
                           views: 0
                         };
-                        setBroadcasts(prev => [created, ...prev]);
+                        updateBroadcasts(prev => [created, ...prev]);
                         setNewBroad({ title: '', content: '', type: 'Maintenance', targetRoles: [], priority: 'High' });
-                        toast.success('System broadcast deployed globally!', newBroad.title);
+                        toast.success('System broadcast deployed globally & saved!', newBroad.title);
                       }} className="space-y-4 text-xs">
                         
                         <div className="space-y-1">
@@ -853,19 +886,29 @@ function SuperAdminDashboardContent() {
                                   {b.targetRoles.join(', ').replace('_', ' ')}
                                 </span>
                               </div>
-                              <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-3">
                                 <span>Views: <span className="font-mono font-bold text-indigo-400">{b.views}</span></span>
                                 {b.active && (
                                   <button
                                     onClick={() => {
-                                      setBroadcasts(prev => prev.map(item => item.id === b.id ? { ...item, active: false } : item));
+                                      updateBroadcasts(prev => prev.map(item => item.id === b.id ? { ...item, active: false } : item));
                                       toast.success('Broadcast has been expired/recalled', b.title);
                                     }}
-                                    className="text-rose-500 hover:text-rose-600 font-bold hover:underline"
+                                    className="text-rose-500 hover:text-rose-600 font-bold hover:underline text-[11px]"
                                   >
                                     Expire Circular
                                   </button>
                                 )}
+                                <button
+                                  onClick={() => {
+                                    updateBroadcasts(prev => prev.filter(item => item.id !== b.id));
+                                    toast.success('Broadcast circular removed', b.title);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-rose-500 rounded hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                                  title="Delete Broadcast"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </div>
                           </div>

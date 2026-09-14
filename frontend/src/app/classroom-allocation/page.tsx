@@ -68,12 +68,13 @@ export default function ClassroomAllocationPage() {
     e.preventDefault();
     if (!editingRoom) return;
     try {
-      const res = await api.put(`/classrooms/${editingRoom.id}`, {
-        assigned_class: editingRoom.assigned_class,
-        current_occupancy: editingRoom.current_occupancy,
-        status: editingRoom.status
+      const isAssigned = Boolean(editingRoom.assigned_class && editingRoom.assigned_class.trim() && editingRoom.assigned_class.trim().toLowerCase() !== 'none');
+      await api.put(`/classrooms/${editingRoom.id}`, {
+        assigned_class: editingRoom.assigned_class.trim(),
+        current_occupancy: Number(editingRoom.current_occupancy) || 0,
+        status: isAssigned ? 'occupied' : 'available'
       });
-      setRooms(prev => prev.map(r => r.id === editingRoom.id ? res.data : r));
+      await fetchRooms();
       toast.success(`Allocated ${editingRoom.room_number} to ${editingRoom.assigned_class}`);
       setEditingRoom(null);
     } catch (err: any) {
@@ -86,16 +87,22 @@ export default function ClassroomAllocationPage() {
   const handleAddSpace = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await api.post('/classrooms', {
-        name: newSpace.room_number,
-        building_block: newSpace.building_block,
-        room_type: newSpace.room_type,
-        capacity: newSpace.capacity,
-        status: newSpace.status,
-        current_occupancy: newSpace.current_occupancy,
-        assigned_class: newSpace.assigned_class
+      const roomName = (newSpace.room_number || "").trim();
+      if (!roomName) {
+        toast.error("Room number / name is required");
+        return;
+      }
+      await api.post('/classrooms', {
+        name: roomName,
+        room_number: roomName,
+        building_block: (newSpace.building_block || "").trim(),
+        room_type: newSpace.room_type || "classroom",
+        capacity: Number(newSpace.capacity) || 40,
+        status: newSpace.status || "available",
+        current_occupancy: Number(newSpace.current_occupancy) || 0,
+        assigned_class: (newSpace.assigned_class || "").trim()
       });
-      setRooms(prev => [...prev, res.data]);
+      await fetchRooms();
       toast.success("New space added successfully");
       setIsAddingSpace(false);
       setNewSpace({

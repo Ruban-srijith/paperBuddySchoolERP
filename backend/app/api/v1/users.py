@@ -50,12 +50,12 @@ async def list_users(
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     query = select(User).options(selectinload(User.department))
-    if current_user.school_id:
+    if current_user.school_id and current_user.role != UserRole.SUPER_ADMIN:
         query = query.where((User.school_id == current_user.school_id) | (User.school_id == None))
 
     if role:
         try:
-            role_enum = UserRole(role)
+            role_enum = UserRole(role.lower())
             query = query.where(User.role == role_enum)
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid role: {role}")
@@ -80,8 +80,11 @@ async def create_user(
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """Create a new user with role assignment (Admin only)."""
+    clean_email = req.email.strip().lower()
+    clean_name = req.full_name.strip()
+    
     try:
-        role_enum = UserRole(req.role)
+        role_enum = UserRole(req.role.lower())
     except ValueError:
         raise HTTPException(
             status_code=400,
@@ -89,19 +92,21 @@ async def create_user(
         )
 
     # Check duplicate email
-    existing = await db.execute(select(User).where(User.email == req.email))
+    existing = await db.execute(select(User).where(User.email == clean_email))
     if existing.scalars().first():
-        raise HTTPException(status_code=409, detail="Email already registered")
+        raise HTTPException(status_code=409, detail=f"Email '{clean_email}' is already registered in the system.")
+
+    dept_id = req.department_id if req.department_id and req.department_id.strip() else None
 
     new_user = User(
         id=str(uuid.uuid4()),
         school_id=current_user.school_id,
-        email=req.email,
-        full_name=req.full_name,
+        email=clean_email,
+        full_name=clean_name,
         role=role_enum,
-        password_hash=hash_password(req.password),
-        department_id=req.department_id,
-        assigned_grade=req.assigned_grade,
+        password_hash=hash_password(req.password or "school@123"),
+        department_id=dept_id,
+        assigned_grade=req.assigned_grade if req.assigned_grade and req.assigned_grade.strip() else None,
         phone=req.phone,
         roll_number=req.roll_number,
         admission_number=req.admission_number,
@@ -110,12 +115,22 @@ async def create_user(
     db.add(new_user)
     
     if role_enum == UserRole.STUDENT:
+        # Find matching Class if assigned_grade is provided
+        class_id = None
+        if req.assigned_grade:
+            from app.db.models import Class
+            cls_res = await db.execute(select(Class).where(Class.grade == req.assigned_grade))
+            found_class = cls_res.scalars().first()
+            if found_class:
+                class_id = found_class.id
+
         new_student = Student(
             id=str(uuid.uuid4()),
             user_id=new_user.id,
             admission_number=req.admission_number or f"ADM-{new_user.id[:8].upper()}",
-            full_name=req.full_name,
-            class_id=None,
+            roll_number=req.roll_number,
+            full_name=clean_name,
+            class_id=class_id,
         )
         db.add(new_student)
         

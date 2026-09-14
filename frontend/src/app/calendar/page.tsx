@@ -40,6 +40,15 @@ const CATEGORY_COLORS = {
   celebration: "bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/50",
 };
 
+const initialEventState = {
+  title: "",
+  category: "event",
+  start_date: "",
+  end_date: "",
+  description: "",
+  target_audience: "all",
+};
+
 export default function AcademicCalendarPage() {
   const { user } = useAuthStore();
   const { toast } = useToast();
@@ -48,86 +57,26 @@ export default function AcademicCalendarPage() {
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const [newEvent, setNewEvent] = useState({
-    title: "",
-    category: "exam",
-    start_date: new Date().toISOString().split("T")[0],
-    end_date: new Date().toISOString().split("T")[0],
-    description: "",
-    target_audience: "all",
-  });
+  const [newEvent, setNewEvent] = useState(initialEventState);
 
-  const canAddEvents = user && ['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user.role);
-
-  const getDemoCalendarEvents = (): CalendarEvent[] => [
-    {
-      id: "ev-1",
-      title: "Independence Day Celebration & Flag Hoisting",
-      category: "holiday",
-      start_date: "2026-08-15",
-      end_date: "2026-08-15",
-      description: "Annual Independence Day parade, cultural program by Grades 6-10, and address by Principal.",
-      target_audience: "all",
-      is_all_day: true,
-    },
-    {
-      id: "ev-2",
-      title: "Mid-Term Examination Week (Grades 6–12)",
-      category: "exam",
-      start_date: "2026-08-20",
-      end_date: "2026-08-28",
-      description: "Comprehensive Term 1 written examinations. Morning session 9:00 AM – 12:00 PM.",
-      target_audience: "all",
-      is_all_day: true,
-    },
-    {
-      id: "ev-3",
-      title: "Parent-Teacher Meeting (Term 1 Progress Review)",
-      category: "meeting",
-      start_date: "2026-09-05",
-      end_date: "2026-09-05",
-      description: "Interactive academic review meeting with parents to discuss student performance and report cards.",
-      target_audience: "all",
-      is_all_day: false,
-    },
-    {
-      id: "ev-4",
-      title: "Annual Science & AI Technology Exhibition",
-      category: "event",
-      start_date: "2026-09-18",
-      end_date: "2026-09-19",
-      description: "Student project showcase, robotics demonstrations, and STEM working model competitions.",
-      target_audience: "all",
-      is_all_day: true,
-    },
-    {
-      id: "ev-5",
-      title: "Gandhi Jayanti National Holiday",
-      category: "holiday",
-      start_date: "2026-10-02",
-      end_date: "2026-10-02",
-      description: "School closed for Gandhi Jayanti. Special morning homage and cleanliness drive.",
-      target_audience: "all",
-      is_all_day: true,
-    },
-    {
-      id: "ev-6",
-      title: "Inter-School Athletics & Sports Meet",
-      category: "celebration",
-      start_date: "2026-11-14",
-      end_date: "2026-11-15",
-      description: "Annual sports meet including track events, football finals, and prize distribution ceremony.",
-      target_audience: "all",
-      is_all_day: true,
-    }
-  ];
+  const canAddEvents = Boolean(
+    user && (
+      ['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal', 'admin', 'head_master'].includes(
+        String(user.role || '').toLowerCase()
+      ) ||
+      (Array.isArray(user.roles) && user.roles.some((r: string) =>
+        ['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal', 'admin', 'head_master'].includes(r.toLowerCase())
+      ))
+    )
+  );
 
   const fetchEvents = async () => {
     setLoading(true);
     try {
       const res = await api.get("/calendar/events");
-      if (Array.isArray(res.data) && res.data.length > 0) {
+      if (Array.isArray(res.data)) {
         const mapped = res.data.map((e: any) => {
           let cat = (e.category || e.event_type || "event").toLowerCase();
           if (cat.includes("exam")) cat = "exam";
@@ -148,11 +97,9 @@ export default function AcademicCalendarPage() {
           };
         });
         setEvents(mapped);
-      } else {
-        setEvents(getDemoCalendarEvents());
       }
-    } catch {
-      setEvents(getDemoCalendarEvents());
+    } catch (err) {
+      console.error("Failed to load events", err);
     } finally {
       setLoading(false);
     }
@@ -162,46 +109,79 @@ export default function AcademicCalendarPage() {
     fetchEvents();
   }, []);
 
-  const resetEventForm = () => {
-    setNewEvent({
-      title: "",
-      category: "exam",
-      start_date: new Date().toISOString().split("T")[0],
-      end_date: new Date().toISOString().split("T")[0],
-      description: "",
-      target_audience: "all",
-    });
+  const handleOpenAddModal = () => {
+    setNewEvent(initialEventState);
+    setShowAddModal(true);
   };
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newEvent.title.trim()) {
+      toast.error("Please enter an event title");
+      return;
+    }
+    if (!newEvent.start_date) {
+      toast.error("Please select a start date");
+      return;
+    }
+
+    const eventCategory = newEvent.category || "event";
+    const eventType = eventCategory.charAt(0).toUpperCase() + eventCategory.slice(1);
+    const startDate = newEvent.start_date;
+    const endDate = newEvent.end_date || startDate;
+    const targetAudience = newEvent.target_audience || "all";
+    const eventDesc = newEvent.description.trim() || `${newEvent.title.trim()} scheduled on ${startDate}`;
+
     try {
-      await api.post("/calendar/events", {
-        title: newEvent.title,
-        description: newEvent.description,
-        start_date: newEvent.start_date,
-        end_date: newEvent.end_date || newEvent.start_date,
-        event_type: newEvent.category,
-        grade_scope: newEvent.target_audience || "all"
-      });
-      await fetchEvents();
+      setSaving(true);
+      const payload = {
+        title: newEvent.title.trim(),
+        description: eventDesc,
+        start_date: startDate,
+        end_date: endDate,
+        event_type: eventType,
+        grade_scope: targetAudience,
+        category: eventCategory,
+        target_audience: targetAudience,
+      };
+
+      const res = await api.post("/calendar/events", payload);
       toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
-    } catch {
-      const created: CalendarEvent = {
-        id: `ev-${Date.now()}`,
-        title: newEvent.title,
-        category: newEvent.category as any,
-        start_date: newEvent.start_date,
-        end_date: newEvent.end_date || newEvent.start_date,
-        description: newEvent.description,
-        target_audience: newEvent.target_audience,
+
+      const createdEvent: CalendarEvent = {
+        id: res.data?.event_id || `ev-${Date.now()}`,
+        title: newEvent.title.trim(),
+        category: eventCategory as any,
+        start_date: startDate,
+        end_date: endDate,
+        description: eventDesc,
+        target_audience: targetAudience,
         is_all_day: true,
       };
-      setEvents(prev => [created, ...prev]);
+      setEvents((prev) => [createdEvent, ...prev.filter((item) => item.id !== createdEvent.id)]);
+
+      setNewEvent(initialEventState);
+      setShowAddModal(false);
+      await fetchEvents();
+    } catch (err: any) {
+      console.warn("Backend event save error, saving locally:", err);
+      const createdEvent: CalendarEvent = {
+        id: `ev-${Date.now()}`,
+        title: newEvent.title.trim(),
+        category: eventCategory as any,
+        start_date: startDate,
+        end_date: endDate,
+        description: eventDesc,
+        target_audience: targetAudience,
+        is_all_day: true,
+      };
+      setEvents((prev) => [createdEvent, ...prev.filter((item) => item.id !== createdEvent.id)]);
       toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
+      setNewEvent(initialEventState);
+      setShowAddModal(false);
+    } finally {
+      setSaving(false);
     }
-    setShowAddModal(false);
-    resetEventForm();
   };
 
   const filteredEvents = events.filter(e => categoryFilter === "all" || e.category === categoryFilter);
@@ -228,7 +208,7 @@ export default function AcademicCalendarPage() {
 
           {canAddEvents && (
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={handleOpenAddModal}
               className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-brand-black font-semibold text-xs shadow-lg shadow-indigo-600/25 hover:opacity-95 transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -351,7 +331,7 @@ export default function AcademicCalendarPage() {
                 <button 
                   onClick={() => {
                     setShowAddModal(false);
-                    resetEventForm();
+                    setNewEvent(initialEventState);
                   }} 
                   className="text-gray-600 hover:text-brand-black"
                 >
@@ -424,13 +404,13 @@ export default function AcademicCalendarPage() {
                 </div>
 
                 <div>
-                  <label className="text-gray-700 font-semibold block mb-1">Description</label>
+                  <label className="text-gray-700 font-semibold block mb-1">Description (Optional)</label>
                   <textarea
                     rows={3}
                     value={newEvent.description}
                     onChange={e => setNewEvent({ ...newEvent, description: e.target.value })}
+                    placeholder="Provide additional details or leave blank..."
                     className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
-                    required
                   />
                 </div>
 
@@ -439,7 +419,7 @@ export default function AcademicCalendarPage() {
                     type="button"
                     onClick={() => {
                       setShowAddModal(false);
-                      resetEventForm();
+                      setNewEvent(initialEventState);
                     }}
                     className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >

@@ -1,11 +1,12 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class ClassroomBase(BaseModel):
-    name: str
+    name: Optional[str] = None
+    room_number: Optional[str] = None
     building_block: Optional[str] = None
     room_type: str = "classroom"
-    capacity: Optional[int] = None
+    capacity: Optional[int] = 40
     is_lab: bool = False
     assigned_class: Optional[str] = None
     current_occupancy: int = 0
@@ -16,6 +17,7 @@ class ClassroomCreate(ClassroomBase):
 
 class ClassroomUpdate(BaseModel):
     name: Optional[str] = None
+    room_number: Optional[str] = None
     building_block: Optional[str] = None
     room_type: Optional[str] = None
     capacity: Optional[int] = None

@@ -72,12 +72,15 @@ export default function TimetablePage() {
     { id: "t2222222-2222-2222-2222-222222222222", name: "Prof. Alan Turing", subject: "Mathematics" },
     { id: "t3333333-3333-3333-3333-333333333333", name: "Dr. Marie Curie", subject: "Chemistry" },
     { id: "t4444444-4444-4444-4444-444444444444", name: "Alex Mercer", subject: "Computer Science" },
+    { id: "de111111-1111-1111-1111-111111111111", name: "Prof. Venkat Raman", subject: "Physics" },
+    { id: "dh111111-1111-1111-1111-111111111111", name: "Dr. Lakshmi Iyer", subject: "English Language" },
+    { id: "dh222222-2222-2222-2222-222222222222", name: "Prof. Suresh Babu", subject: "Social Science" },
   ];
 
-  const isSubAdmin = user && ['vice_principal'].includes(user.role);
-  const isSuperOrAdmin = user && ['super_admin', 'correspondent', 'principal'].includes(user.role);
-  const isTeacher = user && user.role === 'teacher';
-  const isStudent = user && user.role === 'student';
+  const isSubAdmin = user && ['vice_principal'].includes(user.role?.toLowerCase() || '');
+  const isSuperOrAdmin = user && ['super_admin', 'platform_super_admin', 'correspondent', 'principal'].includes(user.role?.toLowerCase() || '');
+  const isTeacher = user && user.role?.toLowerCase() === 'teacher';
+  const isStudent = user && user.role?.toLowerCase() === 'student';
 
   const canEdit = isSubAdmin || isSuperOrAdmin;
 
@@ -234,6 +237,104 @@ export default function TimetablePage() {
     return slots;
   };
 
+  const handleExportTimetable = () => {
+    try {
+      const escapeCell = (val: any) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      if (!schedule || schedule.length === 0) {
+        toast.error("No timetable schedule data available to export");
+        return;
+      }
+
+      const currentTeacher = teachers.find(t => t.id === selectedTeacher);
+      const title = viewMode === "by_grade"
+        ? `Timetable Matrix - Grade ${selectedGrade}-${selectedSection}`
+        : `Timetable Matrix - ${currentTeacher?.name || "Faculty"} (${currentTeacher?.subject || "All Subjects"})`;
+
+      // 1. Matrix Grid representation
+      const matrixHeaders = [
+        "Day / Period",
+        ...TIME_SLOTS.slice(0, 6).map((time, idx) => `Period ${idx + 1} (${time})`)
+      ];
+
+      const matrixRows = DAYS.map(day => {
+        const daySlots = schedule.filter(s => s.day_of_week === day);
+        const periods = TIME_SLOTS.slice(0, 6).map(slotTime => {
+          const slot = daySlots.find(s => s.time_slot === slotTime);
+          if (!slot) return "Free Period";
+          if (viewMode === "by_teacher") {
+            return `${slot.class_name} - ${slot.subject_name} (${slot.classroom_name})`;
+          }
+          return `${slot.subject_name} (${slot.teacher_name} - ${slot.classroom_name})`;
+        });
+        return [day, ...periods];
+      });
+
+      // 2. Detailed Breakdown rows
+      const detailHeaders = [
+        "Day",
+        "Period",
+        "Time Slot",
+        "Class / Section",
+        "Subject",
+        "Teacher",
+        "Classroom / Lab"
+      ];
+
+      const detailRows: any[][] = [];
+      DAYS.forEach(day => {
+        const daySlots = schedule.filter(s => s.day_of_week === day);
+        TIME_SLOTS.slice(0, 6).forEach((slotTime, idx) => {
+          const slot = daySlots.find(s => s.time_slot === slotTime);
+          detailRows.push([
+            day,
+            `Period ${idx + 1}`,
+            slotTime,
+            slot ? slot.class_name : (viewMode === "by_grade" ? `Grade ${selectedGrade}-${selectedSection}` : "N/A"),
+            slot ? slot.subject_name : "Free Period",
+            slot ? slot.teacher_name : "Unassigned",
+            slot ? slot.classroom_name : "N/A"
+          ]);
+        });
+      });
+
+      const lines = [
+        [title].map(escapeCell).join(","),
+        "",
+        matrixHeaders.map(escapeCell).join(","),
+        ...matrixRows.map(row => row.map(escapeCell).join(",")),
+        "",
+        ["--- Detailed Period Allocations ---"].map(escapeCell).join(","),
+        detailHeaders.map(escapeCell).join(","),
+        ...detailRows.map(row => row.map(escapeCell).join(","))
+      ];
+
+      const csvContent = "\uFEFF" + lines.join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      const fileName = viewMode === "by_grade"
+        ? `Timetable_Grade_${selectedGrade}_${selectedSection}.csv`
+        : `Timetable_${(currentTeacher?.name || "Teacher").replace(/[^a-zA-Z0-9_-]/g, "_")}.csv`;
+      anchor.setAttribute("download", fileName);
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      toast.success("Timetable matrix exported successfully to CSV", "Export Complete");
+    } catch (err) {
+      console.error("Timetable export error:", err);
+      toast.error("Failed to export timetable");
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -269,22 +370,7 @@ export default function TimetablePage() {
               </button>
             )}
             <button
-              onClick={() => {
-                const headers = ["Class", "Day of Week", "Time Slot", "Subject", "Teacher", "Classroom"];
-                const rows = schedule.map(s => [
-                  s.class_name,
-                  s.day_of_week,
-                  s.time_slot,
-                  s.subject_name,
-                  s.teacher_name,
-                  s.classroom_name
-                ]);
-                const filename = viewMode === "by_grade" 
-                  ? `Timetable_${selectedGrade}_${selectedSection}` 
-                  : `Timetable_Teacher_${selectedTeacher}`;
-                exportToCsv(filename, headers, rows);
-                toast.success("Timetable matrix exported successfully!", "Export Completed");
-              }}
+              onClick={handleExportTimetable}
               className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
             >
               <Download className="w-4 h-4 text-gray-600" />

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 from app.schemas.users import UserCreateRequest
@@ -6,7 +6,7 @@ from app.schemas.users import UserCreateRequest
 class SchoolBase(BaseModel):
     name: str
     address: Optional[str] = None
-    contact_email: Optional[EmailStr] = None
+    contact_email: Optional[str] = None
 
 class SchoolCreate(SchoolBase):
     pass
@@ -17,7 +17,8 @@ class SchoolRegister(BaseModel):
 
 class SchoolResponse(SchoolBase):
     id: str
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
