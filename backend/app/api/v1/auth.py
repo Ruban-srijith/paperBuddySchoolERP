@@ -18,7 +18,7 @@ from app.core.auth import (
 )
 from app.schemas.auth import (
     LoginRequest, TokenResponse, RegisterRequest,
-    UserProfileResponse, ChangePasswordRequest
+    UserProfileResponse, ChangePasswordRequest, ProfileUpdateRequest
 )
 from pydantic import BaseModel
 
@@ -121,10 +121,68 @@ async def get_me(
         department_id=current_user.department_id,
         department_name=dept_name,
         assigned_grade=current_user.assigned_grade,
+        phone=current_user.phone,
+        address=current_user.address,
+        signature=current_user.signature,
+        broadcast_signature=current_user.broadcast_signature,
         profile_picture=current_user.profile_picture,
         is_active=current_user.is_active,
         created_at=current_user.created_at,
     )
+
+
+@router.put("/me", response_model=UserProfileResponse)
+async def update_me(
+    req: ProfileUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update current user's profile details and broadcast signature."""
+    if req.full_name is not None:
+        current_user.full_name = req.full_name
+    if req.phone is not None:
+        current_user.phone = req.phone
+    if req.address is not None:
+        current_user.address = req.address
+    if req.signature is not None:
+        current_user.signature = req.signature
+    if req.broadcast_signature is not None:
+        current_user.broadcast_signature = req.broadcast_signature
+
+    await db.commit()
+    await db.refresh(current_user)
+
+    dept_name = None
+    if current_user.department_id:
+        dept_res = await db.execute(select(Department).where(Department.id == current_user.department_id))
+        dept = dept_res.scalar_one_or_none()
+        if dept:
+            dept_name = dept.name
+
+    roles, permissions = await resolve_user_permissions_and_roles(current_user.id, db)
+    if not roles:
+        roles = [current_user.role.value]
+
+    return UserProfileResponse(
+        id=current_user.id,
+        school_id=current_user.school_id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role.value,
+        roles=roles,
+        permissions=permissions,
+        department_id=current_user.department_id,
+        department_name=dept_name,
+        assigned_grade=current_user.assigned_grade,
+        phone=current_user.phone,
+        address=current_user.address,
+        signature=current_user.signature,
+        broadcast_signature=current_user.broadcast_signature,
+        profile_picture=current_user.profile_picture,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at,
+    )
+
 
 class ProfilePictureUpdate(BaseModel):
     profile_picture: str

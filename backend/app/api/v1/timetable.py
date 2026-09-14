@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete
 from sqlalchemy.orm import selectinload
 from app.db.database import get_db
 from app.db.models import Timetable, User, Class, Subject, Classroom, UserRole
@@ -50,7 +51,7 @@ async def generate_timetable(
 
     # Persist generated schedule into timetables database table
     # Clear previous timetables for clean update
-    await db.execute(select(Timetable))
+    await db.execute(delete(Timetable))
     await db.commit()
 
     db_entries = []

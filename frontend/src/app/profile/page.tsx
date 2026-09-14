@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
@@ -8,7 +8,7 @@ import {
   UserCircle, Settings, Shield, Bell, Key, Camera,
   Briefcase, Clock, Calendar, CheckCircle2,
   FileSignature, PieChart, Users, BookOpen, AlertTriangle, Building, CreditCard,
-  MapPin, Phone, Mail, Activity, GraduationCap, TrendingUp
+  MapPin, Phone, Mail, Activity, GraduationCap, TrendingUp, Loader2, Upload
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -19,9 +19,61 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [fullName, setFullName] = useState(user?.full_name || "");
+  const [phone, setPhone] = useState(user?.phone || "+91 9876543210");
+  const [address, setAddress] = useState(user?.address || "123 Main Street, Chennai, TN - 600040");
+  const [signature, setSignature] = useState(user?.signature || "");
+  const [broadcastSignature, setBroadcastSignature] = useState(user?.broadcast_signature || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    api.get('/auth/me').then(res => {
+      if (res.data) {
+        if (res.data.full_name) setFullName(res.data.full_name);
+        if (res.data.phone) setPhone(res.data.phone);
+        if (res.data.address) setAddress(res.data.address);
+        if (res.data.signature) setSignature(res.data.signature);
+        if (res.data.broadcast_signature) setBroadcastSignature(res.data.broadcast_signature);
+      }
+    }).catch(() => {});
+  }, []);
+
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleSaveGeneral = async () => {
+    setIsSaving(true);
+    try {
+      await api.put('/auth/me', {
+        full_name: fullName,
+        phone: phone,
+        address: address
+      });
+      await useAuthStore.getState().refreshUser();
+      showToast("Profile information saved successfully.");
+    } catch (err: any) {
+      showToast(err.response?.data?.detail || "Failed to update profile details.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveSignature = async (sigBase64: string, isBroadcast: boolean = false) => {
+    try {
+      if (isBroadcast) {
+        setBroadcastSignature(sigBase64);
+        await api.put('/auth/me', { broadcast_signature: sigBase64 });
+      } else {
+        setSignature(sigBase64);
+        await api.put('/auth/me', { signature: sigBase64 });
+      }
+      await useAuthStore.getState().refreshUser();
+      showToast("Official signature saved successfully!");
+    } catch (err: any) {
+      showToast(err.response?.data?.detail || "Failed to save signature.");
+    }
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,13 +217,23 @@ export default function ProfilePage() {
                 <UserCircle className="w-5 h-5 text-gray-500" /> Personal Details
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">First Name</label>
-                  <input type="text" defaultValue={user.full_name.split(' ')[0]} className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                <div className="lg:col-span-2">
+                  <label className="block text-xs text-gray-500 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                  />
                 </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Last Name</label>
-                  <input type="text" defaultValue={user.full_name.split(' ').slice(1).join(' ') || ''} className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                <div className="lg:col-span-2">
+                  <label className="block text-xs text-gray-500 mb-1">Email Address (Login Identity)</label>
+                  <input
+                    type="text"
+                    value={user.email}
+                    disabled
+                    className="w-full bg-gray-100 border border-gray-200 text-gray-500 rounded-lg px-3 py-2 text-sm outline-none cursor-not-allowed"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Gender</label>
@@ -200,7 +262,12 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Mobile Number</label>
-                  <input type="text" defaultValue="+91 9876543210" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Aadhaar Number</label>
@@ -256,61 +323,28 @@ export default function ProfilePage() {
               </h2>
               
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3">Permanent Address</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="lg:col-span-2">
-                    <label className="block text-xs text-gray-500 mb-1">Door No & Street Name</label>
-                    <input type="text" placeholder="123 Main Street" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">City</label>
-                    <input type="text" placeholder="Mumbai" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Pincode</label>
-                    <input type="text" placeholder="400001" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
-                  </div>
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">Residential / Postal Address</h3>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Full Postal Address</label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    placeholder="Door No, Street Name, City, State, Pincode"
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                  />
                 </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <h3 className="text-sm font-semibold text-gray-300">Communication Address</h3>
-                  <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={sameAddress}
-                      onChange={(e) => setSameAddress(e.target.checked)}
-                      className="rounded bg-gray-100 border-gray-700 text-indigo-500 focus:ring-indigo-500"
-                    />
-                    Same as Permanent
-                  </label>
-                </div>
-                {!sameAddress && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="lg:col-span-2">
-                      <label className="block text-xs text-gray-500 mb-1">Door No & Street Name</label>
-                      <input type="text" placeholder="" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">City</label>
-                      <input type="text" placeholder="" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">Pincode</label>
-                      <input type="text" placeholder="" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
             <div className="flex justify-end">
               <button 
-                onClick={() => showToast("Profile information saved successfully.")}
-                className="px-6 py-2.5 bg-brand-blue hover:bg-brand-blue/90 text-brand-black rounded-xl transition-colors text-sm font-bold shadow-lg shadow-indigo-900/20"
+                onClick={handleSaveGeneral}
+                disabled={isSaving}
+                className="px-6 py-2.5 bg-brand-blue hover:bg-brand-blue/90 text-brand-black rounded-xl transition-colors text-sm font-bold shadow-lg shadow-indigo-900/20 flex items-center gap-2"
               >
-                Save Changes
+                {isSaving && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+                <span>Save Changes</span>
               </button>
             </div>
           </div>
@@ -326,14 +360,41 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <FileSignature className="w-5 h-5 text-fuchsia-400" /> Official Signatory
+                      <FileSignature className="w-5 h-5 text-fuchsia-400" /> Official Signatory & Stamp
                     </h2>
-                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 border-dashed text-center h-40 flex flex-col justify-center">
-                      <FileSignature className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-                      <p className="text-sm text-gray-500 mb-3">Upload your digital signature to auto-sign documents.</p>
-                      <button onClick={() => showToast("Signature uploaded.")} className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-brand-black rounded-lg transition-colors text-xs mx-auto">
-                        Upload Signature
-                      </button>
+                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 border-dashed text-center min-h-40 flex flex-col justify-center items-center">
+                      {signature ? (
+                        <div className="space-y-2 mb-3">
+                          <img src={signature} alt="Digital Signature" className="h-14 max-w-full mx-auto object-contain border p-1 rounded bg-white shadow-sm" />
+                          <p className="text-xs text-emerald-600 font-semibold flex items-center justify-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Official Signatory Verified
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1 mb-3">
+                          <FileSignature className="w-10 h-10 text-gray-400 mx-auto" />
+                          <p className="text-sm text-gray-500">Upload your digital signature to auto-sign reports and certificates.</p>
+                        </div>
+                      )}
+                      <input 
+                        type="file" 
+                        id="signatureUpload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              handleSaveSignature(reader.result as string, false);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <label htmlFor="signatureUpload" className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
+                        {signature ? "Replace Signature" : "Upload Signature"}
+                      </label>
                     </div>
                   </div>
 

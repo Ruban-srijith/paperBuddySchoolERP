@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore, ROLE_LABELS } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
 import api from "@/lib/api";
+import { exportToCsv } from "@/lib/exportUtils";
 import { 
   CheckSquare, 
   UserCheck, 
@@ -130,6 +131,39 @@ export default function AttendancePage() {
     setDrawerOpen(false);
   };
 
+  const handleExportAttendance = () => {
+    if (isTeacher && students.length > 0) {
+      const headers = ["Roll No", "Student Name", "Status", "Date", "Class"];
+      const rows = students.map(s => [
+        s.roll,
+        s.name,
+        s.status.toUpperCase(),
+        selectedDate,
+        selectedClass
+      ]);
+      exportToCsv(`Attendance_${selectedClass.replace(/\s+/g, "_")}_${selectedDate}`, headers, rows);
+      toast.success(`Exported ${students.length} attendance records`, "CSV Downloaded");
+      return;
+    }
+
+    if (gradeMatrixData && gradeMatrixData.length > 0) {
+      const headers = ["Grade", "Total Strength", "Present", "Absent", "Attendance %", "Date"];
+      const rows = gradeMatrixData.map(g => [
+        g.grade,
+        g.strength,
+        g.present,
+        g.absent,
+        `${g.percentage}%`,
+        selectedDate
+      ]);
+      exportToCsv(`Institutional_Attendance_Summary_${selectedDate}`, headers, rows);
+      toast.success(`Exported attendance summary for ${selectedDate}`, "CSV Downloaded");
+      return;
+    }
+
+    toast.info("No attendance records to export for this date", "Export Info");
+  };
+
   return (
     <ProtectedRoute>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -138,12 +172,12 @@ export default function AttendancePage() {
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
-                {isManagement ? "Institutional Attendance Matrix" : isTeacher ? "Teacher Marking Portal" : "Personal Attendance"}
+                Attendance Management
               </span>
-              <span className="text-xs text-gray-600">• Real-time Sync</span>
+              <span className="text-xs text-gray-600">• Real-Time Tracking</span>
             </div>
             <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
-              Attendance & Daily Work Logs
+              Attendance & Work Log Hub
             </h1>
             <p className="text-xs text-gray-600">
               {isManagement
@@ -162,7 +196,7 @@ export default function AttendancePage() {
               className="px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs font-mono"
             />
             <button
-              onClick={() => toast.info("Exporting attendance summary report", "Export Started")}
+              onClick={handleExportAttendance}
               className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
             >
               <Download className="w-4 h-4 text-gray-600" />

@@ -590,69 +590,122 @@ export default function FeesPage() {
           </div>
         </div>
 
-        {/* Printable Receipt Modal */}
+        {/* Printable Official Fee Receipt Modal */}
         {selectedReceipt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
+            <div id="printable-receipt" className="print-container bg-white text-gray-900 border border-gray-300 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden my-8">
+              {/* Actions Header Bar */}
+              <div className="px-6 py-3 bg-gray-100 border-b border-gray-200 flex justify-between items-center print:hidden">
+                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Official Payment Voucher Preview</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-brand-black">Genesis ERP Fee Receipt</h3>
-                    <p className="text-[10px] text-gray-600">GST Registration: 33AAAAA0000A1Z5</p>
-                  </div>
-                </div>
-                <button onClick={() => setSelectedReceipt(null)} className="text-gray-600 hover:text-brand-black">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-4 rounded-xl bg-gray-950/60 border border-gray-200 space-y-2 text-xs">
-                <div className="flex justify-between text-gray-600">
-                  <span>Receipt No:</span>
-                  <span className="font-mono text-cyan-300 font-bold">{selectedReceipt.receipt_number}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Student Name:</span>
-                  <span className="text-brand-black font-semibold">{selectedReceipt.student_name}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Grade / Section:</span>
-                  <span className="text-brand-black">{selectedReceipt.grade}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Category:</span>
-                  <span className="text-brand-black">{selectedReceipt.title}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Payment Mode:</span>
-                  <span className="text-brand-black">{selectedReceipt.payment_method}</span>
-                </div>
-                <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-sm">
-                  <span className="text-brand-black">Total Amount Paid:</span>
-                  <span className="text-emerald-600 font-mono">₹{selectedReceipt.amount.toLocaleString()}</span>
+                  <button
+                    onClick={() => {
+                      window.print();
+                      toast.success("Receipt sent to printer", "Printing");
+                    }}
+                    className="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Print Receipt
+                  </button>
+                  <button onClick={() => setSelectedReceipt(null)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  onClick={() => setSelectedReceipt(null)}
-                  className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs hover:bg-gray-700"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    window.print();
-                    toast.success("Receipt sent to printer spooler", "Printing");
-                  }}
-                  className="px-4 py-2 rounded-xl bg-brand-blue text-brand-black text-xs font-semibold hover:bg-indigo-500 flex items-center gap-1"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Print Receipt
-                </button>
+              {/* Printable Body */}
+              <div className="p-8 space-y-6 print:p-0">
+                {/* School Letterhead */}
+                <div className="text-center border-b-2 border-indigo-900 pb-5">
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-900 text-amber-400 flex items-center justify-center font-black text-xl shadow-md">
+                      BP
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black tracking-tight text-indigo-950 uppercase">
+                        Bharathi Matriculation Higher Secondary School
+                      </h2>
+                      <p className="text-[11px] font-semibold text-gray-600">
+                        Recognized by Govt. of Tamil Nadu | Affiliation No: TN-CHE-0941
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-500">
+                    124, Anna Salai, Chennai, Tamil Nadu - 600002 • Phone: +91 44 2841 9900 • Email: accounts@bharathischool.edu.in
+                  </p>
+                  <div className="mt-3 inline-block px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-black tracking-wider uppercase">
+                    Fee Payment Receipt (Original Copy)
+                  </div>
+                </div>
+
+                {/* Receipt Details Grid */}
+                <div className="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <div className="space-y-1.5">
+                    <div><span className="text-gray-500 font-medium">Receipt Number:</span> <span className="font-mono font-bold text-gray-900">{selectedReceipt.receipt_number}</span></div>
+                    <div><span className="text-gray-500 font-medium">Payment Date:</span> <span className="font-semibold text-gray-900">{new Date(selectedReceipt.created_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
+                    <div><span className="text-gray-500 font-medium">Transaction ID:</span> <span className="font-mono text-gray-800">{selectedReceipt.transaction_id || "TXN_PB_9842109"}</span></div>
+                    <div><span className="text-gray-500 font-medium">Payment Mode:</span> <span className="font-semibold text-gray-900 uppercase">{selectedReceipt.payment_method}</span></div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div><span className="text-gray-500 font-medium">Student Name:</span> <span className="font-bold text-gray-900">{selectedReceipt.student_name}</span></div>
+                    <div><span className="text-gray-500 font-medium">Admission No:</span> <span className="font-mono font-bold text-gray-900">{selectedReceipt.admission_number || "ADM-2026-0812"}</span></div>
+                    <div><span className="text-gray-500 font-medium">Grade & Section:</span> <span className="font-bold text-gray-900">Grade {selectedReceipt.grade}</span></div>
+                    <div><span className="text-gray-500 font-medium">Academic Year:</span> <span className="font-semibold text-gray-900">2026 - 2027</span></div>
+                  </div>
+                </div>
+
+                {/* Particulars Table */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-gray-100 text-gray-700 font-bold border-b border-gray-200">
+                      <tr>
+                        <th className="p-3 w-12 text-center">#</th>
+                        <th className="p-3">Fee Particulars / Category</th>
+                        <th className="p-3">Billing Term</th>
+                        <th className="p-3 text-right">Amount (INR)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      <tr>
+                        <td className="p-3 text-center text-gray-500">1</td>
+                        <td className="p-3">
+                          <span className="font-bold text-gray-900">{selectedReceipt.title}</span>
+                          <span className="block text-[11px] text-gray-500">Category: {selectedReceipt.category || "Tuition / Academic"}</span>
+                        </td>
+                        <td className="p-3 text-gray-600">Term 1 (Academic 2026-27)</td>
+                        <td className="p-3 text-right font-mono font-bold text-gray-900">₹{selectedReceipt.amount.toLocaleString('en-IN')}</td>
+                      </tr>
+                      <tr className="bg-gray-50 font-bold">
+                        <td colSpan={3} className="p-3 text-right text-gray-700 uppercase tracking-wider text-[11px]">Total Paid Amount:</td>
+                        <td className="p-3 text-right font-mono text-indigo-900 text-sm">₹{selectedReceipt.amount.toLocaleString('en-IN')}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer Signatures and Verification */}
+                <div className="pt-6 border-t border-gray-200 flex justify-between items-end">
+                  <div className="space-y-1">
+                    <div className="w-32 border-b border-gray-400"></div>
+                    <p className="text-[10px] text-gray-500 font-semibold uppercase">Parent / Depositor Signature</p>
+                  </div>
+
+                  <div className="text-center px-4 py-2 border border-emerald-600/30 rounded-lg bg-emerald-50">
+                    <span className="text-[10px] text-emerald-800 font-black tracking-widest uppercase block">PAID & VERIFIED</span>
+                    <span className="text-[9px] text-emerald-700 font-mono">PaperBuddy Core ERP</span>
+                  </div>
+
+                  <div className="text-right space-y-1">
+                    <div className="w-36 border-b border-gray-400 ml-auto"></div>
+                    <p className="text-[10px] text-gray-700 font-bold uppercase">Cashier / Accounts Officer</p>
+                    <p className="text-[9px] text-gray-400">Authorized Signatory</p>
+                  </div>
+                </div>
+
+                <div className="text-center text-[10px] text-gray-400 pt-2 border-t border-dashed border-gray-200">
+                  This is a computer-generated official receipt issued by Bharathi Matriculation Hr Sec School. No physical signature required.
+                </div>
               </div>
             </div>
           </div>

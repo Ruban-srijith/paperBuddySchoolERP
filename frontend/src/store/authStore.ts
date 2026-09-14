@@ -4,6 +4,8 @@ import { getApiBaseUrl } from '@/lib/config';
 
 export type UserRole = 
   | 'super_admin' 
+  | 'platform_super_admin'
+  | 'platform_support'
   | 'correspondent'
   | 'principal' 
   | 'vice_principal'
@@ -26,6 +28,10 @@ export interface AuthUser {
   school_id?: string | null;
   department_id?: string | null;
   assigned_grade?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  signature?: string | null;
+  broadcast_signature?: string | null;
   profile_picture?: string | null;
 }
 
@@ -48,6 +54,8 @@ interface AuthState {
 // Role display names for UI
 export const ROLE_LABELS: Record<UserRole, string> = {
   super_admin: 'Founder / Super Admin',
+  platform_super_admin: 'Platform Super Admin',
+  platform_support: 'Platform Support',
   correspondent: 'Correspondent',
   principal: 'Principal',
   vice_principal: 'Vice-Principal',
@@ -63,6 +71,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 // Role colors for badges
 export const ROLE_COLORS: Record<UserRole, string> = {
   super_admin: 'from-fuchsia-500 to-purple-600',
+  platform_super_admin: 'from-amber-400 to-orange-500',
+  platform_support: 'from-cyan-400 to-blue-500',
   correspondent: 'from-amber-500 to-red-500',
   principal: 'from-amber-500 to-yellow-500',
   vice_principal: 'from-blue-600 to-cyan-500',
@@ -268,6 +278,21 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'librarian_digital',
     'librarian_requests'
   ],
+  platform_super_admin: [
+    'dashboard',
+    'superadmin_analytics',
+    'superadmin_colleges',
+    'superadmin_admins',
+    'superadmin_logs',
+    'superadmin_payments',
+    'superadmin_broadcasts',
+    'superadmin_aiconfig'
+  ],
+  platform_support: [
+    'dashboard',
+    'superadmin_logs',
+    'superadmin_broadcasts'
+  ],
   transport: [
     'transport_dashboard',
     'transport_fleet',
@@ -296,7 +321,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hasAnyRole: (roleCodes: string[]) => {
     const user = get().user;
     if (!user) return false;
-    if (user.platform_role === 'platform_super_admin') return true;
+    if (user.platform_role === 'platform_super_admin' || user.role === 'platform_super_admin') return true;
     if (user.roles && user.roles.some(r => roleCodes.includes(r))) return true;
     return roleCodes.includes(user.role);
   },
@@ -320,6 +345,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         school_id: data.school_id,
         department_id: data.department_id,
         assigned_grade: data.assigned_grade,
+        phone: data.phone || null,
+        address: data.address || null,
+        signature: data.signature || null,
+        broadcast_signature: data.broadcast_signature || null,
+        profile_picture: data.profile_picture || null,
       };
 
       // Persist to localStorage
@@ -397,7 +427,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               school_id: res.data.school_id,
               department_id: res.data.department_id,
               assigned_grade: res.data.assigned_grade,
-              profile_picture: res.data.profile_picture,
+              phone: res.data.phone || null,
+              address: res.data.address || null,
+              signature: res.data.signature || null,
+              broadcast_signature: res.data.broadcast_signature || null,
+              profile_picture: res.data.profile_picture || null,
             };
             localStorage.setItem('pb_user', JSON.stringify(freshUser));
             set({ user: freshUser });
@@ -436,7 +470,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         school_id: res.data.school_id,
         department_id: res.data.department_id,
         assigned_grade: res.data.assigned_grade,
-        profile_picture: res.data.profile_picture,
+        phone: res.data.phone || null,
+        address: res.data.address || null,
+        signature: res.data.signature || null,
+        broadcast_signature: res.data.broadcast_signature || null,
+        profile_picture: res.data.profile_picture || null,
       };
       if (typeof window !== 'undefined') {
         localStorage.setItem('pb_user', JSON.stringify(freshUser));

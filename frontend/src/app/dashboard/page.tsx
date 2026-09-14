@@ -55,21 +55,6 @@ function DashboardContent() {
   const { user } = useAuthStore();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (user?.role === 'super_admin') {
-      router.replace('/superadmin?tab=analytics');
-    }
-  }, [user, router]);
-
-  if (user?.role === 'super_admin') {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <div className="w-8 h-8 border-2 border-fuchsia-500/30 border-t-fuchsia-500 rounded-full animate-spin"></div>
-        <p className="text-xs font-semibold text-gray-500">Routing to Global Operations Center...</p>
-      </div>
-    );
-  }
-
   const [stats, setStats] = useState({
     totalStudents: 1420,
     totalTeachers: 68,

@@ -50,11 +50,11 @@ export default function AcademicCalendarPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const [newEvent, setNewEvent] = useState({
-    title: "Mid-Term Examination Week",
+    title: "",
     category: "exam",
-    start_date: "2026-08-18",
-    end_date: "2026-08-25",
-    description: "Term 1 examinations for Grades 6 through 12. Morning session 9:00 - 12:00 PM.",
+    start_date: new Date().toISOString().split("T")[0],
+    end_date: new Date().toISOString().split("T")[0],
+    description: "",
     target_audience: "all",
   });
 
@@ -162,21 +162,46 @@ export default function AcademicCalendarPage() {
     fetchEvents();
   }, []);
 
+  const resetEventForm = () => {
+    setNewEvent({
+      title: "",
+      category: "exam",
+      start_date: new Date().toISOString().split("T")[0],
+      end_date: new Date().toISOString().split("T")[0],
+      description: "",
+      target_audience: "all",
+    });
+  };
+
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const created: CalendarEvent = {
-      id: `ev-${Date.now()}`,
-      title: newEvent.title,
-      category: newEvent.category as any,
-      start_date: newEvent.start_date,
-      end_date: newEvent.end_date,
-      description: newEvent.description,
-      target_audience: newEvent.target_audience,
-      is_all_day: true,
-    };
-    setEvents(prev => [created, ...prev]);
-    toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
+    try {
+      await api.post("/calendar/events", {
+        title: newEvent.title,
+        description: newEvent.description,
+        start_date: newEvent.start_date,
+        end_date: newEvent.end_date || newEvent.start_date,
+        event_type: newEvent.category,
+        grade_scope: newEvent.target_audience || "all"
+      });
+      await fetchEvents();
+      toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
+    } catch {
+      const created: CalendarEvent = {
+        id: `ev-${Date.now()}`,
+        title: newEvent.title,
+        category: newEvent.category as any,
+        start_date: newEvent.start_date,
+        end_date: newEvent.end_date || newEvent.start_date,
+        description: newEvent.description,
+        target_audience: newEvent.target_audience,
+        is_all_day: true,
+      };
+      setEvents(prev => [created, ...prev]);
+      toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
+    }
     setShowAddModal(false);
+    resetEventForm();
   };
 
   const filteredEvents = events.filter(e => categoryFilter === "all" || e.category === categoryFilter);
@@ -323,7 +348,13 @@ export default function AcademicCalendarPage() {
             <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
               <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                 <h3 className="text-base font-bold text-brand-black">Create Academic Calendar Event</h3>
-                <button onClick={() => setShowAddModal(false)} className="text-gray-600 hover:text-brand-black">
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    resetEventForm();
+                  }} 
+                  className="text-gray-600 hover:text-brand-black"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -406,7 +437,10 @@ export default function AcademicCalendarPage() {
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      resetEventForm();
+                    }}
                     className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel

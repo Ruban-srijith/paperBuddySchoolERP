@@ -3,17 +3,36 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.database import get_db
 from app.db.models import School, User, UserRole
-from app.schemas.schools import SchoolRegister, SchoolResponse
-from app.core.auth import hash_password
+from app.schemas.schools import SchoolRegister, SchoolResponse, SchoolCreate
+from app.core.auth import hash_password, require_role
 import uuid
 
 router = APIRouter(prefix="/schools", tags=["Schools"])
 
+@router.get("", response_model=list[SchoolResponse])
 @router.get("/public", response_model=list[SchoolResponse])
 async def get_schools_public(db: AsyncSession = Depends(get_db)):
     """Get a list of all registered schools."""
     result = await db.execute(select(School))
     return result.scalars().all()
+
+@router.post("", response_model=SchoolResponse, status_code=status.HTTP_201_CREATED)
+async def create_school(
+    req: SchoolCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN))
+):
+    """Create a new school (Super Admin only)."""
+    new_school = School(
+        id=str(uuid.uuid4()),
+        name=req.name,
+        address=req.address or "Campus Site",
+        contact_email=req.contact_email or "admin@school.edu"
+    )
+    db.add(new_school)
+    await db.commit()
+    await db.refresh(new_school)
+    return new_school
 
 @router.post("/register", response_model=SchoolResponse, status_code=status.HTTP_201_CREATED)
 async def register_school(req: SchoolRegister, db: AsyncSession = Depends(get_db)):

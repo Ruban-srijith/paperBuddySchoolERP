@@ -6,7 +6,7 @@ from uuid import uuid4
 from datetime import datetime, date
 
 from app.db.database import get_db
-from app.db.models import User, UserRole, DepartmentBudget, FinancialRequest, Vendor, Expense, Scholarship
+from app.db.models import User, UserRole, DepartmentBudget, FinancialRequest, Vendor, Expense, Scholarship, Student
 from app.api.v1.auth import get_current_user
 from pydantic import BaseModel
 
@@ -73,6 +73,17 @@ async def create_budget(req: BudgetCreate, db: AsyncSession = Depends(get_db), c
     db.add(budget)
     await db.commit()
     return budget
+
+@router.delete("/budgets/{budget_id}")
+async def delete_budget(budget_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_or_above)):
+    res = await db.execute(select(DepartmentBudget).where(DepartmentBudget.id == budget_id))
+    budget = res.scalar_one_or_none()
+    if not budget:
+        raise HTTPException(status_code=404, detail="Budget not found")
+    await db.delete(budget)
+    await db.commit()
+    return {"success": True, "message": "Department budget deleted successfully"}
+
 
 # --- Endpoints: Financial Requests ---
 
@@ -201,12 +212,21 @@ async def get_scholarships(db: AsyncSession = Depends(get_db), current_user: Use
     
     data = []
     for s in scholars:
-        u_res = await db.execute(select(User).where(User.id == s.student_id))
-        u = u_res.scalars().first()
+        student_name = "Unknown"
+        st_res = await db.execute(select(Student).where(Student.id == s.student_id))
+        st = st_res.scalars().first()
+        if st and st.full_name:
+            student_name = st.full_name
+        else:
+            u_res = await db.execute(select(User).where(User.id == s.student_id))
+            u = u_res.scalars().first()
+            if u and u.full_name:
+                student_name = u.full_name
+
         data.append({
             "id": s.id,
             "student_id": s.student_id,
-            "student_name": u.full_name if u else "Unknown",
+            "student_name": student_name,
             "name": s.name,
             "discount_amount": float(s.discount_amount),
             "created_at": s.created_at

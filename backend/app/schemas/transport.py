@@ -62,5 +62,10 @@ class StudentTransportCreate(BaseModel):
     stop_id: str
     status: str = "active"
 
+class StudentTransportUpdate(BaseModel):
+    stop_id: Optional[str] = None
+    status: Optional[str] = None
+
 class StudentTransportResponse(StudentTransportCreate):
     id: str
+

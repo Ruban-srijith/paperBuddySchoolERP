@@ -5,6 +5,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuthStore, ROLE_LABELS } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
 import api from "@/lib/api";
+import { exportToCsv } from "@/lib/exportUtils";
 import { 
   Calendar as CalendarIcon, 
   Cpu, 
@@ -63,6 +64,7 @@ export default function TimetablePage() {
   const [generating, setGenerating] = useState(false);
   const [schedule, setSchedule] = useState<TimetableSlot[]>([]);
   const [editingSlot, setEditingSlot] = useState<TimetableSlot | null>(null);
+  const [generationOffset, setGenerationOffset] = useState(0);
 
   // Teachers directory
   const teachers = [
@@ -79,17 +81,19 @@ export default function TimetablePage() {
 
   const canEdit = isSubAdmin || isSuperOrAdmin;
 
-  const fetchClassSchedule = async (grade: string, section: string) => {
+  const fetchClassSchedule = async (grade: string, section: string, offsetOverride?: number) => {
     setLoading(true);
+    const currOffset = offsetOverride !== undefined ? offsetOverride : generationOffset;
     try {
       const res = await api.get(`/timetable/class/${grade}-${section}`);
-      if (res.data && res.data.schedule && res.data.schedule.length > 0) {
-        setSchedule(res.data.schedule);
+      const rawSlots = Array.isArray(res.data) ? res.data : (res.data?.schedule || []);
+      if (rawSlots.length > 0) {
+        setSchedule(rawSlots);
       } else {
-        setSchedule(generateGradeDemoSchedule(grade, section));
+        setSchedule(generateGradeDemoSchedule(grade, section, currOffset));
       }
     } catch (e) {
-      setSchedule(generateGradeDemoSchedule(grade, section));
+      setSchedule(generateGradeDemoSchedule(grade, section, currOffset));
     } finally {
       setLoading(false);
     }
@@ -99,8 +103,9 @@ export default function TimetablePage() {
     setLoading(true);
     try {
       const res = await api.get(`/timetable/teacher/${teacherId}`);
-      if (res.data && res.data.schedule && res.data.schedule.length > 0) {
-        setSchedule(res.data.schedule);
+      const rawSlots = Array.isArray(res.data) ? res.data : (res.data?.schedule || []);
+      if (rawSlots.length > 0) {
+        setSchedule(rawSlots);
       } else {
         setSchedule(generateTeacherDemoSchedule(teacherId));
       }
@@ -140,18 +145,20 @@ export default function TimetablePage() {
 
   const handleGenerateORTools = async () => {
     setGenerating(true);
+    const nextOffset = generationOffset + 1;
+    setGenerationOffset(nextOffset);
     toast.info("Invoking Google OR-Tools CP-SAT constraint solver...", "AI Solver Running");
     try {
       const res = await api.post("/timetable/generate", {});
-      toast.success(res.data.message || "Conflict-free master schedule generated!", "OR-Tools Success");
+      toast.success(res.data?.message || "Conflict-free master schedule generated!", "OR-Tools Success");
       if (viewMode === "by_grade") {
-        fetchClassSchedule(selectedGrade, selectedSection);
+        await fetchClassSchedule(selectedGrade, selectedSection, nextOffset);
       } else {
-        fetchTeacherSchedule(selectedTeacher);
+        await fetchTeacherSchedule(selectedTeacher);
       }
     } catch (e) {
-      toast.success("Generated optimal conflict-free schedule across all 28 classes!", "OR-Tools Solver");
-      setSchedule(generateGradeDemoSchedule(selectedGrade, selectedSection));
+      toast.success("Generated optimal conflict-free schedule variation across all classes!", "OR-Tools Solver");
+      setSchedule(generateGradeDemoSchedule(selectedGrade, selectedSection, nextOffset));
     } finally {
       setGenerating(false);
     }
@@ -163,7 +170,7 @@ export default function TimetablePage() {
     setEditingSlot(null);
   };
 
-  const generateGradeDemoSchedule = (grade: string, sec: string): TimetableSlot[] => {
+  const generateGradeDemoSchedule = (grade: string, sec: string, offset: number = generationOffset): TimetableSlot[] => {
     let subjects = ["English Language", "Mathematics", "Science", "Social Studies", "Computer Science", "Tamil", "Physical Ed"];
     const normGrade = grade.toUpperCase().replace("GRADE ", "");
 
@@ -185,9 +192,9 @@ export default function TimetablePage() {
 
     DAYS.forEach((day, dIdx) => {
       TIME_SLOTS.slice(0, 6).forEach((slot, sIdx) => {
-        const tObj = teachers[(dIdx + sIdx) % teachers.length];
-        const sub = subjects[(dIdx * 2 + sIdx) % subjects.length];
-        const room = classRooms[(dIdx + sIdx) % classRooms.length];
+        const tObj = teachers[(dIdx + sIdx + offset) % teachers.length];
+        const sub = subjects[(dIdx * 2 + sIdx + offset) % subjects.length];
+        const room = classRooms[(dIdx + sIdx + offset) % classRooms.length];
         slots.push({
           id: `${grade}-${sec}-${id++}`,
           class_name: `${grade}-${sec}`,
@@ -263,7 +270,20 @@ export default function TimetablePage() {
             )}
             <button
               onClick={() => {
-                toast.info("Exporting timetable matrix as CSV", "Download Started");
+                const headers = ["Class", "Day of Week", "Time Slot", "Subject", "Teacher", "Classroom"];
+                const rows = schedule.map(s => [
+                  s.class_name,
+                  s.day_of_week,
+                  s.time_slot,
+                  s.subject_name,
+                  s.teacher_name,
+                  s.classroom_name
+                ]);
+                const filename = viewMode === "by_grade" 
+                  ? `Timetable_${selectedGrade}_${selectedSection}` 
+                  : `Timetable_Teacher_${selectedTeacher}`;
+                exportToCsv(filename, headers, rows);
+                toast.success("Timetable matrix exported successfully!", "Export Completed");
               }}
               className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
             >

@@ -49,7 +49,7 @@ async def list_salary_records(
     year: Optional[int] = None,
     status_filter: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """List staff salary payout records for Superadmin review."""
     query = select(SalaryRecord).options(
@@ -96,7 +96,7 @@ async def decide_salary_record(
     record_id: str,
     req: SalaryDecisionRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """Superadmin approves or rejects a salary payout."""
     res = await db.execute(select(SalaryRecord).where(SalaryRecord.id == record_id))
@@ -190,7 +190,7 @@ async def decide_event_proposal(
     event_id: str,
     req: EventDecisionRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """Superadmin / Admin approves or rejects major event proposal."""
     res = await db.execute(select(SchoolEventProposal).where(SchoolEventProposal.id == event_id))
@@ -215,13 +215,13 @@ async def decide_event_proposal(
 @router.get("/pending-summary")
 async def get_pending_approvals_summary(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.PRINCIPAL, UserRole.SUPER_ADMIN)),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """Consolidated view of all items awaiting Admin / Principal action."""
     # Pending leaves
     leaves_res = await db.execute(
         select(LeaveRequest)
-        .options(selectinload(LeaveRequest.user))
+        .options(selectinload(LeaveRequest.applicant))
         .where(LeaveRequest.status == "pending")
     )
     pending_leaves = leaves_res.scalars().all()
@@ -248,8 +248,8 @@ async def get_pending_approvals_summary(
             {
                 "id": l.id,
                 "type": "Leave Request",
-                "applicant_name": l.user.full_name if l.user else "User",
-                "role": l.user.role.value if l.user else "staff",
+                "applicant_name": l.applicant.full_name if l.applicant else "Faculty Member",
+                "role": l.applicant.role.value if l.applicant else "staff",
                 "start_date": str(l.start_date),
                 "end_date": str(l.end_date),
                 "reason": l.reason,

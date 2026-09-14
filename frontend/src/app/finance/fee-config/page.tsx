@@ -22,6 +22,8 @@ export default function FeeConfigPortal() {
     due_date: '2026-12-31'
   });
 
+  const isHostelApplicable = !["LKG", "UKG", "1", "2", "3", "4"].includes(selectedGrade);
+
   useEffect(() => {
     fetchFeesForGrade(selectedGrade);
   }, [selectedGrade]);
@@ -148,14 +150,27 @@ export default function FeeConfigPortal() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">Hostel Fee (₹)</label>
-                      <input 
-                        type="number" 
-                        value={fees.hostel} 
-                        onChange={e => setFees({...fees, hostel: e.target.value})}
-                        className="w-full bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
-                        required 
-                      />
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-medium text-gray-600">Hostel Fee (₹)</label>
+                        {!isHostelApplicable && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md font-semibold border border-amber-200">
+                            Not Applicable (Grade 5+ Only)
+                          </span>
+                        )}
+                      </div>
+                      {isHostelApplicable ? (
+                        <input 
+                          type="number" 
+                          value={fees.hostel} 
+                          onChange={e => setFees({...fees, hostel: e.target.value})}
+                          className="w-full bg-gray-50/50 border border-gray-200 text-brand-black rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500" 
+                          required 
+                        />
+                      ) : (
+                        <div className="w-full bg-gray-100/70 border border-gray-200 text-gray-400 rounded-xl px-4 py-3 text-xs italic">
+                          Boarding hostel is not applicable for Kindergarten and Primary standards.
+                        </div>
+                      )}
                     </div>
                   </div>
 

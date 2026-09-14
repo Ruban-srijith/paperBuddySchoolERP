@@ -10,7 +10,7 @@ from app.schemas.transport import (
     TransportRouteCreate, TransportRouteResponse,
     TransportStopCreate, TransportStopResponse,
     TransportStaffCreate, TransportStaffUpdate, TransportStaffResponse,
-    StudentTransportCreate, StudentTransportResponse
+    StudentTransportCreate, StudentTransportUpdate, StudentTransportResponse
 )
 from app.core.auth import require_role
 
@@ -122,14 +122,14 @@ async def get_routes(db: AsyncSession = Depends(get_db)):
                 name="Route 01 — Anna Nagar to Main Campus",
                 start_point="Anna Nagar Tower",
                 end_point="Bharathi School Main Gate",
-                total_stops=6
+                total_stops=5
             ),
             TransportRoute(
                 id=str(uuid.uuid4()),
                 name="Route 02 — T. Nagar / Guindy Express",
                 start_point="Panagal Park, T. Nagar",
                 end_point="Bharathi School Main Gate",
-                total_stops=8
+                total_stops=5
             )
         ]
         for r in sample_routes:
@@ -139,7 +139,44 @@ async def get_routes(db: AsyncSession = Depends(get_db)):
             routes = sample_routes
         except Exception:
             await db.rollback()
-    return routes
+
+    response = []
+    for r in routes:
+        stops_res = await db.execute(select(TransportStop).where(TransportStop.route_id == r.id))
+        stops = stops_res.scalars().all()
+        stops_count = len(stops)
+
+        # Seed stops for demo routes if not already present
+        if stops_count == 0 and ("Anna Nagar" in r.name or "T. Nagar" in r.name):
+            sample_stops = [
+                TransportStop(route_id=r.id, stop_name="Anna Nagar Roundtana", pickup_time="07:15", drop_time="16:15"),
+                TransportStop(route_id=r.id, stop_name="Shanti Colony", pickup_time="07:25", drop_time="16:05"),
+                TransportStop(route_id=r.id, stop_name="Thirumangalam Metro", pickup_time="07:35", drop_time="15:55"),
+                TransportStop(route_id=r.id, stop_name="Koyambedu Junction", pickup_time="07:45", drop_time="15:45"),
+                TransportStop(route_id=r.id, stop_name="Campus North Gate", pickup_time="08:00", drop_time="15:30"),
+            ] if "Anna Nagar" in r.name else [
+                TransportStop(route_id=r.id, stop_name="Panagal Park", pickup_time="07:10", drop_time="16:20"),
+                TransportStop(route_id=r.id, stop_name="T. Nagar Bus Terminus", pickup_time="07:20", drop_time="16:10"),
+                TransportStop(route_id=r.id, stop_name="Guindy Kathipara", pickup_time="07:35", drop_time="15:55"),
+                TransportStop(route_id=r.id, stop_name="Airport Signal", pickup_time="07:45", drop_time="15:45"),
+                TransportStop(route_id=r.id, stop_name="Campus Main Gate", pickup_time="08:00", drop_time="15:30"),
+            ]
+            for s in sample_stops:
+                db.add(s)
+            try:
+                await db.commit()
+                stops_count = len(sample_stops)
+            except Exception:
+                await db.rollback()
+
+        response.append(TransportRouteResponse(
+            id=r.id,
+            name=r.name,
+            start_point=r.start_point,
+            end_point=r.end_point,
+            total_stops=stops_count
+        ))
+    return response
 
 @router.post("/routes", response_model=TransportRouteResponse)
 async def create_route(
@@ -237,3 +274,22 @@ async def allocate_student(
     await db.commit()
     await db.refresh(allocation)
     return allocation
+
+@router.put("/allocations/{allocation_id}", response_model=StudentTransportResponse)
+async def update_allocation(
+    allocation_id: str,
+    req: StudentTransportUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN))
+):
+    res = await db.execute(select(StudentTransport).where(StudentTransport.id == allocation_id))
+    alloc = res.scalar_one_or_none()
+    if not alloc:
+        raise HTTPException(status_code=404, detail="Allocation not found")
+    if req.stop_id is not None:
+        alloc.stop_id = req.stop_id
+    if req.status is not None:
+        alloc.status = req.status
+    await db.commit()
+    await db.refresh(alloc)
+    return alloc

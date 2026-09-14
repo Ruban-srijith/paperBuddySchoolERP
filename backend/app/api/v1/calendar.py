@@ -167,7 +167,7 @@ async def create_calendar_event(
     req: CalendarEventCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Create a new academic calendar event (Sub-admin/Admin/Superadmin only)."""

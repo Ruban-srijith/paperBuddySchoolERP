@@ -111,7 +111,10 @@ function ClassAllotmentsContent() {
   const handleAddClass = async () => {
     if (newGrade && newSection) {
       try {
-        await api.post('/classes', { grade: newGrade, section: newSection });
+        await api.post('/classes', {
+          grade: newGrade.trim().toUpperCase(),
+          section: newSection.trim().toUpperCase()
+        });
         toast.success("New class created successfully", "Success");
         fetchData();
         setShowAddClassModal(false);

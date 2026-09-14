@@ -49,8 +49,9 @@ async def list_users(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
-    """List all users with optional filtering."""
-    query = select(User).options(selectinload(User.department)).where(User.school_id == current_user.school_id)
+    query = select(User).options(selectinload(User.department))
+    if current_user.school_id:
+        query = query.where((User.school_id == current_user.school_id) | (User.school_id == None))
 
     if role:
         try:

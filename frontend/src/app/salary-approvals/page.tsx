@@ -18,6 +18,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import { exportToCsv } from "@/lib/exportUtils";
 
 interface SalaryRecord {
   id: string;
@@ -204,7 +205,22 @@ export default function SalaryApprovalsPage() {
               </button>
             )}
             <button
-              onClick={() => toast.info("Exporting certified payroll ledger to CSV", "Export Started")}
+              onClick={() => {
+                const headers = ["Staff Name", "Role", "Department", "Month", "Basic Salary (₹)", "Allowances (₹)", "Deductions (₹)", "Net Salary (₹)", "Status"];
+                const rows = records.map(r => [
+                  r.staff_name,
+                  r.staff_role,
+                  r.department,
+                  r.month,
+                  r.basic_salary,
+                  r.allowances,
+                  r.deductions,
+                  r.net_salary,
+                  r.status.toUpperCase()
+                ]);
+                exportToCsv(`Salary_Payroll_${selectedMonth.replace(/\s+/g, '_')}`, headers, rows);
+                toast.success("Payroll ledger exported successfully!", "Export Completed");
+              }}
               className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
             >
               <Download className="w-4 h-4 text-gray-600" />

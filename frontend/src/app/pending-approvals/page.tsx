@@ -37,31 +37,83 @@ export default function PendingApprovalsPage() {
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<"all" | "leave" | "event" | "substitution">("all");
 
+  const getLocalDecisions = (): Record<string, "approved" | "rejected"> => {
+    try {
+      const stored = localStorage.getItem("paperbuddy_approval_decisions");
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  const saveLocalDecision = (id: string, status: "approved" | "rejected") => {
+    try {
+      const existing = getLocalDecisions();
+      existing[id] = status;
+      localStorage.setItem("paperbuddy_approval_decisions", JSON.stringify(existing));
+    } catch {}
+  };
+
   const fetchApprovals = async () => {
     setLoading(true);
+    const localDecisions = getLocalDecisions();
     try {
-      const res = await api.get("/approvals/leave");
-      if (res.data && res.data.length > 0) {
-        const backendLeaves: ApprovalItem[] = res.data.map((l: any) => ({
-          id: l.id,
-          type: "leave",
-          title: `${l.leave_type} Request`,
-          requester_name: l.applicant_name || "Unknown Faculty",
-          requester_role: l.applicant_role || "Staff",
-          date_or_period: `${l.start_date} to ${l.end_date}`,
-          details: l.reason,
-          status: l.status,
-          created_at: l.created_at
-        }));
-        
-        // Keep non-leave demo items to maintain a rich UI for other approval types
-        const demoItems = getDemoApprovals().filter(d => d.type !== "leave");
-        setItems([...backendLeaves, ...demoItems]);
-      } else {
-        setItems(getDemoApprovals());
-      }
+      // 1. Fetch backend leaves
+      let backendLeaves: ApprovalItem[] = [];
+      try {
+        const res = await api.get("/approvals/leave");
+        if (res.data && res.data.length > 0) {
+          backendLeaves = res.data.map((l: any) => ({
+            id: l.id,
+            type: "leave",
+            title: `${l.leave_type} Request`,
+            requester_name: l.applicant_name || "Unknown Faculty",
+            requester_role: l.applicant_role || "Staff",
+            date_or_period: `${l.start_date} to ${l.end_date}`,
+            details: l.reason,
+            status: localDecisions[l.id] || l.status,
+            created_at: l.created_at
+          }));
+        }
+      } catch {}
+
+      // 2. Fetch backend major events
+      let backendEvents: ApprovalItem[] = [];
+      try {
+        const evRes = await api.get("/approvals-ext/events");
+        if (evRes.data && evRes.data.length > 0) {
+          backendEvents = evRes.data.map((e: any) => ({
+            id: e.id,
+            type: "event",
+            title: e.title,
+            requester_name: e.organizer_name || "School Staff",
+            requester_role: "Event Organizer",
+            date_or_period: `${e.start_date} to ${e.end_date}`,
+            details: `${e.description} • Budget: ₹${(e.budget || 0).toLocaleString()}`,
+            status: localDecisions[e.id] || e.status,
+            created_at: e.created_at
+          }));
+        }
+      } catch {}
+
+      // 3. Fallback demo items for rich UI
+      const baseDemo = getDemoApprovals().map(d => ({
+        ...d,
+        status: localDecisions[d.id] || d.status
+      }));
+
+      const combined: ApprovalItem[] = [
+        ...backendLeaves,
+        ...backendEvents,
+        ...baseDemo.filter(d => !backendLeaves.some(b => b.id === d.id) && !backendEvents.some(e => e.id === d.id))
+      ];
+
+      setItems(combined);
     } catch {
-      setItems(getDemoApprovals());
+      setItems(getDemoApprovals().map(d => ({
+        ...d,
+        status: localDecisions[d.id] || d.status
+      })));
     } finally {
       setLoading(false);
     }
@@ -119,9 +171,14 @@ export default function PendingApprovalsPage() {
   ];
 
   const handleApprove = async (item: ApprovalItem) => {
+    saveLocalDecision(item.id, "approved");
     try {
       if (item.type === "leave") {
         await api.post(`/approvals/leave/${item.id}`, { status: "approved" });
+      } else if (item.type === "event") {
+        await api.post(`/approvals-ext/events/${item.id}/decision`, { status: "approved" });
+      } else if (item.type === "substitution") {
+        await api.post(`/approvals/substitutions/${item.id}/decision`, { status: "approved" });
       }
     } catch (err) {
       console.error("Approval failed:", err);
@@ -131,18 +188,38 @@ export default function PendingApprovalsPage() {
   };
 
   const handleReject = async (item: ApprovalItem) => {
+    saveLocalDecision(item.id, "rejected");
     try {
       if (item.type === "leave") {
         await api.post(`/approvals/leave/${item.id}`, { status: "rejected" });
+      } else if (item.type === "event") {
+        await api.post(`/approvals-ext/events/${item.id}/decision`, { status: "rejected", feedback: "Requires budget revision" });
+      } else if (item.type === "substitution") {
+        await api.post(`/approvals/substitutions/${item.id}/decision`, { status: "rejected" });
       }
     } catch (err) {
       console.error("Rejection failed:", err);
     }
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: "rejected" } : i));
-    toast.warning(`Rejected ${item.title} for ${item.requester_name}`, "Request Declined");
+    toast.warning(`Rejected ${item.title}`, "Request Declined");
   };
 
-  const handleApproveAll = () => {
+  const handleApproveAll = async () => {
+    const pendings = items.filter(i => i.status === "pending");
+    for (const item of pendings) {
+      saveLocalDecision(item.id, "approved");
+      try {
+        if (item.type === "leave") {
+          await api.post(`/approvals/leave/${item.id}`, { status: "approved" });
+        } else if (item.type === "event") {
+          await api.post(`/approvals-ext/events/${item.id}/decision`, { status: "approved" });
+        } else if (item.type === "substitution") {
+          await api.post(`/approvals/substitutions/${item.id}/decision`, { status: "approved" });
+        }
+      } catch (err) {
+        console.error("Batch approval item failed:", item.id, err);
+      }
+    }
     setItems(prev => prev.map(i => ({ ...i, status: "approved" })));
     toast.success("Approved all pending faculty requests!", "Batch Approved");
   };
@@ -151,7 +228,7 @@ export default function PendingApprovalsPage() {
   const filteredItems = items.filter(i => filterType === "all" || i.type === filterType);
 
   return (
-    <ProtectedRoute allowedRoles={["principal", "super_admin", "correspondent"]}>
+    <ProtectedRoute allowedRoles={["principal", "super_admin", "correspondent", "vice_principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
