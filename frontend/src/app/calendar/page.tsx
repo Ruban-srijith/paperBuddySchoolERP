@@ -50,11 +50,11 @@ export default function AcademicCalendarPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const [newEvent, setNewEvent] = useState({
-    title: "Mid-Term Examination Week",
+    title: "",
     category: "exam",
-    start_date: "2026-08-18",
-    end_date: "2026-08-25",
-    description: "Term 1 examinations for Grades 6 through 12. Morning session 9:00 - 12:00 PM.",
+    start_date: new Date().toISOString().split("T")[0],
+    end_date: new Date().toISOString().split("T")[0],
+    description: "",
     target_audience: "all",
   });
 
@@ -165,9 +165,9 @@ export default function AcademicCalendarPage() {
   const resetEventForm = () => {
     setNewEvent({
       title: "",
-      category: "cultural",
-      start_date: "",
-      end_date: "",
+      category: "exam",
+      start_date: new Date().toISOString().split("T")[0],
+      end_date: new Date().toISOString().split("T")[0],
       description: "",
       target_audience: "all",
     });
@@ -184,7 +184,8 @@ export default function AcademicCalendarPage() {
         event_type: newEvent.category,
         grade_scope: newEvent.target_audience || "all"
       });
-      fetchEvents();
+      await fetchEvents();
+      toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
     } catch {
       const created: CalendarEvent = {
         id: `ev-${Date.now()}`,
@@ -197,8 +198,8 @@ export default function AcademicCalendarPage() {
         is_all_day: true,
       };
       setEvents(prev => [created, ...prev]);
+      toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
     }
-    toast.success(`Published calendar event: ${newEvent.title}`, "Calendar Updated");
     setShowAddModal(false);
     resetEventForm();
   };

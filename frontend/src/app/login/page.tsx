@@ -97,9 +97,11 @@ export default function LoginPage() {
     setHasChecked(true);
   }, [checkAuth]);
 
-  const getRoleDestination = (role?: string) => {
+  const getRoleDestination = (role?: string, platform_role?: string | null) => {
+    if (platform_role === 'platform_super_admin' || platform_role === 'platform_support' || role === 'platform_super_admin' || role === 'platform_support' || role === 'super_admin') {
+      return '/superadmin';
+    }
     switch (role) {
-      case 'super_admin': return '/superadmin';
       case 'student': return '/student/documents';
       case 'parent': return '/parent';
       case 'warden': return '/warden/rooms';
@@ -111,7 +113,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (hasChecked && isAuthenticated && user && !isSuccessMorphing) {
-      router.replace(getRoleDestination(user.role));
+      router.replace(getRoleDestination(user.role, user.platform_role));
     }
   }, [isAuthenticated, hasChecked, user, router, isSuccessMorphing]);
 
@@ -122,7 +124,7 @@ export default function LoginPage() {
       setIsSuccessMorphing(true);
       const currentUser = useAuthStore.getState().user;
       setTimeout(() => {
-        router.replace(getRoleDestination(currentUser?.role));
+        router.replace(getRoleDestination(currentUser?.role, currentUser?.platform_role));
       }, 300);
     }
   };
@@ -136,7 +138,7 @@ export default function LoginPage() {
       setIsSuccessMorphing(true);
       const currentUser = useAuthStore.getState().user;
       setTimeout(() => {
-        router.replace(getRoleDestination(currentUser?.role));
+        router.replace(getRoleDestination(currentUser?.role, currentUser?.platform_role));
       }, 300);
     }
   };

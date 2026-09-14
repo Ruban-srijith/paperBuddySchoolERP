@@ -593,7 +593,7 @@ export default function FeesPage() {
         {/* Printable Official Fee Receipt Modal */}
         {selectedReceipt && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-            <div className="bg-white text-gray-900 border border-gray-300 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden my-8">
+            <div id="printable-receipt" className="print-container bg-white text-gray-900 border border-gray-300 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden my-8">
               {/* Actions Header Bar */}
               <div className="px-6 py-3 bg-gray-100 border-b border-gray-200 flex justify-between items-center print:hidden">
                 <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Official Payment Voucher Preview</span>

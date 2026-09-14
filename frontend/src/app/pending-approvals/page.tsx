@@ -177,6 +177,8 @@ export default function PendingApprovalsPage() {
         await api.post(`/approvals/leave/${item.id}`, { status: "approved" });
       } else if (item.type === "event") {
         await api.post(`/approvals-ext/events/${item.id}/decision`, { status: "approved" });
+      } else if (item.type === "substitution") {
+        await api.post(`/approvals/substitutions/${item.id}/decision`, { status: "approved" });
       }
     } catch (err) {
       console.error("Approval failed:", err);
@@ -192,6 +194,8 @@ export default function PendingApprovalsPage() {
         await api.post(`/approvals/leave/${item.id}`, { status: "rejected" });
       } else if (item.type === "event") {
         await api.post(`/approvals-ext/events/${item.id}/decision`, { status: "rejected", feedback: "Requires budget revision" });
+      } else if (item.type === "substitution") {
+        await api.post(`/approvals/substitutions/${item.id}/decision`, { status: "rejected" });
       }
     } catch (err) {
       console.error("Rejection failed:", err);
@@ -200,7 +204,22 @@ export default function PendingApprovalsPage() {
     toast.warning(`Rejected ${item.title}`, "Request Declined");
   };
 
-  const handleApproveAll = () => {
+  const handleApproveAll = async () => {
+    const pendings = items.filter(i => i.status === "pending");
+    for (const item of pendings) {
+      saveLocalDecision(item.id, "approved");
+      try {
+        if (item.type === "leave") {
+          await api.post(`/approvals/leave/${item.id}`, { status: "approved" });
+        } else if (item.type === "event") {
+          await api.post(`/approvals-ext/events/${item.id}/decision`, { status: "approved" });
+        } else if (item.type === "substitution") {
+          await api.post(`/approvals/substitutions/${item.id}/decision`, { status: "approved" });
+        }
+      } catch (err) {
+        console.error("Batch approval item failed:", item.id, err);
+      }
+    }
     setItems(prev => prev.map(i => ({ ...i, status: "approved" })));
     toast.success("Approved all pending faculty requests!", "Batch Approved");
   };
@@ -209,7 +228,7 @@ export default function PendingApprovalsPage() {
   const filteredItems = items.filter(i => filterType === "all" || i.type === filterType);
 
   return (
-    <ProtectedRoute allowedRoles={["principal", "super_admin", "correspondent"]}>
+    <ProtectedRoute allowedRoles={["principal", "super_admin", "correspondent", "vice_principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

@@ -6,9 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.db.database import get_db
-from app.db.models import User, UserRole, LeaveRequest
+from app.db.models import User, UserRole, LeaveRequest, TeacherSubstitution
 from app.schemas.approvals import LeaveRequestCreate, LeaveApprovalAction, LeaveRequestResponse
 from app.core.auth import get_current_user, require_role
+from pydantic import BaseModel
+
+class SubstitutionDecisionAction(BaseModel):
+    status: str  # approved, rejected
 
 router = APIRouter(prefix="/approvals", tags=["Leave & Approval Workflows"])
 
@@ -92,7 +96,7 @@ async def process_leave_approval(
     action: LeaveApprovalAction,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
     )),
 ):
     """Approve or Reject a staff leave request (Principal / Correspondent / Admin)."""
@@ -124,3 +128,23 @@ async def process_leave_approval(
         approved_by_name=current_user.full_name,
         created_at=leave.created_at,
     )
+
+
+@router.post("/substitutions/{sub_id}/decision")
+async def process_substitution_decision(
+    sub_id: str,
+    action: SubstitutionDecisionAction,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(
+        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
+    )),
+):
+    """Approve or reject a teacher substitution / period swap."""
+    res = await db.execute(select(TeacherSubstitution).where(TeacherSubstitution.id == sub_id))
+    sub = res.scalars().first()
+    if sub:
+        sub.status = action.status.lower()
+        await db.commit()
+        return {"status": "success", "message": f"Substitution {action.status.lower()} successfully"}
+    return {"status": "success", "message": f"Substitution {action.status.lower()} recorded"}
+

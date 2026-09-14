@@ -31,7 +31,11 @@ interface TopperStudent {
 }
 
 const DEMO_TOPPERS: TopperStudent[] = [
-  { rank: 1, student_name: "Kishor Kumar", grade: "10", section: "A", total_marks: 492, gpa: 9.8, percentage: 98.4, top_subjects: ["Science", "Mathematics", "Computer Science"], attendance_pct: 99.2 },
+  { rank: 1, student_name: "Aarav Sundar", grade: "LKG", section: "A", total_marks: 100, gpa: 10.0, percentage: 100.0, top_subjects: ["Rhymes & Storytelling", "Drawing & Craft"], attendance_pct: 100.0 },
+  { rank: 1, student_name: "Diya Lakshmi", grade: "UKG", section: "A", total_marks: 100, gpa: 10.0, percentage: 100.0, top_subjects: ["Basic Numbers", "Phonics"], attendance_pct: 99.0 },
+  { rank: 1, student_name: "Kavin Raj", grade: "1", section: "A", total_marks: 298, gpa: 9.9, percentage: 99.3, top_subjects: ["English", "Mathematics"], attendance_pct: 98.9 },
+  { rank: 1, student_name: "Nithya Sri", grade: "2", section: "A", total_marks: 296, gpa: 9.8, percentage: 98.7, top_subjects: ["Environmental Studies", "English"], attendance_pct: 99.1 },
+  { rank: 1, student_name: "Kishen Kumar", grade: "10", section: "A", total_marks: 492, gpa: 9.8, percentage: 98.4, top_subjects: ["Science", "Mathematics", "Computer Science"], attendance_pct: 99.2 },
   { rank: 2, student_name: "Priya Sharma", grade: "9", section: "A", total_marks: 486, gpa: 9.7, percentage: 97.2, top_subjects: ["Tamil", "Mathematics", "Science"], attendance_pct: 98.5 },
   { rank: 3, student_name: "Rahul Dev", grade: "9", section: "A", total_marks: 478, gpa: 9.5, percentage: 95.6, top_subjects: ["English", "Social Science"], attendance_pct: 97.0 },
   { rank: 1, student_name: "Ananya Krishna", grade: "8", section: "A", total_marks: 490, gpa: 9.8, percentage: 98.0, top_subjects: ["Science", "Mathematics"], attendance_pct: 99.0 },
@@ -45,8 +49,8 @@ export default function ClassToppersPage() {
   const [selectedGradeFilter, setSelectedGradeFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
-  // Exclude LKG/UKG/1-2 as rankings/toppers apply to Grade 3+ per CBSE/TN State Board norms
-  const ALL_GRADES = ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+  // Covers all foundational, primary, middle, and secondary grades
+  const ALL_GRADES = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
   useEffect(() => {
     async function fetchToppers() {

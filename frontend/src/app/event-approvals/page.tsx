@@ -209,7 +209,7 @@ export default function EventApprovalsPage() {
   const pendingCount = events.filter(e => e.status === "pending").length;
 
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "correspondent"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal", "vice_principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

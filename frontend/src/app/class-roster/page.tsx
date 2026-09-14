@@ -51,7 +51,7 @@ function ClassRosterContent() {
   // Modals
   const [showAddStudentsModal, setShowAddStudentsModal] = useState(false);
   const [showTeacherModal, setShowTeacherModal] = useState(false);
-  const [assignMode, setAssignMode] = useState<'unassigned' | 'all'>('unassigned');
+  const [assignMode, setAssignMode] = useState<'unassigned' | 'all'>('all');
   const [studentSearch, setStudentSearch] = useState('');
   
   // Selections

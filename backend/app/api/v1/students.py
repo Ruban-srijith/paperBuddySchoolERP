@@ -188,6 +188,7 @@ async def bulk_onboard_students(
             user_id = str(uuid.uuid4())
             new_user = User(
                 id=user_id,
+                school_id=current_user.school_id,
                 email=s["email"],
                 full_name=s["full_name"],
                 role=UserRole.STUDENT,

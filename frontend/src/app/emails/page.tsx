@@ -42,6 +42,8 @@ export default function EmailsPage() {
   const [sending, setSending] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [students, setStudents] = useState<any[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState("");
 
   const [form, setForm] = useState({
     recipient_email: "parent.kishor@school.edu",
@@ -50,6 +52,22 @@ export default function EmailsPage() {
     event_type: "daily_attendance",
     related_id: "stu11111-1111-1111-1111-111111111111"
   });
+
+  const handleStudentSelect = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    if (!studentId) return;
+    const stu = students.find(s => s.id === studentId);
+    if (stu) {
+      const parentEmail = stu.parent_email || `parent.${stu.full_name.toLowerCase().replace(/[^a-z0-9]/g, '')}@school.edu`;
+      setForm(prev => ({
+        ...prev,
+        recipient_email: parentEmail,
+        related_id: stu.id,
+        subject: `${stu.full_name} - Academic & Attendance Intimation`,
+        body_summary: `Dear Parent, please find the latest academic and attendance status update for ${stu.full_name}.`
+      }));
+    }
+  };
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -69,6 +87,11 @@ export default function EmailsPage() {
 
   useEffect(() => {
     fetchLogs();
+    api.get("/students").then(res => {
+      if (Array.isArray(res.data)) {
+        setStudents(res.data);
+      }
+    }).catch(() => {});
   }, []);
 
   const handleSendEmail = async (e: React.FormEvent) => {
@@ -239,6 +262,22 @@ export default function EmailsPage() {
                   <option value="fee_receipt">Fee Payment Receipt</option>
                   <option value="exam_circular">Examination Circular</option>
                   <option value="general_announcement">General Announcement</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-gray-700 font-semibold block mb-1">Select Student (Auto-fills Parent Details)</label>
+                <select
+                  value={selectedStudentId}
+                  onChange={(e) => handleStudentSelect(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                >
+                  <option value="">-- Choose Student or enter custom recipient --</option>
+                  {students.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.full_name} ({s.admission_number || 'ID'}) - Grade {s.grade || 'N/A'}
+                    </option>
+                  ))}
                 </select>
               </div>
 

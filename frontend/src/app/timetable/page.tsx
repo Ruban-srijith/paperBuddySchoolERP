@@ -81,17 +81,19 @@ export default function TimetablePage() {
 
   const canEdit = isSubAdmin || isSuperOrAdmin;
 
-  const fetchClassSchedule = async (grade: string, section: string) => {
+  const fetchClassSchedule = async (grade: string, section: string, offsetOverride?: number) => {
     setLoading(true);
+    const currOffset = offsetOverride !== undefined ? offsetOverride : generationOffset;
     try {
       const res = await api.get(`/timetable/class/${grade}-${section}`);
-      if (res.data && res.data.schedule && res.data.schedule.length > 0) {
-        setSchedule(res.data.schedule);
+      const rawSlots = Array.isArray(res.data) ? res.data : (res.data?.schedule || []);
+      if (rawSlots.length > 0) {
+        setSchedule(rawSlots);
       } else {
-        setSchedule(generateGradeDemoSchedule(grade, section, generationOffset));
+        setSchedule(generateGradeDemoSchedule(grade, section, currOffset));
       }
     } catch (e) {
-      setSchedule(generateGradeDemoSchedule(grade, section, generationOffset));
+      setSchedule(generateGradeDemoSchedule(grade, section, currOffset));
     } finally {
       setLoading(false);
     }
@@ -101,8 +103,9 @@ export default function TimetablePage() {
     setLoading(true);
     try {
       const res = await api.get(`/timetable/teacher/${teacherId}`);
-      if (res.data && res.data.schedule && res.data.schedule.length > 0) {
-        setSchedule(res.data.schedule);
+      const rawSlots = Array.isArray(res.data) ? res.data : (res.data?.schedule || []);
+      if (rawSlots.length > 0) {
+        setSchedule(rawSlots);
       } else {
         setSchedule(generateTeacherDemoSchedule(teacherId));
       }
@@ -147,11 +150,11 @@ export default function TimetablePage() {
     toast.info("Invoking Google OR-Tools CP-SAT constraint solver...", "AI Solver Running");
     try {
       const res = await api.post("/timetable/generate", {});
-      toast.success(res.data.message || "Conflict-free master schedule generated!", "OR-Tools Success");
+      toast.success(res.data?.message || "Conflict-free master schedule generated!", "OR-Tools Success");
       if (viewMode === "by_grade") {
-        fetchClassSchedule(selectedGrade, selectedSection);
+        await fetchClassSchedule(selectedGrade, selectedSection, nextOffset);
       } else {
-        fetchTeacherSchedule(selectedTeacher);
+        await fetchTeacherSchedule(selectedTeacher);
       }
     } catch (e) {
       toast.success("Generated optimal conflict-free schedule variation across all classes!", "OR-Tools Solver");

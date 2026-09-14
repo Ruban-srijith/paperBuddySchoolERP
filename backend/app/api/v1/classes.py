@@ -45,7 +45,7 @@ async def create_class(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
 ):
-    grade = str(class_data.grade).strip()
+    grade = str(class_data.grade).strip().upper()
     section = str(class_data.section).strip().upper()
 
     # Check if class already exists

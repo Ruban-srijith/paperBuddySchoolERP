@@ -42,7 +42,8 @@ export default function StaffManagementPage() {
 
   const [newMeeting, setNewMeeting] = useState({
     title: "",
-    date: "",
+    date: new Date().toISOString().split("T")[0],
+    time: "15:30",
     venue: "Faculty Conference Room",
     attendees: "All Teaching Faculty",
   });
@@ -79,7 +80,15 @@ export default function StaffManagementPage() {
 
   const handleCreateMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    const created = { id: `m-${Date.now()}`, ...newMeeting, status: "Scheduled" };
+    const isoDate = newMeeting.date || new Date().toISOString().split("T")[0];
+    const created = {
+      id: `m-${Date.now()}`,
+      title: newMeeting.title,
+      date: `${isoDate} ${newMeeting.time ? `(${newMeeting.time})` : ''}`.trim(),
+      venue: newMeeting.venue,
+      attendees: newMeeting.attendees,
+      status: "Scheduled"
+    };
     setMeetings(prev => {
       const updated = [created, ...prev];
       localStorage.setItem("pb_staff_meetings", JSON.stringify(updated));
@@ -89,19 +98,22 @@ export default function StaffManagementPage() {
     try {
       await api.post("/calendar/events", {
         title: newMeeting.title,
-        description: `Venue: ${newMeeting.venue} | Attendees: ${newMeeting.attendees}`,
-        start_date: newMeeting.date || new Date().toISOString().split("T")[0],
-        end_date: newMeeting.date || new Date().toISOString().split("T")[0],
+        description: `Time: ${newMeeting.time || 'TBD'} | Venue: ${newMeeting.venue} | Attendees: ${newMeeting.attendees}`,
+        start_date: isoDate,
+        end_date: isoDate,
         event_type: "Meeting",
         grade_scope: "all"
       });
-    } catch {}
+    } catch (err) {
+      console.error("Failed to sync meeting with calendar API:", err);
+    }
 
     toast.success(`Scheduled staff council meeting: ${newMeeting.title}`, "Meeting Scheduled");
     setShowMeetingModal(false);
     setNewMeeting({
       title: "",
-      date: "",
+      date: new Date().toISOString().split("T")[0],
+      time: "15:30",
       venue: "Faculty Conference Room",
       attendees: "All Teaching Faculty",
     });
@@ -335,7 +347,7 @@ export default function StaffManagementPage() {
                 <button 
                   onClick={() => {
                     setShowMeetingModal(false);
-                    setNewMeeting({ title: "", date: "", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
+                    setNewMeeting({ title: "", date: new Date().toISOString().split("T")[0], time: "15:30", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
                   }} 
                   className="text-gray-600 hover:text-brand-black"
                 >
@@ -355,16 +367,26 @@ export default function StaffManagementPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="text-gray-700 font-semibold block mb-1">Date & Time</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Aug 25, 2026 (03:30 PM)"
-                    value={newMeeting.date}
-                    onChange={e => setNewMeeting({ ...newMeeting, date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-gray-700 font-semibold block mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={newMeeting.date}
+                      onChange={e => setNewMeeting({ ...newMeeting, date: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-700 font-semibold block mb-1">Time</label>
+                    <input
+                      type="time"
+                      value={newMeeting.time}
+                      onChange={e => setNewMeeting({ ...newMeeting, time: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -382,7 +404,7 @@ export default function StaffManagementPage() {
                     type="button"
                     onClick={() => {
                       setShowMeetingModal(false);
-                      setNewMeeting({ title: "", date: "", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
+                      setNewMeeting({ title: "", date: new Date().toISOString().split("T")[0], time: "15:30", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
                     }}
                     className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >

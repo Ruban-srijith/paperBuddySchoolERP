@@ -49,7 +49,7 @@ async def get_attendance_summary(
     q = (
         select(Student.id, Class.grade, Attendance.status)
         .join(Class, Student.class_id == Class.id)
-        .outerjoin(Attendance, (Attendance.student_id == Student.user_id) & (Attendance.date == target_date))
+        .outerjoin(Attendance, ((Attendance.student_id == Student.user_id) | (Attendance.student_id == Student.id)) & (Attendance.date == target_date))
     )
     res = await db.execute(q)
     rows = res.all()

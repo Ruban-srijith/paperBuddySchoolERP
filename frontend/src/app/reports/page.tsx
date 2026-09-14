@@ -243,7 +243,7 @@ export default function OperationalReportsPage() {
         {/* Printable Report Modal (Fixes #13: functional print) */}
         {selectedPrintReport && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-6 w-full max-w-2xl shadow-2xl border border-gray-200 space-y-4 max-h-[85vh] overflow-y-auto">
+            <div id="printable-report" className="print-container bg-white rounded-3xl p-6 w-full max-w-2xl shadow-2xl border border-gray-200 space-y-4 max-h-[85vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Official Institutional Report</h3>

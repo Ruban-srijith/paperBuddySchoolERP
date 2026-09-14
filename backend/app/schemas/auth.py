@@ -41,11 +41,22 @@ class UserProfileResponse(BaseModel):
     department_id: Optional[str] = None
     department_name: Optional[str] = None
     assigned_grade: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    signature: Optional[str] = None
+    broadcast_signature: Optional[str] = None
     profile_picture: Optional[str] = None
     is_active: bool = True
     created_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class ProfileUpdateRequest(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    signature: Optional[str] = None
+    broadcast_signature: Optional[str] = None
 
 class ChangePasswordRequest(BaseModel):
     current_password: str
