@@ -429,17 +429,34 @@ async def seed():
         print("  Class teachers assigned.")
 
         # ── Students ───────────────────────────────────────────────
-        print("\n[7/7] Creating 500 students...")
+        print("\n[7/7] Creating students across ALL 30 classes...")
 
-        # Plan: distribute 500 students. Each of the 28+6=34 classes gets 30.
-        # That's 34 × 30 = 1020 theoretically, but we cap at 500 total.
-        # Fill classes in order until we reach 500.
-        all_class_keys = (
-            [f"{g}-{s}" for g in STANDARD_GRADES_2SEC for s in STANDARD_SECTIONS_2SEC] +
-            [f"{g}-{s}" for g in HIGHER_SEC_GRADES for s in HIGHER_SEC_SECTIONS]
-        )
+        # Distribution strategy:
+        # - 11th & 12th (6 classes × 3 streams): 30 students each → 180 total
+        # - LKG–10th (24 classes): remaining 320 students → ~13-14 per class
+        # Grand total ≈ 500 students, every class gets students
 
-        total_students_target = 500
+        lower_class_keys = [
+            f"{g}-{s}" for g in STANDARD_GRADES_2SEC for s in STANDARD_SECTIONS_2SEC
+        ]  # 24 classes
+        higher_class_keys = [
+            f"{g}-{s}" for g in HIGHER_SEC_GRADES for s in HIGHER_SEC_SECTIONS
+        ]  # 6 classes
+
+        STUDENTS_HIGHER = 30          # 30 per 11th/12th stream class
+        STUDENTS_LOWER_TOTAL = 500 - (len(higher_class_keys) * STUDENTS_HIGHER)  # 320
+        base_per_lower = STUDENTS_LOWER_TOTAL // len(lower_class_keys)            # 13
+        extra_lower = STUDENTS_LOWER_TOTAL % len(lower_class_keys)               # 8 extras
+
+        # Build per-class allocation map
+        class_allocation: dict[str, int] = {}
+        for i, key in enumerate(lower_class_keys):
+            class_allocation[key] = base_per_lower + (1 if i < extra_lower else 0)
+        for key in higher_class_keys:
+            class_allocation[key] = STUDENTS_HIGHER
+
+        all_class_keys = lower_class_keys + higher_class_keys
+
         students_created = 0
         roll_counters: dict[str, int] = {}
 
@@ -454,16 +471,9 @@ async def seed():
         ]
 
         for class_key in all_class_keys:
-            if students_created >= total_students_target:
-                break
-
             cls = class_map[class_key]
             grade = cls.grade
-
-            # How many to put in this class?
-            remaining = total_students_target - students_created
-            count_in_class = min(STUDENTS_PER_CLASS, remaining)
-
+            count_in_class = class_allocation[class_key]
             roll_counters[class_key] = 0
 
             for i in range(count_in_class):
@@ -475,10 +485,8 @@ async def seed():
                 min_age, max_age = student_age_for_grade(grade)
                 dob = rand_dob(min_age, max_age)
 
-                # Generate email for student user
                 email = f"student.{adm.lower()}@bharathischool.edu"
 
-                # User record
                 u = User(
                     id=uid(),
                     school_id=SCHOOL_ID,
@@ -498,7 +506,6 @@ async def seed():
                 father_name = f"{random.choice(FATHER_FIRST)} {random.choice(TAMIL_LAST)}"
                 mother_name = f"{random.choice(MOTHER_FIRST)} {random.choice(TAMIL_LAST)}"
 
-                # Student profile
                 s = Student(
                     id=uid(),
                     school_id=SCHOOL_ID,
@@ -521,7 +528,6 @@ async def seed():
                 session.add(s)
                 students_created += 1
 
-            # Flush every class to avoid memory overload
             await session.flush()
             print(f"  ✓  {class_key:<18}  {count_in_class:>2} students  (total: {students_created})")
 
@@ -529,11 +535,13 @@ async def seed():
 
     print("\n" + "=" * 60)
     print(f"✅  Seeding complete!")
-    print(f"    Students : {students_created}")
+    print(f"    Students : {students_created} (across ALL 30 classes)")
     print(f"    Teachers : {len(teachers)}")
     print(f"    Classes  : {total_classes}")
     print(f"    Depts    : {len(dept_map)}")
     print(f"    Subjects : {len(subject_map)}")
+    print(f"    11th/12th streams: 30 students each (6 classes × 30 = 180)")
+    print(f"    LKG–10th classes: ~13-14 students each (24 classes)")
     print(f"\n    Default password: school@123")
     print("=" * 60)
 
