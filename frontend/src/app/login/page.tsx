@@ -91,6 +91,14 @@ export default function LoginPage() {
   const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
   const [isSuccessMorphing, setIsSuccessMorphing] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Sync dark mode with homepage preference
+    const saved = localStorage.getItem('genesis-theme');
+    if (saved === 'dark') setDarkMode(true);
+    else setDarkMode(false);
+  }, []);
 
   useEffect(() => {
     checkAuth();
@@ -158,8 +166,9 @@ export default function LoginPage() {
   ];
 
   return (
+    <div className={darkMode ? 'dark' : ''}>
     <div className="min-h-screen flex items-center justify-center bg-[#F8F9FD] dark:bg-[#0b0f19] p-4 font-sans overflow-hidden transition-colors duration-300">
-      {/* Background Animated Elements */}
+      {/* Background Gradient Elements */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
             <motion.div 
               animate={{ rotate: 360 }}
@@ -171,23 +180,6 @@ export default function LoginPage() {
               transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
               className="absolute -bottom-[20%] -left-[10%] w-[600px] h-[600px] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-3xl"
             />
-            
-            {/* Floating Icons Left Side */}
-            <motion.div 
-              animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute top-[20%] left-[15%] hidden lg:flex items-center justify-center w-16 h-16 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-xl border border-white dark:border-slate-700"
-            >
-              <GraduationCap className="w-8 h-8 text-brand-blue/60 dark:text-blue-400/80" />
-            </motion.div>
-            
-            <motion.div 
-              animate={{ y: [0, 30, 0], rotate: [0, -10, 0] }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-[30%] left-[10%] hidden lg:flex items-center justify-center w-20 h-20 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-full shadow-lg border border-white dark:border-slate-700"
-            >
-              <BookOpen className="w-10 h-10 text-indigo-400/50 dark:text-indigo-400/80" />
-            </motion.div>
           </div>
 
           <motion.div 
@@ -324,6 +316,7 @@ export default function LoginPage() {
               </motion.div>
             </div>
           </motion.div>
+    </div>
     </div>
   );
 }

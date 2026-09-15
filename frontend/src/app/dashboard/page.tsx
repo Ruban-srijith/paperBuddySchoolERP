@@ -180,147 +180,349 @@ function DashboardContent() {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      transition={{ duration: 0.5 }}
-      className="space-y-8 max-w-7xl mx-auto"
+      transition={{ duration: 0.3 }}
+      className="space-y-6 max-w-7xl mx-auto"
     >
-      {/* Hero Banner */}
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }} 
-        animate={{ y: 0, opacity: 1 }} 
-        transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
-        className="glass-panel-glow p-8 rounded-2xl relative overflow-hidden"
-      >
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs border border-indigo-400/30">
-            <Shield className="w-3.5 h-3.5" />
-            <span>Welcome, {roleLabel}</span>
-          </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight">
-            {isStudent ? (
-              <>Hello, <span className="text-brand-blue">{user.full_name}</span></>
-            ) : isTeacher ? (
-              <>Welcome, <span className="text-brand-blue">{user.full_name}</span></>
-            ) : (
-              <>Welcome to <span className="text-brand-blue">Genesis ERP</span></>
-            )}
-          </h1>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {isStudent 
-              ? `Check your timetable, homework assignments, exam schedules, and attendance for Grade ${user.assigned_grade || '10'}.`
-              : isTeacher 
-              ? 'Manage your class roster, assign homework, mark student attendance, and answer subject queries.'
-              : isSuperAdmin
-              ? 'Institutional governance portal with salary approvals, major event clearances, revenue analytics, and class topper rankings.'
-              : isVicePrincipal
-              ? 'Academic operations center: OR-Tools timetable optimizer, exam schedules, classroom allocation, and teacher workload tracking.'
-              : 'Complete school operations hub: staff management, pending approvals, operational reports, and grade oversight.'
-            }
+      {/* Enterprise ERP Dashboard Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 gap-3 sm:gap-0">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Good morning, <span className="font-semibold text-slate-800 dark:text-slate-200">{user.full_name || 'Mr. Sundaram'}</span>. Here is today's school overview.
           </p>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
-            {isSuperAdmin && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/salary-approvals" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <DollarSign className="w-4 h-4" />
-                  <span>Salary Approvals</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isAdmin && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/pending-approvals" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <Clock className="w-4 h-4" />
-                  <span>Pending Approvals</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isVicePrincipal && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/timetable" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <Calendar className="w-4 h-4" />
-                  <span>Timetable Solver</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isTeacher && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/my-class" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <GraduationCap className="w-4 h-4" />
-                  <span>My Class View</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isStudent && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/homework" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <ClipboardList className="w-4 h-4" />
-                  <span>My Homework</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-              <Link href="/calendar" className="inline-flex items-center justify-center w-full space-x-2 px-6 py-3 rounded-full bg-white text-brand-black font-bold text-sm shadow-sm hover:bg-gray-50 transition-all">
-                <CalendarDays className="w-4 h-4 text-brand-blue" />
-                <span>Academic Calendar</span>
-              </Link>
-            </motion.div>
+        </div>
+        <div className="flex items-center space-x-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-md shadow-sm">
+          <CalendarDays className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <span className="font-semibold text-slate-700 dark:text-slate-300">Academic Year 2026–27</span>
+        </div>
+      </div>
+
+      {/* KPI Statistic Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Card 1: Total Students */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Students</span>
+            <div className="p-2 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.totalStudents || 2450}</span>
+            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">+3.2% this year</span>
           </div>
         </div>
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      </motion.div>
+
+        {/* Card 2: Teachers & Staff */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Teachers & Staff</span>
+            <div className="p-2 rounded bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+              <UserCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">{stats.totalTeachers || 68}</span>
+            <span className="text-[11px] font-medium text-slate-500">Active Faculty</span>
+          </div>
+        </div>
+
+        {/* Card 3: Today's Attendance */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Today's Attendance</span>
+            <div className="p-2 rounded bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+              <CheckSquare className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">94.8%</span>
+            <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Normal Range</span>
+          </div>
+        </div>
+
+        {/* Card 4: Pending Fees */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Fees</span>
+            <div className="p-2 rounded bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">₹1,25,000</span>
+            <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">28 Students</span>
+          </div>
+        </div>
+
+        {/* Card 5: Pending Approvals */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Approvals</span>
+            <div className="p-2 rounded bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">12</span>
+            <span className="text-[11px] font-medium text-rose-600 dark:text-rose-400">Requires Action</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Two-Column ERP Dashboard Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT COLUMN (2 Cols) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Attendance Overview Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Attendance Overview</h2>
+                <p className="text-xs text-slate-500">Daily student & staff attendance status</p>
+              </div>
+              <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-md text-xs font-medium text-slate-600 dark:text-slate-300">
+                <button className="px-2.5 py-1 rounded bg-white dark:bg-slate-700 shadow-sm text-blue-700 dark:text-blue-400 font-semibold">Today</button>
+                <button className="px-2.5 py-1 hover:text-slate-900">This Week</button>
+                <button className="px-2.5 py-1 hover:text-slate-900">This Month</button>
+              </div>
+            </div>
+
+            {/* Attendance Progress Visual */}
+            <div className="space-y-2">
+              <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                <div className="bg-emerald-500 h-full" style={{ width: '94.8%' }}></div>
+                <div className="bg-amber-400 h-full" style={{ width: '3.4%' }}></div>
+                <div className="bg-rose-500 h-full" style={{ width: '1.8%' }}></div>
+              </div>
+              <div className="flex flex-wrap items-center justify-between text-xs pt-1 gap-2">
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Present (94.8%) — 2,323</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Absent (3.4%) — 83</span>
+                </div>
+                <div className="flex items-center space-x-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">On Leave (1.8%) — 44</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Fee Collection Overview & Recent Activity Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Fee Collection Overview */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Fee Collection Overview</h3>
+                <span className="text-[11px] text-emerald-600 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded">₹14.2L Collected</span>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <span>Tuition Fees (Term 2)</span>
+                    <span className="font-bold">₹10,50,000 / ₹11,20,000</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="bg-blue-600 h-full rounded-full" style={{ width: '93%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <span>Transport & Bus Fees</span>
+                    <span className="font-bold">₹2,80,000 / ₹3,00,000</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="bg-emerald-600 h-full rounded-full" style={{ width: '90%' }}></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <span>Hostel & Mess Charges</span>
+                    <span className="font-bold">₹90,000 / ₹1,25,000</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="bg-amber-500 h-full rounded-full" style={{ width: '72%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity List */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Recent Activity</h3>
+                <span className="text-[11px] text-slate-400 font-medium">Real-time log</span>
+              </div>
+              <div className="space-y-3 text-xs">
+                <div className="flex items-start space-x-2.5">
+                  <span className="font-mono text-slate-400 shrink-0 text-[11px]">09:42 AM</span>
+                  <span className="text-slate-700 dark:text-slate-300">Student admission completed <span className="font-semibold text-slate-900 dark:text-slate-100">(Admit #2026-842)</span></span>
+                </div>
+                <div className="flex items-start space-x-2.5">
+                  <span className="font-mono text-slate-400 shrink-0 text-[11px]">09:30 AM</span>
+                  <span className="text-slate-700 dark:text-slate-300">Grade 8 attendance updated by Class Teacher</span>
+                </div>
+                <div className="flex items-start space-x-2.5">
+                  <span className="font-mono text-slate-400 shrink-0 text-[11px]">09:15 AM</span>
+                  <span className="text-slate-700 dark:text-slate-300">Salary approval submitted for Q3 Staff Payroll</span>
+                </div>
+                <div className="flex items-start space-x-2.5">
+                  <span className="font-mono text-slate-400 shrink-0 text-[11px]">08:55 AM</span>
+                  <span className="text-slate-700 dark:text-slate-300">Examination timetable published for Mid-Term Exams</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN (1 Col) */}
+        <div className="space-y-6">
+          {/* Upcoming Events */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Upcoming Events</h3>
+              <Link href="/calendar" className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline">View All</Link>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3 p-2.5 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                <div className="bg-blue-600 text-white font-bold text-center p-1.5 rounded shrink-0 w-10">
+                  <span className="block text-[9px] uppercase tracking-wide">OCT</span>
+                  <span className="text-sm leading-none">18</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Parent–Teacher Meeting</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Grades 1 to 12 • Main Auditorium</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-2.5 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                <div className="bg-emerald-600 text-white font-bold text-center p-1.5 rounded shrink-0 w-10">
+                  <span className="block text-[9px] uppercase tracking-wide">OCT</span>
+                  <span className="text-sm leading-none">22</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Unit Test – Grade 10</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Mathematics & Physical Science</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-2.5 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                <div className="bg-indigo-600 text-white font-bold text-center p-1.5 rounded shrink-0 w-10">
+                  <span className="block text-[9px] uppercase tracking-wide">OCT</span>
+                  <span className="text-sm leading-none">25</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Staff Council Meeting</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Conference Room A • 03:30 PM</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-2.5 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                <div className="bg-amber-600 text-white font-bold text-center p-1.5 rounded shrink-0 w-10">
+                  <span className="block text-[9px] uppercase tracking-wide">NOV</span>
+                  <span className="text-sm leading-none">05</span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">Annual Sports Day</h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">School Sports Complex & Field</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending Approvals List */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Pending Approvals</h3>
+              <Link href="/pending-approvals" className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline">Manage (12)</Link>
+            </div>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between p-2 rounded border border-slate-100 dark:border-slate-800">
+                <div>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 block">Salary approval</span>
+                  <span className="text-[11px] text-slate-500">Q3 Staff Payroll Clearance</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded border border-slate-100 dark:border-slate-800">
+                <div>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 block">Event approval</span>
+                  <span className="text-[11px] text-slate-500">Inter-School Tech Fest Budget</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded border border-slate-100 dark:border-slate-800">
+                <div>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 block">Leave approval</span>
+                  <span className="text-[11px] text-slate-500">3 Faculty Leave Applications</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Pending</span>
+              </div>
+
+              <div className="flex items-center justify-between p-2 rounded border border-slate-100 dark:border-slate-800">
+                <div>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100 block">Document verification</span>
+                  <span className="text-[11px] text-slate-500">Grade 11 Admissions Audit</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">Review</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Grade Levels Overview — Interactive for Superadmin, Admin, and Sub-admin */}
       {isManagement && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-brand-black">Active Grade Levels</h2>
-              <p className="text-xs text-gray-400">Click any grade card to view student roster, class teacher, and today's schedule</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Active Grade Levels</h2>
+              <p className="text-xs text-slate-500">Click any grade card to view student roster, class teacher, and schedule</p>
             </div>
-            <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 whitespace-nowrap flex-shrink-0">
+            <span className="text-xs px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-semibold">
               {activeClasses.length} Grade Tiers • {totalSections} Sections
             </span>
           </div>
 
           {activeClasses.length === 0 ? (
-            <div className="py-8 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
-              <p className="text-sm text-gray-500 font-medium">No classes have been created yet.</p>
-              <Link href="/classes" className="inline-block mt-3 text-brand-blue font-bold text-xs hover:underline">
+            <div className="py-6 text-center bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800">
+              <p className="text-xs text-slate-500">No classes configured.</p>
+              <Link href="/classes" className="inline-block mt-2 text-blue-600 font-bold text-xs hover:underline">
                 Go to Manage Classes
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5">
               {activeClasses.map((cls) => {
                 const grade = cls.grade;
                 const sectionsText = cls.sections.length > 0 
-                  ? (cls.sections.length <= 3 ? `Sec ${cls.sections.join(' & ')}` : `${cls.sections.length} Sections`)
-                  : "No Sections";
+                  ? (cls.sections.length <= 3 ? `Sec ${cls.sections.join(' & ')}` : `${cls.sections.length} Sec`)
+                  : "No Sec";
                   
                 return (
-                  <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
+                  <button
                     key={grade}
                     onClick={() => handleGradeClick(grade)}
-                    className={`glass-panel p-3.5 rounded-xl text-center hover:border-indigo-500/50 hover:bg-indigo-600/10 transition-colors cursor-pointer group ${
-                      selectedGrade === grade ? 'border-indigo-500 bg-indigo-600/20 shadow-lg shadow-indigo-500/10' : ''
+                    className={`bg-white dark:bg-slate-900 border rounded-md p-3 text-center hover:border-blue-500 transition-colors ${
+                      selectedGrade === grade ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-slate-200 dark:border-slate-800'
                     }`}
                   >
-                    <div className="text-xl font-bold text-brand-black group-hover:text-indigo-600 transition-colors">{grade}</div>
-                    <div className="text-[10px] text-gray-400 mt-1">
+                    <div className="text-base font-bold text-slate-900 dark:text-slate-100">{grade}</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">
                       {['LKG', 'UKG'].includes(grade) ? 'Pre-Primary' 
                         : parseInt(grade) <= 5 ? 'Primary' 
                         : parseInt(grade) <= 8 ? 'Middle' 
                         : parseInt(grade) <= 10 ? 'Secondary' 
                         : 'Sr. Secondary'}
                     </div>
-                    <div className="text-[10px] text-cyan-400 mt-0.5 font-medium">{sectionsText}</div>
-                  </motion.button>
+                    <div className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold mt-0.5">{sectionsText}</div>
+                  </button>
                 );
               })}
             </div>
@@ -534,7 +736,7 @@ function DashboardContent() {
           {isSuperAdmin && (
             <>
               <Link href="/salary-approvals" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-emerald-500/50 hover:bg-gray-50 transition-all">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-md h-full space-y-2 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500 transition-all">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
                     <DollarSign className="w-5 h-5" />
                   </div>
@@ -744,7 +946,7 @@ function DashboardContent() {
               </Link>
 
               <Link href="/fees" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-emerald-500/50 hover:bg-gray-50 transition-all">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-md h-full space-y-2 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500 transition-all">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
                     <DollarSign className="w-5 h-5" />
                   </div>
@@ -767,7 +969,7 @@ function DashboardContent() {
           </Link>
 
           <Link href="/attendance" className="group">
-            <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-emerald-500/50 hover:bg-gray-50 transition-all">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-md h-full space-y-2 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500 transition-all">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
                 <CheckSquare className="w-5 h-5" />
               </div>
