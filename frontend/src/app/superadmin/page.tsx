@@ -390,38 +390,38 @@ function SuperAdminDashboardContent() {
                     </div>
                   </div>
 
-                  {/* Analytics KPIs */}
+                  {/* Analytics KPIs in 3D Emerald Glass Slabs */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[24px] border border-gray-100 dark:border-slate-800/80 shadow-sm flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-fuchsia-500/15 flex items-center justify-center">
-                        <SchoolIcon className="w-7 h-7 text-fuchsia-500" />
+                    <div className="glass-emerald-tile p-6 rounded-[24px] flex items-center gap-5">
+                      <div className="w-14 h-14 rounded-2xl bg-[#12281b] border border-[#e5c158]/30 flex items-center justify-center shrink-0 shadow-lg">
+                        <SchoolIcon className="w-7 h-7 text-[#e5c158]" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Tenants</p>
-                        <h3 className="text-2xl font-black text-brand-black">{schools.length} Schools</h3>
-                        <p className="text-[10px] text-emerald-500 font-semibold mt-0.5">Active subscriptions</p>
+                        <p className="text-[10px] font-bold text-[#a3c9b0] uppercase tracking-wider">Total Tenants</p>
+                        <h3 className="text-2xl font-black text-[#f4f0e6] font-syne">{schools.length} Schools</h3>
+                        <p className="text-[10px] text-[#e5c158] font-semibold mt-0.5">Active subscriptions</p>
                       </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[24px] border border-gray-100 dark:border-slate-800/80 shadow-sm flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 flex items-center justify-center">
-                        <Users className="w-7 h-7 text-indigo-500" />
+                    <div className="glass-emerald-tile p-6 rounded-[24px] flex items-center gap-5">
+                      <div className="w-14 h-14 rounded-2xl bg-[#12281b] border border-[#e5c158]/30 flex items-center justify-center shrink-0 shadow-lg">
+                        <Users className="w-7 h-7 text-[#e5c158]" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Active Users</p>
-                        <h3 className="text-2xl font-black text-brand-black">17 Active</h3>
-                        <p className="text-[10px] text-gray-500 dark:text-slate-400 mt-0.5">Across all workspaces</p>
+                        <p className="text-[10px] font-bold text-[#a3c9b0] uppercase tracking-wider">Total Active Users</p>
+                        <h3 className="text-2xl font-black text-[#f4f0e6] font-syne">17 Active</h3>
+                        <p className="text-[10px] text-[#a3c9b0] mt-0.5">Across all workspaces</p>
                       </div>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[24px] border border-gray-100 dark:border-slate-800/80 shadow-sm flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
-                        <DollarSign className="w-7 h-7 text-emerald-500" />
+                    <div className="glass-emerald-tile p-6 rounded-[24px] flex items-center gap-5">
+                      <div className="w-14 h-14 rounded-2xl bg-[#12281b] border border-[#e5c158]/30 flex items-center justify-center shrink-0 shadow-lg">
+                        <DollarSign className="w-7 h-7 text-[#e5c158]" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Global Collections</p>
-                        <h3 className="text-2xl font-black text-brand-black">₹1.72 Cr</h3>
-                        <p className="text-[10px] text-emerald-500 font-semibold mt-0.5">Settled through Gateway</p>
+                        <p className="text-[10px] font-bold text-[#a3c9b0] uppercase tracking-wider">Global Collections</p>
+                        <h3 className="text-2xl font-black text-[#f4f0e6] font-syne">₹1.72 Cr</h3>
+                        <p className="text-[10px] text-[#e5c158] font-semibold mt-0.5">Settled through Gateway</p>
                       </div>
                     </div>
                   </div>

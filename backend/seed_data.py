@@ -923,8 +923,7 @@ async def seed(drop_first: bool = False):
                 reason="Weekend Home Visit with Family",
                 departure_time=datetime.now(timezone.utc),
                 expected_return_time=datetime.now(timezone.utc) + timedelta(days=2),
-                status="pending",
-                parent_consent=True
+                status="pending"
             ),
             Outpass(
                 id="outp2222-2222-2222-2222-222222222222",
@@ -933,8 +932,7 @@ async def seed(drop_first: bool = False):
                 departure_time=datetime.now(timezone.utc) - timedelta(days=1),
                 expected_return_time=datetime.now(timezone.utc) + timedelta(days=1),
                 status="approved",
-                approved_by=PRINCIPAL_ID,
-                parent_consent=True
+                approved_by=PRINCIPAL_ID
             ),
         ]
         session.add_all(seeded_outpasses)
@@ -959,11 +957,11 @@ async def seed(drop_first: bool = False):
         session.add_all([r1, r2])
 
         r1_stops = [
-            TransportStop(route_id=r1.id, stop_name="Anna Nagar Roundtana", pickup_time="07:15", drop_time="16:15", stop_order=1),
-            TransportStop(route_id=r1.id, stop_name="Shanti Colony", pickup_time="07:25", drop_time="16:05", stop_order=2),
-            TransportStop(route_id=r1.id, stop_name="Thirumangalam Metro", pickup_time="07:35", drop_time="15:55", stop_order=3),
-            TransportStop(route_id=r1.id, stop_name="Koyambedu Junction", pickup_time="07:45", drop_time="15:45", stop_order=4),
-            TransportStop(route_id=r1.id, stop_name="Campus North Gate", pickup_time="08:00", drop_time="15:30", stop_order=5),
+            TransportStop(route_id=r1.id, stop_name="Anna Nagar Roundtana", pickup_time="07:15", drop_time="16:15"),
+            TransportStop(route_id=r1.id, stop_name="Shanti Colony", pickup_time="07:25", drop_time="16:05"),
+            TransportStop(route_id=r1.id, stop_name="Thirumangalam Metro", pickup_time="07:35", drop_time="15:55"),
+            TransportStop(route_id=r1.id, stop_name="Koyambedu Junction", pickup_time="07:45", drop_time="15:45"),
+            TransportStop(route_id=r1.id, stop_name="Campus North Gate", pickup_time="08:00", drop_time="15:30"),
         ]
         session.add_all(r1_stops)
 

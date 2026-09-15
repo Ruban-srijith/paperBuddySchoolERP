@@ -4,22 +4,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
 import { 
   FileSearch, Calendar, CheckSquare, BookOpen, FlaskConical, 
   Mail, ArrowRight, TrendingUp, Users, Award, CheckCircle2,
   Building2, Shield, GraduationCap, DollarSign, Clock, Activity,
   FileSpreadsheet, LayoutGrid, FileCheck, UserCheck, CalendarDays,
   ClipboardList, FileText, HelpCircle, Megaphone, Trophy, X,
-  Phone, Sparkles, UserRound
+  Phone, Sparkles, Bell, ChevronRight, ArrowUpRight
 } from "lucide-react";
-import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from "@/store/authStore";
+import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS } from "@/store/authStore";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PageLoader from "@/components/PageLoader";
 import api from "@/lib/api";
-import { useToast } from "@/components/Toast";
-
-// Dynamic grade levels will be fetched from the backend
+import Tilt3D from "@/components/Tilt3D";
 
 interface ClassDetailModalData {
   grade: string;
@@ -50,10 +47,31 @@ interface ClassDetailModalData {
   }>;
 }
 
+// SVG Quarter-Circle Corner Arch Ornament
+function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
+  if (position === "tr") {
+    return (
+      <svg className="corner-arch-tr" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+        <path d="M 100 0 A 100 100 0 0 0 0 100" />
+        <path d="M 100 20 A 80 80 0 0 0 20 100" />
+        <path d="M 100 40 A 60 60 0 0 0 40 100" />
+        <path d="M 100 60 A 40 40 0 0 0 60 100" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="corner-arch-bl" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+      <path d="M 0 100 A 100 100 0 0 1 100 0" />
+      <path d="M 0 80 A 80 80 0 0 1 80 0" />
+      <path d="M 0 60 A 60 60 0 0 1 60 0" />
+      <path d="M 0 40 A 40 40 0 0 1 40 0" />
+    </svg>
+  );
+}
+
 function DashboardContent() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { toast } = useToast();
 
   const [stats, setStats] = useState({
     totalStudents: 1420,
@@ -62,7 +80,6 @@ function DashboardContent() {
     totalDepts: 3,
   });
 
-  const [aiSummary, setAiSummary] = useState<any | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string>("A");
   const [classDetail, setClassDetail] = useState<ClassDetailModalData | null>(null);
@@ -73,16 +90,12 @@ function DashboardContent() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [studentsRes, aiRes, classesRes] = await Promise.allSettled([
+        const [studentsRes, classesRes] = await Promise.allSettled([
           api.get('/users/by-role/student'),
-          api.get('/ai/school-health-summary'),
           api.get('/classes')
         ]);
         if (studentsRes.status === 'fulfilled' && studentsRes.value.data.length > 0) {
           setStats(prev => ({ ...prev, totalStudents: studentsRes.value.data.length }));
-        }
-        if (aiRes.status === 'fulfilled') {
-          setAiSummary(aiRes.value.data);
         }
         if (classesRes.status === 'fulfilled') {
           const classesData = classesRes.value.data;
@@ -138,7 +151,6 @@ function DashboardContent() {
     fetchClassDetail(grade, firstSection);
   };
 
-  // When selected section changes from the modal tabs
   const handleSectionClick = (sec: string) => {
     if (selectedGrade && sec !== selectedSection) {
       setSelectedSection(sec);
@@ -149,9 +161,6 @@ function DashboardContent() {
   if (!user) return <PageLoader />;
 
   const roleLabel = ROLE_LABELS[user.role];
-  const roleColor = ROLE_COLORS[user.role];
-  const navItems = ROLE_NAV_ITEMS[user.role] || [];
-  
   const isSuperAdmin = ['super_admin', 'correspondent'].includes(user.role);
   const isAdmin = ['principal'].includes(user.role);
   const isVicePrincipal = ['vice_principal'].includes(user.role);
@@ -176,151 +185,240 @@ function DashboardContent() {
     return null;
   }
 
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      transition={{ duration: 0.5 }}
-      className="space-y-8 max-w-7xl mx-auto"
-    >
-      {/* Hero Banner */}
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }} 
-        animate={{ y: 0, opacity: 1 }} 
-        transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
-        className="glass-panel-glow p-8 rounded-2xl relative overflow-hidden"
-      >
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs border border-indigo-400/30">
-            <Shield className="w-3.5 h-3.5" />
-            <span>Welcome, {roleLabel}</span>
-          </div>
-          <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight">
-            {isStudent ? (
-              <>Hello, <span className="text-brand-blue">{user.full_name}</span></>
-            ) : isTeacher ? (
-              <>Welcome, <span className="text-brand-blue">{user.full_name}</span></>
-            ) : (
-              <>Welcome to <span className="text-brand-blue">Genesis ERP</span></>
-            )}
-          </h1>
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {isStudent 
-              ? `Check your timetable, homework assignments, exam schedules, and attendance for Grade ${user.assigned_grade || '10'}.`
-              : isTeacher 
-              ? 'Manage your class roster, assign homework, mark student attendance, and answer subject queries.'
-              : isSuperAdmin
-              ? 'Institutional governance portal with salary approvals, major event clearances, revenue analytics, and class topper rankings.'
-              : isVicePrincipal
-              ? 'Academic operations center: OR-Tools timetable optimizer, exam schedules, classroom allocation, and teacher workload tracking.'
-              : 'Complete school operations hub: staff management, pending approvals, operational reports, and grade oversight.'
-            }
-          </p>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
-            {isSuperAdmin && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/salary-approvals" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <DollarSign className="w-4 h-4" />
-                  <span>Salary Approvals</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isAdmin && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/pending-approvals" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <Clock className="w-4 h-4" />
-                  <span>Pending Approvals</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isVicePrincipal && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/timetable" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <Calendar className="w-4 h-4" />
-                  <span>Timetable Solver</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isTeacher && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/my-class" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <GraduationCap className="w-4 h-4" />
-                  <span>My Class View</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            {isStudent && (
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <Link href="/homework" className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 rounded-full bg-brand-blue text-white font-bold text-sm shadow-md hover:bg-brand-blue/90 transition-all">
-                  <ClipboardList className="w-4 h-4" />
-                  <span>My Homework</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </motion.div>
-            )}
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-              <Link href="/calendar" className="inline-flex items-center justify-center w-full space-x-2 px-6 py-3 rounded-full bg-white text-brand-black font-bold text-sm shadow-sm hover:bg-gray-50 transition-all">
-                <CalendarDays className="w-4 h-4 text-brand-blue" />
-                <span>Academic Calendar</span>
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      </motion.div>
+  // Attendance Stacked Bar Data (Matching Reference UI)
+  const attendanceBars = [
+    { grade: "G1", h1: 35, h2: 30, h3: 25 }, // 90%
+    { grade: "G2", h1: 45, h2: 25, h3: 20 }, // 90%
+    { grade: "G3", h1: 30, h2: 35, h3: 25 }, // 90%
+    { grade: "G4", h1: 40, h2: 30, h3: 20 }, // 90%
+    { grade: "G5", h1: 25, h2: 40, h3: 25 }, // 90%
+  ];
 
-      {/* Grade Levels Overview — Interactive for Superadmin, Admin, and Sub-admin */}
-      {isManagement && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-            <div>
-              <h2 className="text-lg font-bold text-brand-black">Active Grade Levels</h2>
-              <p className="text-xs text-gray-400">Click any grade card to view student roster, class teacher, and today's schedule</p>
+  // Grades Multi-line Chart Data (Matching Reference UI)
+  const gradesMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Sep", "Oct"];
+  const lineSeries1 = [54, 74, 70, 83, 80, 75, 95]; // Emerald line
+  const lineSeries2 = [65, 74, 77, 65, 80, 90, 78]; // Sage line
+
+  // Assignments Data (Matching Reference UI)
+  const assignmentRows = [
+    { name: "Upcoming Assignment", deadline: "May 11, 2026", date: "May 17, 2026" },
+    { name: "Assignment Plan", deadline: "May 15, 2026", date: "May 18, 2026" },
+    { name: "Assignment Plan", deadline: "May 19, 2026", date: "May 27, 2026" },
+    { name: "Assignment Plan", deadline: "May 23, 2026", date: "May 23, 2026" },
+  ];
+
+  // Notifications List (Matching Reference UI)
+  const notificationItems = [
+    { title: "School Alerts", desc: "School alerts notification: Attendance log published for Grade 10." },
+    { title: "School Alerts Notification", desc: "Campus hackathon registration closes tomorrow at 5:00 PM." },
+    { title: "School Diploma Present", desc: "Official digital signatures and transcript releases available now." },
+  ];
+
+  return (
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-8">
+      
+      {/* 4 MAIN REFERENCE CARDS GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* 1. ATTENDANCE CARD (Top Left - 6 Cols) */}
+        <Tilt3D className="lg:col-span-6 rounded-[24px]">
+          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+            <CornerArchOrnament position="tr" />
+            
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Attendance</h2>
+              <div className="flex items-center gap-3 text-xs font-semibold text-[#a3c9b0]">
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#e8e2d3]" /> 90%</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#4e8260]" /> 70%</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#12281b]" /> 50%</span>
+              </div>
             </div>
-            <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 whitespace-nowrap flex-shrink-0">
+
+            <div className="pt-2 pb-1 relative z-10">
+              <div className="h-56 flex items-end justify-between gap-3 px-4">
+                {/* Y-Axis Labels */}
+                <div className="flex flex-col justify-between h-full text-[11px] font-bold text-[#a3c9b0] pr-2 border-r border-[#a3c9b0]/25">
+                  <span>100%</span>
+                  <span>75%</span>
+                  <span>50%</span>
+                  <span>25%</span>
+                  <span>0%</span>
+                </div>
+
+                {/* Stacked Bars */}
+                {attendanceBars.map((b) => (
+                  <div key={b.grade} className="flex-1 flex flex-col items-center gap-2">
+                    <div className="w-full max-w-[48px] h-44 flex flex-col justify-end gap-0.5">
+                      {/* Top segment 90% */}
+                      <div className="w-full bg-[#e8e2d3] rounded-t-md" style={{ height: `${b.h3}%` }} />
+                      {/* Mid segment 70% */}
+                      <div className="w-full bg-[#4e8260]" style={{ height: `${b.h2}%` }} />
+                      {/* Bottom segment 50% */}
+                      <div className="w-full bg-[#12281b] rounded-b-md" style={{ height: `${b.h1}%` }} />
+                    </div>
+                    <span className="text-xs font-bold text-[#e8e2d3]">{b.grade}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="text-center text-xs font-bold text-[#a3c9b0] mt-2">Grades</div>
+            </div>
+          </div>
+        </Tilt3D>
+
+        {/* 2. GRADES CARD (Top Right - 6 Cols) */}
+        <Tilt3D className="lg:col-span-6 rounded-[24px]">
+          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+            <CornerArchOrnament position="bl" />
+            
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Grades</h2>
+              <span className="text-xs font-bold text-[#a3c9b0]">Class Average Score</span>
+            </div>
+
+            <div className="pt-2 pb-1 relative z-10">
+              <div className="h-56 w-full flex flex-col justify-between relative px-2">
+                {/* Grid Lines */}
+                <div className="absolute inset-x-0 inset-y-0 flex flex-col justify-between pointer-events-none opacity-25">
+                  <div className="border-b border-[#a3c9b0]" />
+                  <div className="border-b border-[#a3c9b0]" />
+                  <div className="border-b border-[#a3c9b0]" />
+                  <div className="border-b border-[#a3c9b0]" />
+                  <div className="border-b border-[#a3c9b0]" />
+                  <div className="border-b border-[#a3c9b0]" />
+                </div>
+
+                {/* Line Chart SVG Overlay */}
+                <svg className="absolute inset-0 w-full h-44 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+                  {/* Series 1 Gold/Cream Line */}
+                  <polyline
+                    fill="none"
+                    stroke="#e8e2d3"
+                    strokeWidth="2.5"
+                    points="0,92 16.6,52 33.3,60 50,34 66.6,40 83.3,50 100,10"
+                  />
+                  {/* Series 2 Sage/Emerald Line */}
+                  <polyline
+                    fill="none"
+                    stroke="#4e8260"
+                    strokeWidth="2.5"
+                    points="0,70 16.6,52 33.3,46 50,70 66.6,40 83.3,20 100,44"
+                  />
+                </svg>
+
+                {/* Data Nodes & Axis */}
+                <div className="h-44 flex items-end justify-between relative z-10 text-[11px] font-bold text-[#a3c9b0]">
+                  {gradesMonths.map((m, idx) => (
+                    <div key={m} className="flex flex-col items-center justify-end h-full">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#e8e2d3] border-2 border-[#12281b] mb-auto" />
+                      <span>{m}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Tilt3D>
+
+        {/* 3. ASSIGNMENTS CARD (Bottom Left - 6 Cols) */}
+        <Tilt3D className="lg:col-span-6 rounded-[24px]">
+          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+            <CornerArchOrnament position="tr" />
+
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Assignments</h2>
+              <Link href="/assignments" className="text-xs font-bold text-[#a3c9b0] hover:text-[#f4f0e6] flex items-center gap-1">
+                <span>View All</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto relative z-10">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Assignment</th>
+                    <th>Deadline</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignmentRows.map((row, i) => (
+                    <tr key={i}>
+                      <td className="font-bold text-[#f4f0e6]">{row.name}</td>
+                      <td className="text-[#a3c9b0]">{row.deadline}</td>
+                      <td className="text-[#a3c9b0]">{row.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Tilt3D>
+
+        {/* 4. NOTIFICATIONS CARD (Bottom Right - 6 Cols) */}
+        <Tilt3D className="lg:col-span-6 rounded-[24px]">
+          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#182e22] text-[#e8e2d3] border border-[#e8e2d3]/20 flex items-center justify-center shrink-0 shadow-md">
+                  <Bell className="w-5 h-5 text-[#e8e2d3]" />
+                </div>
+                <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Notifications</h2>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 relative z-10">
+              {notificationItems.map((item, idx) => (
+                <div key={idx} className="p-3.5 rounded-xl bg-[#14291e]/80 border border-[#a3c9b0]/20">
+                  <h4 className="text-sm font-bold text-[#f4f0e6]">{item.title}</h4>
+                  <p className="text-xs text-[#a3c9b0] mt-1 font-medium leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Tilt3D>
+
+      </div>
+
+      {/* PRESERVED: Active Grade Tiers Selector & Modal for Management Roles */}
+      {isManagement && (
+        <div className="glass-emerald-tile p-6 rounded-[24px] space-y-4">
+          <CornerArchOrnament position="tr" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 relative z-10">
+            <div>
+              <h3 className="text-base font-bold text-[#f4f0e6] font-syne">Active Grade Levels Overview</h3>
+              <p className="text-xs text-[#a3c9b0]">Select any grade tier to inspect student roster, class teacher & daily schedule</p>
+            </div>
+            <span className="text-xs px-3.5 py-1 rounded-full bg-[#12281b] text-[#e5c158] font-bold border border-[#e5c158]/30">
               {activeClasses.length} Grade Tiers • {totalSections} Sections
             </span>
           </div>
 
           {activeClasses.length === 0 ? (
-            <div className="py-8 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
-              <p className="text-sm text-gray-500 font-medium">No classes have been created yet.</p>
-              <Link href="/classes" className="inline-block mt-3 text-brand-blue font-bold text-xs hover:underline">
-                Go to Manage Classes
-              </Link>
+            <div className="py-6 text-center text-xs text-[#a3c9b0] relative z-10">
+              No classes configured yet.
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 relative z-10">
               {activeClasses.map((cls) => {
                 const grade = cls.grade;
                 const sectionsText = cls.sections.length > 0 
-                  ? (cls.sections.length <= 3 ? `Sec ${cls.sections.join(' & ')}` : `${cls.sections.length} Sections`)
-                  : "No Sections";
+                  ? (cls.sections.length <= 3 ? `Sec ${cls.sections.join(' & ')}` : `${cls.sections.length} Secs`)
+                  : "No Sec";
                   
                 return (
-                  <motion.button
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
+                  <button
                     key={grade}
                     onClick={() => handleGradeClick(grade)}
-                    className={`glass-panel p-3.5 rounded-xl text-center hover:border-indigo-500/50 hover:bg-indigo-600/10 transition-colors cursor-pointer group ${
-                      selectedGrade === grade ? 'border-indigo-500 bg-indigo-600/20 shadow-lg shadow-indigo-500/10' : ''
+                    className={`p-3.5 rounded-xl text-center cursor-pointer transition-all border ${
+                      selectedGrade === grade 
+                        ? 'bg-[#2b4c37] border-[#e5c158] text-white shadow-[0_4px_15px_rgba(0,0,0,0.5)]' 
+                        : 'bg-black/30 border-white/10 text-[#e8e2d3] hover:bg-white/10 hover:border-[#e5c158]/50'
                     }`}
                   >
-                    <div className="text-xl font-bold text-brand-black group-hover:text-indigo-600 transition-colors">{grade}</div>
-                    <div className="text-[10px] text-gray-400 mt-1">
-                      {['LKG', 'UKG'].includes(grade) ? 'Pre-Primary' 
-                        : parseInt(grade) <= 5 ? 'Primary' 
-                        : parseInt(grade) <= 8 ? 'Middle' 
-                        : parseInt(grade) <= 10 ? 'Secondary' 
-                        : 'Sr. Secondary'}
-                    </div>
-                    <div className="text-[10px] text-cyan-400 mt-0.5 font-medium">{sectionsText}</div>
-                  </motion.button>
+                    <div className="text-lg font-bold text-[#f4f0e6] font-syne">{grade}</div>
+                    <div className="text-[10px] text-[#a3c9b0] font-semibold mt-0.5">{sectionsText}</div>
+                  </button>
                 );
               })}
             </div>
@@ -330,482 +428,189 @@ function DashboardContent() {
 
       {/* Class Detail Modal / Drawer */}
       {selectedGrade && (loadingClass || classDetail) && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white border border-gray-200 max-w-4xl w-full max-h-[85vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="glass-emerald-tile max-w-4xl w-full max-h-[85vh] rounded-[24px] overflow-hidden flex flex-col shadow-2xl border-2 border-[#e5c158]/40">
             {/* Modal Header */}
-            <div className="p-6 border-b border-gray-100 flex items-start justify-between bg-gray-50/80">
-              <div className="flex items-start space-x-3 flex-1 min-w-0">
-                <div className="w-12 h-12 rounded-xl bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center text-brand-blue font-bold text-lg flex-shrink-0">
-                  {selectedGrade}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-bold text-brand-black flex flex-wrap items-center gap-2">
-                    <span>Grade {selectedGrade} Class Detail</span>
-                  </h3>
-                  <div className="flex items-center gap-2 mt-2">
-                    {activeClasses.find(c => c.grade === selectedGrade)?.sections.map(sec => (
-                      <button
-                        key={sec}
-                        onClick={() => handleSectionClick(sec)}
-                        className={`text-xs px-3 py-1 rounded-full whitespace-nowrap font-semibold transition-all ${
-                          selectedSection === sec 
-                            ? 'bg-brand-blue text-white shadow-md' 
-                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                        }`}
-                      >
-                        Section {sec}
-                      </button>
-                    ))}
-                  </div>
-                  {classDetail && (
-                    <p className="text-xs text-gray-500 mt-2 truncate">
-                      Class Teacher: <span className="text-brand-black font-semibold">{classDetail.class_teacher || 'Unassigned'}</span> ({classDetail.class_teacher_email || '-'})
-                    </p>
-                  )}
+            <div className="p-5 border-b border-[#e5c158]/20 flex items-start justify-between bg-black/40">
+              <div>
+                <h3 className="text-lg font-bold text-[#f4f0e6] font-syne">Grade {selectedGrade} Class Details</h3>
+                <div className="flex items-center gap-2 mt-2">
+                  {activeClasses.find(c => c.grade === selectedGrade)?.sections.map(sec => (
+                    <button
+                      key={sec}
+                      onClick={() => handleSectionClick(sec)}
+                      className={`text-xs px-3 py-1 rounded-lg font-semibold transition-all ${
+                        selectedSection === sec 
+                          ? 'bg-[#e5c158] text-[#12281b] font-bold' 
+                          : 'bg-black/40 border border-[#e5c158]/30 text-[#e8e2d3] hover:bg-white/10'
+                      }`}
+                    >
+                      Section {sec}
+                    </button>
+                  ))}
                 </div>
               </div>
               <button
                 onClick={() => { setSelectedGrade(null); setClassDetail(null); }}
-                className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-black transition-colors flex-shrink-0 ml-4"
+                className="p-1.5 rounded-lg bg-black/30 hover:bg-black/50 text-[#e8e2d3] border border-white/10"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {loadingClass ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-12 space-y-4">
-                 <div className="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
-                 <p className="text-gray-500 font-medium">Loading class details...</p>
-              </div>
+              <div className="p-12 text-center text-xs text-[#a3c9b0] font-semibold">Loading class roster...</div>
             ) : classDetail ? (
-              <>
-
-            {/* Modal Metrics Bar */}
-            <div className="grid grid-cols-3 gap-4 p-4 border-b border-gray-100 bg-gray-50/50 text-center">
-              <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm">
-                <div className="text-xs text-gray-500 font-medium">Total Strength</div>
-                <div className="text-xl font-bold text-brand-black mt-1">{classDetail.total_strength || 0} <span className="text-xs text-gray-400 font-medium">Students</span></div>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm">
-                <div className="text-xs text-gray-500 font-medium">Class Attendance</div>
-                <div className="text-xl font-bold text-emerald-600 mt-1">{classDetail.attendance_rate || 0}%</div>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-sm">
-                <div className="text-xs text-gray-500 font-medium">Syllabus Completion</div>
-                <div className="text-xl font-bold text-brand-blue mt-1">{classDetail.syllabus_coverage || 0}%</div>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-8 flex-1 min-h-0 bg-white">
-              {/* Today's Schedule */}
-              <div className="space-y-3">
-                <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-brand-blue" />
-                  <span>Today's Class Schedule</span>
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {classDetail.schedule_today && classDetail.schedule_today.length > 0 ? (
-                    classDetail.schedule_today.map((s: any) => (
-                      <div key={s.period} className={`p-4 rounded-xl border transition-colors shadow-sm space-y-1.5 relative overflow-hidden ${
-                        s.isOngoing ? 'bg-brand-blue/5 border-brand-blue/50 ring-1 ring-brand-blue/30' : 'bg-gray-50 border-gray-100 hover:border-brand-blue/30'
-                      }`}>
-                        {s.isOngoing && (
-                          <div className="absolute top-0 right-0 bg-brand-blue text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wider animate-pulse">
-                            Ongoing Now
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between text-[11px] font-medium">
-                          <span className={s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}>Period {s.period}</span>
-                          <span className={`font-mono font-bold ${s.isOngoing ? 'text-brand-blue' : 'text-brand-blue'}`}>{s.time}</span>
-                        </div>
-                        <div className="text-sm font-bold text-brand-black truncate">{s.subject || 'Unknown'}</div>
-                        <div className={`text-[11px] font-medium truncate ${s.isOngoing ? 'text-brand-blue font-bold' : 'text-gray-500'}`}>{s.teacher || 'Unassigned'}</div>
-                        <div className="text-[10px] font-bold text-gray-400">{s.room || 'TBD'}</div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-full py-6 text-center text-gray-500 text-sm border border-dashed rounded-xl border-gray-200 bg-gray-50/50">
-                      No timetable configured for this class yet.
-                    </div>
-                  )}
+              <div className="p-6 overflow-y-auto space-y-6 flex-1 relative z-10">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="p-3 bg-black/30 rounded-xl border border-[#e5c158]/20">
+                    <div className="text-xs text-[#a3c9b0]">Total Strength</div>
+                    <div className="text-base font-bold text-[#f4f0e6] font-syne">{classDetail.total_strength || 0} Students</div>
+                  </div>
+                  <div className="p-3 bg-black/30 rounded-xl border border-[#e5c158]/20">
+                    <div className="text-xs text-[#a3c9b0]">Attendance Rate</div>
+                    <div className="text-base font-bold text-[#e5c158] font-syne">{classDetail.attendance_rate || 0}%</div>
+                  </div>
+                  <div className="p-3 bg-black/30 rounded-xl border border-[#e5c158]/20">
+                    <div className="text-xs text-[#a3c9b0]">Syllabus Coverage</div>
+                    <div className="text-base font-bold text-[#f4f0e6] font-syne">{classDetail.syllabus_coverage || 0}%</div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Student Roster */}
-              <div className="space-y-3">
-                <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-brand-blue" />
-                  <span>Enrolled Student Roster ({(classDetail.students || []).length})</span>
-                </h4>
-                <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-                  {classDetail.students && classDetail.students.length > 0 ? (
-                    <table className="w-full text-left text-xs min-w-[600px]">
-                      <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider border-b border-gray-200">
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#e5c158]">Enrolled Students</h4>
+                  <div className="overflow-x-auto rounded-xl border border-[#e5c158]/20 bg-black/30 p-2">
+                    <table>
+                      <thead>
                         <tr>
-                          <th className="p-3.5">Student Name</th>
-                          <th className="p-3.5">Admission No</th>
-                          <th className="p-3.5">Father / Guardian</th>
-                          <th className="p-3.5">Contact</th>
-                          <th className="p-3.5">Attendance</th>
-                          <th className="p-3.5 text-right">Academic GPA</th>
+                          <th>Student Name</th>
+                          <th>Admission No</th>
+                          <th>Guardian Phone</th>
+                          <th>Attendance</th>
+                          <th className="text-right">GPA</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 bg-white">
-                        {classDetail.students.map((stu) => (
-                          <tr key={stu.id} className="hover:bg-blue-50/50 transition-colors">
-                            <td className="p-3.5 font-bold text-brand-black flex items-center gap-2.5 whitespace-nowrap">
-                              <div className="w-7 h-7 rounded-full bg-brand-blue/10 text-brand-blue flex items-center justify-center text-[11px] font-bold border border-brand-blue/20 uppercase">
-                                {stu.full_name ? stu.full_name[0] : '?'}
-                              </div>
-                              {stu.full_name || 'Unknown Student'}
-                            </td>
-                            <td className="p-3.5 font-mono font-semibold text-gray-500 whitespace-nowrap">{stu.admission_number || '-'}</td>
-                            <td className="p-3.5 font-medium text-gray-700 whitespace-nowrap">{stu.father_name || '-'}</td>
-                            <td className="p-3.5 text-gray-600 flex items-center gap-1.5 font-mono font-medium whitespace-nowrap">
-                              <Phone className="w-3.5 h-3.5 text-brand-blue" />
-                              {stu.guardian_phone || '-'}
-                            </td>
-                            <td className="p-3.5 whitespace-nowrap">
-                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                {stu.attendance_pct || 0}%
-                              </span>
-                            </td>
-                            <td className="p-3.5 text-right font-bold text-brand-black whitespace-nowrap">{stu.gpa || '-'}</td>
+                      <tbody>
+                        {(classDetail.students || []).map((s) => (
+                          <tr key={s.id}>
+                            <td className="font-bold text-[#f4f0e6]">{s.full_name}</td>
+                            <td className="text-[#a3c9b0]">{s.admission_number || '-'}</td>
+                            <td className="text-[#a3c9b0]">{s.guardian_phone || '-'}</td>
+                            <td className="text-[#e5c158] font-semibold">{s.attendance_pct || 0}%</td>
+                            <td className="text-right font-bold text-[#f4f0e6]">{s.gpa || '-'}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                  ) : (
-                    <div className="p-8 text-center text-gray-500 text-sm bg-gray-50">
-                      No students have been assigned to this class yet.
-                    </div>
-                  )}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4 rounded-b-2xl">
-              <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2">
-                <Link
-                  href="/timetable"
-                  className="px-4 py-2.5 rounded-xl bg-brand-blue/10 border border-brand-blue/20 text-brand-blue text-xs font-bold hover:bg-brand-blue/20 transition-colors flex items-center justify-center gap-1.5 shadow-sm w-full sm:w-auto"
-                >
-                  <Calendar className="w-3.5 h-3.5 shrink-0" />
-                  <span className="whitespace-nowrap">Grade Timetable</span>
-                </Link>
-                <Link
-                  href="/attendance"
-                  className="px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1.5 shadow-sm w-full sm:w-auto"
-                >
-                  <CheckSquare className="w-3.5 h-3.5 shrink-0" />
-                  <span className="whitespace-nowrap">Attendance</span>
-                </Link>
-              </div>
-              <button
-                onClick={() => { setSelectedGrade(null); setClassDetail(null); }}
-                className="px-6 py-2.5 w-full sm:w-auto rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition-colors shadow-sm"
-              >
-                Close
-              </button>
-            </div>
-            </>
             ) : null}
-
           </div>
         </div>,
         document.body
       )}
 
-      {/* Dynamic Role Navigation Cards */}
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }} 
-        animate={{ y: 0, opacity: 1 }} 
-        transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-        className="space-y-4"
-      >
-        <h2 className="text-lg font-bold text-brand-black">
-          {isStudent ? 'Student Portals' : isTeacher ? 'Teaching & Class Management' : `${roleLabel} Operational Portals`}
-        </h2>
+      {/* PRESERVED: Role Portals rendered in 3D Emerald Glass Slabs */}
+      <div className="space-y-4">
+        <h3 className="text-base font-bold text-[#f4f0e6] font-syne flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#e5c158] shadow-[0_0_8px_#e5c158]" />
+          {isStudent ? 'Student Operations' : isTeacher ? 'Teaching Portals' : `${roleLabel} Operational Portals`}
+        </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {/* Superadmin Specific Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {isSuperAdmin && (
             <>
-              <Link href="/salary-approvals" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-emerald-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                    <DollarSign className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-emerald-600 transition-colors">Salary Approvals</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Monthly staff payroll clearance and allowance review.</p>
-                </div>
+              <Link href="/salary-approvals" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Salary Approvals</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Payroll clearance & allowance management.</p>
               </Link>
-
-              <Link href="/event-approvals" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-amber-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-amber-600 transition-colors">Approve Major Events</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Review proposed inter-school events, budgets, and schedules.</p>
-                </div>
+              <Link href="/event-approvals" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Approve Major Events</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Inter-school events & budget reviews.</p>
               </Link>
-
-              <Link href="/revenue" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-cyan-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-cyan-600 transition-colors">Monthly Revenue</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Fee collections breakdown by tuition, bus, hostel, and kit fees.</p>
-                </div>
-              </Link>
-
-              <Link href="/toppers" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-yellow-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
-                    <Trophy className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-yellow-600 transition-colors">Class Toppers List</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Top performing students across LKG–12th with GPA and subjects.</p>
-                </div>
+              <Link href="/revenue" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Monthly Revenue</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Tuition, bus, hostel collections breakdown.</p>
               </Link>
             </>
           )}
 
-          {/* Admin Specific Cards */}
           {isAdmin && (
             <>
-              <Link href="/pending-approvals" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-amber-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-amber-600 transition-colors">Pending Approvals Hub</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Consolidated staff leave requests, event proposals, and substitutions.</p>
-                </div>
+              <Link href="/pending-approvals" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Pending Approvals</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Consolidated leave & substitution requests.</p>
               </Link>
-
-              <Link href="/staff-management" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-indigo-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-indigo-600 transition-colors">Staff Management Hub</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Teacher attendance, staff council meetings, and faculty administration.</p>
-                </div>
+              <Link href="/staff-management" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Staff Management</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Faculty attendance & administration.</p>
               </Link>
-
-              <Link href="/workload" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-blue-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-                    <Activity className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-blue-600 transition-colors">Teachers Workload</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Monitor syllabus progress, teaching periods, and lag alerts.</p>
-                </div>
-              </Link>
-
-              <Link href="/reports" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-teal-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform">
-                    <FileSpreadsheet className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-teal-600 transition-colors">Operational Reports</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Daily, monthly, and annual attendance, fee, and administrative summaries.</p>
-                </div>
+              <Link href="/reports" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Operational Reports</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Attendance and financial reports.</p>
               </Link>
             </>
           )}
 
-          {/* Sub-admin Specific Cards */}
           {isVicePrincipal && (
             <>
-              <Link href="/timetable" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-cyan-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-cyan-600 transition-colors">Timetable Solver (Full Control)</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Generate schedules, resolve conflicts, and run AI substitution auto-assign.</p>
-                </div>
+              <Link href="/timetable" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Timetable Solver</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Schedules & AI substitution solver.</p>
               </Link>
-
-              <Link href="/classroom-allocation" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-purple-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                    <LayoutGrid className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-purple-600 transition-colors">Classroom Allocation</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">AI-assisted classroom and specialized laboratory capacity planner.</p>
-                </div>
+              <Link href="/classroom-allocation" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Classroom Allocation</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Laboratory & room capacity planner.</p>
               </Link>
-
-              <Link href="/exams" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-rose-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:scale-110 transition-transform">
-                    <FileCheck className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-rose-600 transition-colors">Examination Center</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Manage exam timetables, invigilator assignments, and hall seating.</p>
-                </div>
+              <Link href="/exams" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Examination Center</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Exams, invigilators, and hall seating.</p>
               </Link>
             </>
           )}
 
-          {/* Teacher Specific Cards */}
           {isTeacher && (
             <>
-              <Link href="/my-class" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-cyan-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
-                    <GraduationCap className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-cyan-600 transition-colors">My Class Teacher View</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Student roster, guardian contacts, and attendance rates for your assigned class.</p>
-                </div>
+              <Link href="/my-class" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">My Class View</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Student roster & guardian contacts.</p>
               </Link>
-
-              <Link href="/homework" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-amber-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                    <ClipboardList className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-amber-600 transition-colors">Homework Tracker</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Assign daily homework with due dates and submission logs.</p>
-                </div>
+              <Link href="/homework" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Homework Tracker</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Homework assignments & submission logs.</p>
               </Link>
-
-              <Link href="/doubts" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-violet-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
-                    <HelpCircle className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-violet-600 transition-colors">Doubts & Leave Approvals</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Answer student subject doubts and approve/reject leave requests.</p>
-                </div>
-              </Link>
-
-              <Link href="/announcements" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-yellow-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
-                    <Megaphone className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-yellow-600 transition-colors">Class Announcements</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Post notices, circulars, and test alerts to specific classes.</p>
-                </div>
-              </Link>
-
-              <Link href="/assign-toppers" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-fuchsia-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/30 flex items-center justify-center text-fuchsia-400 group-hover:scale-110 transition-transform">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-fuchsia-600 transition-colors">Assign Class Toppers</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Assign the academic toppers for your assigned class.</p>
-                </div>
+              <Link href="/doubts" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Doubts & Approvals</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Subject doubts & student leave requests.</p>
               </Link>
             </>
           )}
 
-          {/* Student Specific Cards */}
           {isStudent && (
             <>
-              <Link href="/homework" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-amber-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                    <ClipboardList className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-amber-600 transition-colors">My Homework</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">View homework assignments and due dates for your subjects.</p>
-                </div>
+              <Link href="/homework" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">My Homework</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Homework assignments & deadlines.</p>
               </Link>
-
-              <Link href="/exam-schedule" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-indigo-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                    <FileCheck className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-indigo-600 transition-colors">Exam Schedule</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Upcoming midterm & final timetables and exam hall seats.</p>
-                </div>
+              <Link href="/exam-schedule" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Exam Schedule</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Midterm & final examination timetables.</p>
               </Link>
-
-              <Link href="/queries" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-violet-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover:scale-110 transition-transform">
-                    <HelpCircle className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-violet-600 transition-colors">Ask Doubts & Apply Leave</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Ask questions to subject teachers or submit a leave request.</p>
-                </div>
-              </Link>
-
-              <Link href="/fees" className="group">
-                <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-emerald-500/50 hover:bg-gray-50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                    <DollarSign className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-base font-bold text-brand-black group-hover:text-emerald-600 transition-colors">Fee Payments</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">Pay tuition, bus, or hostel dues with instant digital receipts.</p>
-                </div>
+              <Link href="/fees" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">
+                <h4 className="font-bold text-sm text-[#f4f0e6] font-syne">Fee Payment Portal</h4>
+                <p className="text-xs text-[#a3c9b0] mt-1.5 leading-relaxed">Pay tuition, bus, or hostel dues.</p>
               </Link>
             </>
           )}
-
-          {/* Shared Standard Operations */}
-          <Link href="/calendar" className="group">
-            <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-indigo-500/50 hover:bg-gray-50 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                <CalendarDays className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-brand-black group-hover:text-indigo-600 transition-colors">Academic Calendar</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">Master school calendar for holidays, exams, tech fests, and meetings.</p>
-            </div>
-          </Link>
-
-          <Link href="/attendance" className="group">
-            <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-emerald-500/50 hover:bg-gray-50 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                <CheckSquare className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-brand-black group-hover:text-emerald-600 transition-colors">
-                {isStudent ? 'My Attendance' : 'Attendance & Logs'}
-              </h3>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                {isStudent ? 'Track personal attendance percentage.' : isManagement ? 'Per-grade present/absent matrix & staff stats.' : 'Batch marking & daily syllabus work log.'}
-              </p>
-            </div>
-          </Link>
-
-          <Link href="/timetable" className="group">
-            <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-indigo-500/50 hover:bg-gray-50 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-brand-black group-hover:text-indigo-600 transition-colors">Timetable Grid</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">Grade selector LKG–12th and period schedule.</p>
-            </div>
-          </Link>
-
-          <Link href="/portion" className="group">
-            <div className="bg-white p-6 rounded-[24px] h-full space-y-3 border border-gray-100 shadow-sm hover:border-amber-500/50 hover:bg-gray-50 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
-                <BookOpen className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-brand-black group-hover:text-amber-600 transition-colors">Portion Tracker</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">Syllabus node hierarchy and real-time completion tracking.</p>
-            </div>
-          </Link>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+
+    </div>
   );
 }
 
-export default function DashboardHome() {
+export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <DashboardContent />
