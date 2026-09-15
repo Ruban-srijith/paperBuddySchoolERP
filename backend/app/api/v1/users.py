@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from app.db.database import get_db
-from app.db.models import User, UserRole, Department, Student
+from app.db.models import User, UserRole, Department, Student, Class
 from app.core.auth import (
     hash_password, get_current_user, require_role
 )
@@ -153,35 +153,60 @@ async def update_user(
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL)),
 ):
     """Update user profile & role (Admin only)."""
-    result = await db.execute(select(User).where(User.id == user_id, User.school_id == current_user.school_id))
+    query = select(User).options(selectinload(User.department)).where(User.id == user_id)
+    if current_user.school_id and current_user.role != UserRole.SUPER_ADMIN:
+        query = query.where((User.school_id == current_user.school_id) | (User.school_id == None))
+    
+    result = await db.execute(query)
     user = result.scalars().first()
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     if req.full_name is not None:
-        user.full_name = req.full_name
+        user.full_name = req.full_name.strip()
     if req.role is not None:
         try:
-            user.role = UserRole(req.role)
+            user.role = UserRole(req.role.lower())
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid role: {req.role}")
     if req.department_id is not None:
-        user.department_id = req.department_id
+        user.department_id = req.department_id.strip() if req.department_id.strip() else None
     if req.assigned_grade is not None:
-        user.assigned_grade = req.assigned_grade
+        user.assigned_grade = req.assigned_grade.strip() if req.assigned_grade.strip() else None
     if req.phone is not None:
-        user.phone = req.phone
+        user.phone = req.phone.strip() if req.phone.strip() else None
     if req.roll_number is not None:
-        user.roll_number = req.roll_number
+        user.roll_number = req.roll_number.strip() if req.roll_number.strip() else None
     if req.admission_number is not None:
-        user.admission_number = req.admission_number
+        user.admission_number = req.admission_number.strip() if req.admission_number.strip() else None
     if req.age is not None:
         user.age = req.age
     if req.profile_picture is not None:
         user.profile_picture = req.profile_picture
     if req.is_active is not None:
         user.is_active = req.is_active
+
+    # If this user is a student, sync student record
+    if user.role == UserRole.STUDENT:
+        st_res = await db.execute(select(Student).where(Student.user_id == user.id))
+        student = st_res.scalars().first()
+        if student:
+            if req.full_name is not None:
+                student.full_name = user.full_name
+            if req.roll_number is not None:
+                student.roll_number = user.roll_number
+            if req.admission_number is not None:
+                student.admission_number = user.admission_number
+            if req.phone is not None:
+                student.guardian_phone = user.phone
+            if req.assigned_grade is not None and req.assigned_grade.strip():
+                # Try finding matching class
+                clean_g = req.assigned_grade.strip().upper()
+                c_res = await db.execute(select(Class).where(Class.grade == clean_g))
+                found_c = c_res.scalars().first()
+                if found_c:
+                    student.class_id = found_c.id
 
     await db.commit()
 
@@ -192,6 +217,33 @@ async def update_user(
     updated = result.scalars().first()
 
     return _user_to_response(updated)
+
+
+@router.delete("/{user_id}")
+async def delete_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL)),
+):
+    """Delete or deactivate user (Super Admin / Principal only)."""
+    query = select(User).where(User.id == user_id)
+    if current_user.school_id and current_user.role != UserRole.SUPER_ADMIN:
+        query = query.where((User.school_id == current_user.school_id) | (User.school_id == None))
+    
+    result = await db.execute(query)
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Also remove student record if exists
+    st_res = await db.execute(select(Student).where(Student.user_id == user.id))
+    st = st_res.scalars().first()
+    if st:
+        await db.delete(st)
+
+    await db.delete(user)
+    await db.commit()
+    return {"status": "success", "message": f"User {user.full_name} deleted successfully"}
 
 
 @router.get("/by-role/{role}")

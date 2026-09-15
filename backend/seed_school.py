@@ -24,8 +24,18 @@ Usage:
 import asyncio
 import uuid
 import sys
+import os
 import random
 from datetime import datetime, date, timezone, timedelta
+
+# Load .env before importing app modules (needed when running directly)
+try:
+    from dotenv import load_dotenv
+    _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    load_dotenv(dotenv_path=_env_path)
+except ImportError:
+    pass  # dotenv not installed — env vars must be set externally
+
 from app.db.database import AsyncSessionLocal, engine, Base
 from app.db.models import (
     School, User, Student, Class, Subject, Department,
@@ -69,16 +79,24 @@ TAMIL_LAST = [
     "Lingam", "Chinnaraj", "Manimaran", "Palanivel", "Elumalai", "Jayaraman",
 ]
 TEACHER_FIRST = [
+    # Group 1 — Tamil/Lang specialists
     "Balasubramanian", "Thirumoorthy", "Meenakshi", "Chandrasekaran", "Sivasubramanian",
-    "Rajalakshmi", "Annapoorna", "Venkateswaran", "Parasuraman", "Kamakshi",
+    "Rajalakshmi", "Thamayanthi", "Murugesan", "Komalavalli", "Sumathilatha",
+    "Ponselvi", "Malarvizhi",
+    # Group 2 — Math/Science specialists
+    "Annapoorna", "Venkateswaran", "Parasuraman", "Kamakshi",
     "Kalaiselvi", "Dhanabalan", "Indhumathi", "Sugumar", "Annapoorani",
-    "Krishnamurthy", "Sivakami", "Radhakrishnan", "Nallamuthu", "Thenmozhi",
-    "Palaniswami", "Subramanian", "Soundarya", "Ravichandran", "Umamaheswari",
-    "Sathiyamoorthy", "Parimalam", "Elanchezhian", "Vijayalakshmi", "Muthusamy",
-    "Arumugam", "Ponselvi", "Devarajan", "Malarvizhi", "Saravanakumar",
-    "Komalavalli", "Murugesan", "Nithyanandam", "Sumathilatha", "Ponnambalam",
-    "Ganapathi", "Thamayanthi", "Karunakaran", "Sakunthala", "Velusamy",
-    "Vasanthalakshmi", "Senthilkumar", "Kamalakannan", "Rathinavelu", "Madhivanan",
+    "Krishnamurthy", "Sivakami", "Radhakrishnan",
+    "Palaniswami", "Subramanian", "Ganapathi", "Karunakaran",
+    # Group 3 — Commerce/Social specialists
+    "Nallamuthu", "Thenmozhi", "Soundarya", "Ravichandran",
+    "Umamaheswari", "Sathiyamoorthy", "Nithyanandam", "Ponnambalam",
+    "Saravanakumar", "Vijayalakshmi", "Devarajan", "Arumugam",
+    # Group 4 — PE/Arts/Others
+    "Parimalam", "Elanchezhian", "Muthusamy", "Velusamy",
+    "Vasanthalakshmi", "Senthilkumar", "Kamalakannan", "Rathinavelu",
+    "Sakunthala", "Madhivanan", "Thamizharasi", "Periyanayagam",
+    "Karpagam", "Ezhilarasi", "Sundareswaran", "Mahalingam",
 ]
 
 # ─── Class Structure ───────────────────────────────────────────────────
@@ -94,7 +112,7 @@ HIGHER_SEC_SECTIONS = ["BioPCM", "PCM-CS", "Commerce"]
 
 STUDENTS_PER_CLASS = 30
 
-# ─── Departments ───────────────────────────────────────────────────────
+# ─── Departments (13 total) ────────────────────────────────────────────
 DEPARTMENTS = [
     {"name": "Tamil",               "code": "TAM"},
     {"name": "English",             "code": "ENG"},
@@ -107,81 +125,110 @@ DEPARTMENTS = [
     {"name": "Computer Science",    "code": "CS"},
     {"name": "Commerce",            "code": "COM"},
     {"name": "Accountancy",         "code": "ACC"},
+    {"name": "Economics",           "code": "ECO"},  # NEW — required for Commerce stream
     {"name": "Physical Education",  "code": "PE"},
 ]
 
-# ─── Subjects by Department ────────────────────────────────────────────
+# ─── Subjects by Department (32 subjects) ─────────────────────────────
 SUBJECTS_DEF = [
     # code, name, dept_code, applicable_grades
-    ("TAM-K",  "Tamil (Kindergarten)",   "TAM",  "LKG,UKG"),
-    ("ENG-K",  "English (Kindergarten)", "ENG",  "LKG,UKG"),
-    ("TAM-P",  "Tamil (Primary)",        "TAM",  "1,2,3,4,5"),
-    ("ENG-P",  "English (Primary)",      "ENG",  "1,2,3,4,5"),
-    ("MATH-P", "Mathematics (Primary)",  "MATH", "1,2,3,4,5"),
-    ("SCI-P",  "Environmental Science",  "SCI",  "1,2,3,4,5"),
-    ("SOC-P",  "Social Science (Pri)",   "SOC",  "1,2,3,4,5"),
-    ("TAM-M",  "Tamil (Middle)",         "TAM",  "6,7,8"),
-    ("ENG-M",  "English (Middle)",       "ENG",  "6,7,8"),
-    ("MATH-M", "Mathematics (Middle)",   "MATH", "6,7,8"),
-    ("SCI-M",  "Science (Middle)",       "SCI",  "6,7,8"),
-    ("SOC-M",  "Social Science (Mid)",   "SOC",  "6,7,8"),
-    ("TAM-S",  "Tamil (Secondary)",      "TAM",  "9,10"),
-    ("ENG-S",  "English (Secondary)",    "ENG",  "9,10"),
-    ("MATH-S", "Mathematics (Sec)",      "MATH", "9,10"),
-    ("SCI-S",  "Science (Secondary)",    "SCI",  "9,10"),
-    ("SOC-S",  "Social Science (Sec)",   "SOC",  "9,10"),
-    ("TAM-H",  "Tamil (Higher Sec)",     "TAM",  "11,12"),
-    ("ENG-H",  "English (Higher Sec)",   "ENG",  "11,12"),
-    ("PHY-H",  "Physics",               "PHY",  "11,12"),
-    ("CHEM-H", "Chemistry",             "CHEM", "11,12"),
-    ("BIO-H",  "Biology",               "BIO",  "11,12"),
-    ("MATH-H", "Mathematics (HS)",      "MATH", "11,12"),
-    ("CS-H",   "Computer Science (HS)", "CS",   "11,12"),
-    ("COM-H",  "Commerce",              "COM",  "11,12"),
-    ("ACC-H",  "Accountancy",           "ACC",  "11,12"),
-    ("PE-ALL", "Physical Education",    "PE",   "1,2,3,4,5,6,7,8,9,10,11,12"),
+    ("TAM-K",  "Tamil (Kindergarten)",          "TAM",  "LKG,UKG"),
+    ("ENG-K",  "English (Kindergarten)",        "ENG",  "LKG,UKG"),
+    ("TAM-P",  "Tamil (Primary)",               "TAM",  "1,2,3,4,5"),
+    ("ENG-P",  "English (Primary)",             "ENG",  "1,2,3,4,5"),
+    ("MATH-P", "Mathematics (Primary)",         "MATH", "1,2,3,4,5"),
+    ("SCI-P",  "Environmental Science",         "SCI",  "1,2,3,4,5"),
+    ("SOC-P",  "Social Science (Primary)",      "SOC",  "1,2,3,4,5"),
+    ("TAM-M",  "Tamil (Middle)",                "TAM",  "6,7,8"),
+    ("ENG-M",  "English (Middle)",              "ENG",  "6,7,8"),
+    ("MATH-M", "Mathematics (Middle)",          "MATH", "6,7,8"),
+    ("SCI-M",  "Science (Middle)",              "SCI",  "6,7,8"),
+    ("SOC-M",  "Social Science (Middle)",       "SOC",  "6,7,8"),
+    ("CS-M",   "Computer Basics (Middle)",      "CS",   "6,7,8"),
+    ("TAM-S",  "Tamil (Secondary)",             "TAM",  "9,10"),
+    ("ENG-S",  "English (Secondary)",           "ENG",  "9,10"),
+    ("MATH-S", "Mathematics (Secondary)",       "MATH", "9,10"),
+    ("SCI-S",  "Science (Secondary)",           "SCI",  "9,10"),
+    ("SOC-S",  "Social Science (Secondary)",    "SOC",  "9,10"),
+    ("CS-S",   "Computer Science (Secondary)",  "CS",   "9,10"),
+    ("TAM-H",  "Tamil (Higher Sec)",            "TAM",  "11,12"),
+    ("ENG-H",  "English (Higher Sec)",          "ENG",  "11,12"),
+    ("PHY-H",  "Physics",                       "PHY",  "11,12"),
+    ("CHEM-H", "Chemistry",                     "CHEM", "11,12"),
+    ("BIO-H",  "Biology",                       "BIO",  "11,12"),
+    ("MATH-H", "Mathematics (Higher Sec)",      "MATH", "11,12"),
+    ("CS-H",   "Computer Science (Higher Sec)", "CS",   "11,12"),
+    ("COM-H",  "Commerce",                      "COM",  "11,12"),
+    ("ACC-H",  "Accountancy",                   "ACC",  "11,12"),
+    ("ECO-H",  "Economics",                     "ECO",  "11,12"),  # NEW
+    ("PE-ALL", "Physical Education",            "PE",   "1,2,3,4,5,6,7,8,9,10,11,12"),
+    ("ART-P",  "Drawing & Craft (Primary)",     "PE",   "1,2,3,4,5"),
+    ("MUSIC",  "Music & Fine Arts",             "PE",   "6,7,8,9,10"),
 ]
 
-# ─── Teacher definitions — dept, major/specialty ───────────────────────
-# Format: (name_index, dept_code, major, teaches_grades)
+# ─── Teacher definitions — 47 teachers across 13 departments ──────────
+# Format: (dept_code, major/specialty, teaches_grades)
 TEACHER_DEFS = [
-    # Tamil (3 teachers)
-    ("TAM", "Tamil Language & Literature",          "LKG,UKG,1,2,3,4,5"),
-    ("TAM", "Tamil Grammar & Composition",          "6,7,8,9,10"),
-    ("TAM", "Tamil Literature (Higher Secondary)",  "11,12"),
-    # English (3 teachers)
-    ("ENG", "English Language & Communication",     "LKG,UKG,1,2,3,4,5"),
-    ("ENG", "English Literature & Grammar",         "6,7,8,9,10"),
-    ("ENG", "English Literature (Higher Secondary)","11,12"),
-    # Mathematics (4 teachers)
-    ("MATH", "Primary Mathematics",                 "1,2,3,4,5"),
-    ("MATH", "Middle School Mathematics",           "6,7,8"),
-    ("MATH", "Secondary Mathematics & Statistics",  "9,10"),
-    ("MATH", "Higher Secondary Mathematics",        "11,12"),
-    # Science / Physics / Chemistry / Biology
-    ("SCI",  "Environmental & General Science",     "1,2,3,4,5,6,7,8"),
-    ("SCI",  "Secondary Science",                   "9,10"),
-    ("PHY",  "Physics (Mechanics & Optics)",        "11,12"),
-    ("PHY",  "Physics (Electricity & Magnetism)",   "11,12"),
-    ("CHEM", "Inorganic & Organic Chemistry",       "11,12"),
-    ("CHEM", "Physical Chemistry & Practicals",     "11,12"),
-    ("BIO",  "Botany & Zoology",                    "11,12"),
-    ("BIO",  "Human Physiology & Genetics",         "11,12"),
-    # Social Science (2 teachers)
-    ("SOC",  "History & Civics (Primary)",          "1,2,3,4,5,6,7,8"),
-    ("SOC",  "Geography & Economics (Secondary)",   "9,10"),
-    # Computer Science (2 teachers)
-    ("CS",   "Python Programming & Algorithms",     "11,12"),
-    ("CS",   "Database Systems & Networks",         "11,12"),
-    # Commerce (2 teachers)
-    ("COM",  "Business Studies & Management",       "11,12"),
-    ("COM",  "Economics & Business Environment",    "11,12"),
-    # Accountancy (2 teachers)
-    ("ACC",  "Financial Accounting",                "11,12"),
-    ("ACC",  "Cost & Management Accounting",        "11,12"),
-    # Physical Education (2 teachers)
-    ("PE",   "Sports Science & Yoga",               "1,2,3,4,5,6,7,8"),
-    ("PE",   "Athletics & Team Sports",             "9,10,11,12"),
+    # ── Tamil (6 teachers) ──────────────────────────────────────────────
+    ("TAM", "Tamil Language & Early Literacy (KG)",         "LKG,UKG"),
+    ("TAM", "Tamil Language & Literature (Primary)",        "1,2,3,4,5"),
+    ("TAM", "Tamil Grammar & Prose (Middle)",               "6,7,8"),
+    ("TAM", "Tamil Poetry & Comprehension (Secondary)",     "9,10"),
+    ("TAM", "Tamil Literature & Essay (Higher Sec)",        "11,12"),
+    ("TAM", "Tamil Oratory & Classical Literature",         "9,10,11,12"),
+    # ── English (6 teachers) ────────────────────────────────────────────
+    ("ENG", "English Communication & Phonics (KG)",         "LKG,UKG"),
+    ("ENG", "English Language & Reading (Primary)",         "1,2,3,4,5"),
+    ("ENG", "English Grammar & Comprehension (Middle)",     "6,7,8"),
+    ("ENG", "English Literature & Writing (Secondary)",     "9,10"),
+    ("ENG", "English Literature (Higher Sec)",              "11,12"),
+    ("ENG", "Communicative English & Spoken Skills",        "8,9,10,11,12"),
+    # ── Mathematics (6 teachers) ────────────────────────────────────────
+    ("MATH", "Number Concepts & Arithmetic (Primary 1-3)",  "1,2,3"),
+    ("MATH", "Fractions, Geometry & Algebra (Primary 4-5)", "4,5"),
+    ("MATH", "Middle School Mathematics",                   "6,7,8"),
+    ("MATH", "Secondary Mathematics & Statistics",          "9,10"),
+    ("MATH", "Higher Secondary Mathematics (Calculus)",     "11,12"),
+    ("MATH", "Higher Secondary Mathematics (Statistics)",   "11,12"),
+    # ── Science (4 teachers) ────────────────────────────────────────────
+    ("SCI",  "Environmental Science (Primary 1-3)",         "1,2,3"),
+    ("SCI",  "Environmental Science (Primary 4-5)",         "4,5"),
+    ("SCI",  "General Science (Middle)",                    "6,7,8"),
+    ("SCI",  "Secondary Science & Lab Skills",              "9,10"),
+    # ── Physics (3 teachers) ────────────────────────────────────────────
+    ("PHY",  "Physics — Mechanics, Heat & Optics",          "11,12"),
+    ("PHY",  "Physics — Electricity, Magnetism & Modern",   "11,12"),
+    ("PHY",  "Physics Lab & Practical Coordinator",         "11,12"),
+    # ── Chemistry (3 teachers) ──────────────────────────────────────────
+    ("CHEM", "Inorganic & Organic Chemistry",               "11,12"),
+    ("CHEM", "Physical Chemistry & Electrochemistry",       "11,12"),
+    ("CHEM", "Chemistry Lab & Practical Coordinator",       "11,12"),
+    # ── Biology (2 teachers) ────────────────────────────────────────────
+    ("BIO",  "Botany & Plant Physiology",                   "11,12"),
+    ("BIO",  "Zoology, Human Physiology & Genetics",        "11,12"),
+    # ── Social Science (4 teachers) ─────────────────────────────────────
+    ("SOC",  "History & Civics (Primary)",                  "1,2,3,4,5"),
+    ("SOC",  "History & Geography (Middle)",                "6,7,8"),
+    ("SOC",  "Civics & Indian Economy (Secondary)",         "9,10"),
+    ("SOC",  "Political Science & History (Secondary)",     "9,10"),
+    # ── Computer Science (3 teachers) ───────────────────────────────────
+    ("CS",   "Computer Basics & MS Office (Middle)",        "6,7,8"),
+    ("CS",   "Python Programming & Data Structures (HS)",   "9,10,11,12"),
+    ("CS",   "Database Systems, Networks & Web Dev (HS)",   "11,12"),
+    # ── Commerce (2 teachers) ───────────────────────────────────────────
+    ("COM",  "Business Studies & Entrepreneurship",         "11,12"),
+    ("COM",  "Marketing, Management & Business Law",        "11,12"),
+    # ── Accountancy (2 teachers) ────────────────────────────────────────
+    ("ACC",  "Financial Accounting & Bookkeeping",          "11,12"),
+    ("ACC",  "Cost Accounting & Management Accounting",     "11,12"),
+    # ── Economics (2 teachers — NEW) ────────────────────────────────────
+    ("ECO",  "Micro Economics & Consumer Theory",           "11,12"),
+    ("ECO",  "Macro Economics, National Income & Banking",  "11,12"),
+    # ── Physical Education (4 teachers) ─────────────────────────────────
+    ("PE",   "Sports Science, Yoga & Drawing (Primary)",    "LKG,UKG,1,2,3,4,5"),
+    ("PE",   "Athletics, Team Sports & Fitness (Middle)",   "6,7,8"),
+    ("PE",   "Advanced Athletics & NCC (Secondary)",        "9,10"),
+    ("PE",   "Sports Training & Games (Higher Sec)",        "11,12"),
 ]
 
 # ─── Helpers ───────────────────────────────────────────────────────────
@@ -234,317 +281,247 @@ def make_student_name(gender: str) -> str:
 def make_teacher_name(idx: int) -> str:
     return TEACHER_FIRST[idx % len(TEACHER_FIRST)]
 
-# ─── Main Seed ─────────────────────────────────────────────────────────
+# ─── Main Seed (phase-isolated sessions to avoid Neon timeout) ─────────
 async def seed():
+    from sqlalchemy import text, select
+
     print("=" * 60)
-    print("PaperBuddy School Seeder — Full 500-student run")
+    print("PaperBuddy School Seeder — 47 Teachers / 500 Students")
     print("=" * 60)
 
-    if DROP_FIRST:
-        print("\n[1/7] Dropping and recreating tables...")
-        async with engine.begin() as conn:
-            from sqlalchemy import text
-            if "postgresql" in str(engine.url):
-                tables = (
-                    "position_attributes, students, attendance, "
-                    "timetables, homeworks, assignments, lab_assignments, syllabus_nodes, "
-                    "subjects, classes, departments, users"
-                )
-                try:
-                    await conn.execute(text(f"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE;"))
-                    print("  Truncated relevant tables.")
-                except Exception as e:
-                    print(f"  Truncate notice: {e}")
-            else:
-                await conn.run_sync(Base.metadata.drop_all)
-                await conn.run_sync(Base.metadata.create_all)
-        print("  Done.")
-    else:
-        print("\n[1/7] Creating tables if they don't exist...")
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        print("  Done.")
+    # ── Phase 0: Drop / Create Tables ─────────────────────────────
+    print("\n[0/7] Preparing schema...")
+    async with engine.begin() as conn:
+        if DROP_FIRST and "postgresql" in str(engine.url):
+            tables = (
+                "position_attributes, students, attendance, "
+                "timetables, homeworks, assignments, lab_assignments, syllabus_nodes, "
+                "subjects, classes, departments, users"
+            )
+            try:
+                await conn.execute(text(f"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE;"))
+                print("  Truncated tables.")
+            except Exception as e:
+                print(f"  Truncate notice: {e}")
+        elif DROP_FIRST:
+            await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+    print("  Schema ready.")
 
-    async with AsyncSessionLocal() as session:
-        from sqlalchemy import text, select
-
-        # ── Resolve school ──────────────────────────────────────────
-        print("\n[2/7] Resolving school record...")
-        result = await session.execute(select(School).where(School.id == SCHOOL_ID))
-        school = result.scalars().first()
-        if not school:
-            school = School(
+    # ── Phase 1: School ────────────────────────────────────────────
+    print("\n[1/7] School record...")
+    async with AsyncSessionLocal() as s:
+        res = await s.execute(select(School).where(School.id == SCHOOL_ID))
+        if not res.scalars().first():
+            s.add(School(
                 id=SCHOOL_ID,
                 name="Bharathi Matriculation Hr. Sec. School",
                 address="104 Gandhi Road, Anna Nagar, Chennai, Tamil Nadu 600040",
                 contact_email="admin@bharathischool.edu"
-            )
-            session.add(school)
-            await session.flush()
+            ))
+            await s.commit()
             print("  Created school.")
         else:
-            print("  School already exists — reusing.")
+            print("  School already exists.")
 
-        # ── Departments ────────────────────────────────────────────
-        print("\n[3/7] Creating departments...")
-        dept_map: dict[str, Department] = {}
+    # ── Phase 2: Departments ───────────────────────────────────────
+    print("\n[2/7] Departments...")
+    dept_id_map: dict[str, str] = {}
+    async with AsyncSessionLocal() as s:
         for dept_def in DEPARTMENTS:
-            result = await session.execute(
-                select(Department).where(Department.code == dept_def["code"])
-            )
-            existing = result.scalars().first()
+            res = await s.execute(select(Department).where(Department.code == dept_def["code"]))
+            existing = res.scalars().first()
             if existing:
-                dept_map[dept_def["code"]] = existing
+                dept_id_map[dept_def["code"]] = existing.id
             else:
-                d = Department(
-                    id=uid(),
-                    school_id=SCHOOL_ID,
-                    name=dept_def["name"],
-                    code=dept_def["code"],
-                )
-                session.add(d)
-                dept_map[dept_def["code"]] = d
-        await session.flush()
-        print(f"  {len(dept_map)} departments ready.")
+                d = Department(id=uid(), school_id=SCHOOL_ID, name=dept_def["name"], code=dept_def["code"])
+                s.add(d)
+                await s.flush()
+                dept_id_map[dept_def["code"]] = d.id
+        await s.commit()
+    print(f"  {len(dept_id_map)} departments ready.")
 
-        # ── Subjects ───────────────────────────────────────────────
-        print("\n[4/7] Creating subjects...")
-        subject_map: dict[str, Subject] = {}
+    # ── Phase 3: Subjects ─────────────────────────────────────────
+    print("\n[3/7] Subjects...")
+    subj_id_map: dict[str, str] = {}
+    async with AsyncSessionLocal() as s:
         for (code, name, dept_code, grades) in SUBJECTS_DEF:
-            result = await session.execute(
-                select(Subject).where(Subject.code == code)
-            )
-            existing = result.scalars().first()
+            res = await s.execute(select(Subject).where(Subject.code == code))
+            existing = res.scalars().first()
             if existing:
-                subject_map[code] = existing
+                subj_id_map[code] = existing.id
             else:
-                s = Subject(
-                    id=uid(),
-                    school_id=SCHOOL_ID,
-                    code=code,
-                    name=name,
-                    department_id=dept_map[dept_code].id,
-                    applicable_grades=grades,
-                )
-                session.add(s)
-                subject_map[code] = s
-        await session.flush()
-        print(f"  {len(subject_map)} subjects ready.")
+                sub = Subject(id=uid(), school_id=SCHOOL_ID, code=code, name=name,
+                              department_id=dept_id_map[dept_code], applicable_grades=grades)
+                s.add(sub)
+                await s.flush()
+                subj_id_map[code] = sub.id
+        await s.commit()
+    print(f"  {len(subj_id_map)} subjects ready.")
 
-        # ── Classes ────────────────────────────────────────────────
-        print("\n[5/7] Creating classes...")
-        class_map: dict[str, Class] = {}
-
-        # Grades LKG–10: 2 sections each
+    # ── Phase 4: Classes ───────────────────────────────────────────
+    print("\n[4/7] Classes...")
+    class_map: dict[str, str] = {}  # key → class.id
+    async with AsyncSessionLocal() as s:
         for grade in STANDARD_GRADES_2SEC:
             for section in STANDARD_SECTIONS_2SEC:
                 key = f"{grade}-{section}"
-                result = await session.execute(
-                    select(Class).where(Class.grade == grade, Class.section == section)
-                )
-                existing = result.scalars().first()
+                res = await s.execute(select(Class).where(Class.grade == grade, Class.section == section))
+                existing = res.scalars().first()
                 if existing:
-                    class_map[key] = existing
+                    class_map[key] = existing.id
                 else:
-                    c = Class(
-                        id=uid(),
-                        school_id=SCHOOL_ID,
-                        grade=grade,
-                        section=section,
-                    )
-                    session.add(c)
-                    class_map[key] = c
+                    c = Class(id=uid(), school_id=SCHOOL_ID, grade=grade, section=section)
+                    s.add(c)
+                    await s.flush()
+                    class_map[key] = c.id
 
-        # Grades 11–12: 3 stream sections each
         for grade in HIGHER_SEC_GRADES:
             for section in HIGHER_SEC_SECTIONS:
                 key = f"{grade}-{section}"
-                result = await session.execute(
-                    select(Class).where(Class.grade == grade, Class.section == section)
-                )
-                existing = result.scalars().first()
+                res = await s.execute(select(Class).where(Class.grade == grade, Class.section == section))
+                existing = res.scalars().first()
                 if existing:
-                    class_map[key] = existing
+                    class_map[key] = existing.id
                 else:
-                    c = Class(
-                        id=uid(),
-                        school_id=SCHOOL_ID,
-                        grade=grade,
-                        section=section,
-                    )
-                    session.add(c)
-                    class_map[key] = c
+                    c = Class(id=uid(), school_id=SCHOOL_ID, grade=grade, section=section)
+                    s.add(c)
+                    await s.flush()
+                    class_map[key] = c.id
+        await s.commit()
+    print(f"  {len(class_map)} classes ready.")
 
-        await session.flush()
-        total_classes = len(class_map)
-        print(f"  {total_classes} classes created.")
-
-        # ── Teachers ───────────────────────────────────────────────
-        print("\n[6/7] Creating teachers...")
-        teachers: list[User] = []
-        teacher_idx = 0
-
-        for (dept_code, major, teaches_grades) in TEACHER_DEFS:
-            name = make_teacher_name(teacher_idx)
+    # ── Phase 5: Teachers ─────────────────────────────────────────
+    print("\n[5/7] Creating teachers...")
+    teacher_ids: list[str] = []
+    async with AsyncSessionLocal() as s:
+        for idx, (dept_code, major, teaches_grades) in enumerate(TEACHER_DEFS):
+            name = make_teacher_name(idx)
             emp_no = next_teacher_emp()
             email = f"teacher.{slug(name)}.{emp_no.lower()}@bharathischool.edu"
-
             t = User(
-                id=uid(),
-                school_id=SCHOOL_ID,
-                email=email,
-                full_name=name,
-                role=UserRole.TEACHER,
-                password_hash=DEFAULT_PWD,
-                department_id=dept_map[dept_code].id,
+                id=uid(), school_id=SCHOOL_ID,
+                email=email, full_name=name,
+                role=UserRole.TEACHER, password_hash=DEFAULT_PWD,
+                department_id=dept_id_map[dept_code],
                 phone=f"9{random.randint(100000000, 999999999)}",
                 is_active=True,
             )
-            session.add(t)
-            teachers.append(t)
-            teacher_idx += 1
+            s.add(t)
+            await s.flush()
+            teacher_ids.append(t.id)
+        await s.commit()
+    print(f"  {len(teacher_ids)} teachers created.")
 
-        await session.flush()
-        print(f"  {len(teachers)} teachers created.")
-
-        # ── Assign class teachers (cycle through teachers) ─────────
-        print("  Assigning class teachers...")
-        all_class_ids = list(class_map.values())
-        for i, cls in enumerate(all_class_ids):
-            teacher = teachers[i % len(teachers)]
-            cls.class_teacher_id = teacher.id
-
-        # Also add PositionAttribute for each teacher→class assignment
-        for i, cls in enumerate(all_class_ids):
-            teacher = teachers[i % len(teachers)]
+    # ── Phase 5b: Assign class teachers ───────────────────────────
+    print("  Assigning class teachers...")
+    all_class_keys_ordered = (
+        [f"{g}-{s}" for g in STANDARD_GRADES_2SEC for s in STANDARD_SECTIONS_2SEC] +
+        [f"{g}-{s}" for g in HIGHER_SEC_GRADES for s in HIGHER_SEC_SECTIONS]
+    )
+    async with AsyncSessionLocal() as s:
+        for i, key in enumerate(all_class_keys_ordered):
+            class_id = class_map[key]
+            teacher_id = teacher_ids[i % len(teacher_ids)]
+            cls = await s.get(Class, class_id)
+            if cls:
+                cls.class_teacher_id = teacher_id
             pa = PositionAttribute(
-                id=uid(),
-                user_id=teacher.id,
+                id=uid(), user_id=teacher_id,
                 attribute_type="class_teacher_of",
-                attribute_value=cls.id,
+                attribute_value=class_id,
             )
-            session.add(pa)
+            s.add(pa)
+        await s.commit()
+    print("  Class teachers assigned.")
 
-        await session.flush()
-        print("  Class teachers assigned.")
+    # ── Phase 6: Students (batched by class, fresh session each) ──
+    print("\n[6/7] Creating 500 students across ALL 30 classes...")
 
-        # ── Students ───────────────────────────────────────────────
-        print("\n[7/7] Creating students across ALL 30 classes...")
+    lower_keys = [f"{g}-{s}" for g in STANDARD_GRADES_2SEC for s in STANDARD_SECTIONS_2SEC]
+    higher_keys = [f"{g}-{s}" for g in HIGHER_SEC_GRADES for s in HIGHER_SEC_SECTIONS]
+    STUDENTS_HIGHER = 30
+    STUDENTS_LOWER_TOTAL = 500 - (len(higher_keys) * STUDENTS_HIGHER)
+    base = STUDENTS_LOWER_TOTAL // len(lower_keys)
+    extra = STUDENTS_LOWER_TOTAL % len(lower_keys)
+    allocation: dict[str, int] = {}
+    for i, k in enumerate(lower_keys):
+        allocation[k] = base + (1 if i < extra else 0)
+    for k in higher_keys:
+        allocation[k] = STUDENTS_HIGHER
 
-        # Distribution strategy:
-        # - 11th & 12th (6 classes × 3 streams): 30 students each → 180 total
-        # - LKG–10th (24 classes): remaining 320 students → ~13-14 per class
-        # Grand total ≈ 500 students, every class gets students
+    FATHER_FIRST = ["Murugan","Rajan","Selvam","Pandian","Ponnusamy","Arumugam",
+                    "Shanmugam","Subramaniam","Venkataraman","Ganesan","Balakrishnan",
+                    "Thangavel","Muthukumar"]
+    MOTHER_FIRST = ["Meena","Kavitha","Saranya","Deepa","Sujatha","Revathi",
+                    "Lakshmi","Nalini","Padmavathi","Usha"]
+    AREAS = ['Anna Nagar','T Nagar','Adyar','Tambaram','Chromepet','Velachery','Porur','Ambattur']
 
-        lower_class_keys = [
-            f"{g}-{s}" for g in STANDARD_GRADES_2SEC for s in STANDARD_SECTIONS_2SEC
-        ]  # 24 classes
-        higher_class_keys = [
-            f"{g}-{s}" for g in HIGHER_SEC_GRADES for s in HIGHER_SEC_SECTIONS
-        ]  # 6 classes
+    total_students = 0
+    for class_key in all_class_keys_ordered:
+        count = allocation[class_key]
+        class_id = class_map[class_key]
+        grade_val = class_key.split("-")[0]
+        section_val = class_key.split("-", 1)[1]
 
-        STUDENTS_HIGHER = 30          # 30 per 11th/12th stream class
-        STUDENTS_LOWER_TOTAL = 500 - (len(higher_class_keys) * STUDENTS_HIGHER)  # 320
-        base_per_lower = STUDENTS_LOWER_TOTAL // len(lower_class_keys)            # 13
-        extra_lower = STUDENTS_LOWER_TOTAL % len(lower_class_keys)               # 8 extras
-
-        # Build per-class allocation map
-        class_allocation: dict[str, int] = {}
-        for i, key in enumerate(lower_class_keys):
-            class_allocation[key] = base_per_lower + (1 if i < extra_lower else 0)
-        for key in higher_class_keys:
-            class_allocation[key] = STUDENTS_HIGHER
-
-        all_class_keys = lower_class_keys + higher_class_keys
-
-        students_created = 0
-        roll_counters: dict[str, int] = {}
-
-        FATHER_FIRST = [
-            "Murugan", "Rajan", "Selvam", "Pandian", "Ponnusamy",
-            "Arumugam", "Shanmugam", "Subramaniam", "Venkataraman",
-            "Ganesan", "Balakrishnan", "Thangavel", "Muthukumar",
-        ]
-        MOTHER_FIRST = [
-            "Meena", "Kavitha", "Saranya", "Deepa", "Sujatha",
-            "Revathi", "Lakshmi", "Nalini", "Padmavathi", "Usha",
-        ]
-
-        for class_key in all_class_keys:
-            cls = class_map[class_key]
-            grade = cls.grade
-            count_in_class = class_allocation[class_key]
-            roll_counters[class_key] = 0
-
-            for i in range(count_in_class):
+        # Fresh session per class to avoid Neon timeout
+        async with AsyncSessionLocal() as s:
+            for i in range(count):
                 gender = random.choice(GENDERS)
                 full_name = make_student_name(gender)
                 adm = next_student_admission()
-                roll_counters[class_key] += 1
-                roll = f"{grade}{cls.section}{roll_counters[class_key]:02d}"
-                min_age, max_age = student_age_for_grade(grade)
+                roll = f"{grade_val}{section_val}{(i+1):02d}"
+                min_age, max_age = student_age_for_grade(grade_val)
                 dob = rand_dob(min_age, max_age)
-
                 email = f"student.{adm.lower()}@bharathischool.edu"
 
                 u = User(
-                    id=uid(),
-                    school_id=SCHOOL_ID,
-                    email=email,
-                    full_name=full_name,
-                    role=UserRole.STUDENT,
-                    password_hash=DEFAULT_PWD,
-                    assigned_grade=grade,
-                    roll_number=roll,
-                    admission_number=adm,
+                    id=uid(), school_id=SCHOOL_ID,
+                    email=email, full_name=full_name,
+                    role=UserRole.STUDENT, password_hash=DEFAULT_PWD,
+                    assigned_grade=grade_val,
+                    roll_number=roll, admission_number=adm,
                     phone=f"9{random.randint(100000000, 999999999)}",
                     is_active=True,
                 )
-                session.add(u)
-                await session.flush()
+                s.add(u)
+                await s.flush()
 
-                father_name = f"{random.choice(FATHER_FIRST)} {random.choice(TAMIL_LAST)}"
-                mother_name = f"{random.choice(MOTHER_FIRST)} {random.choice(TAMIL_LAST)}"
-
-                s = Student(
-                    id=uid(),
-                    school_id=SCHOOL_ID,
-                    user_id=u.id,
-                    class_id=cls.id,
-                    admission_number=adm,
-                    roll_number=roll,
+                st = Student(
+                    id=uid(), school_id=SCHOOL_ID,
+                    user_id=u.id, class_id=class_id,
+                    admission_number=adm, roll_number=roll,
                     full_name=full_name,
-                    father_name=father_name,
-                    mother_name=mother_name,
+                    father_name=f"{random.choice(FATHER_FIRST)} {random.choice(TAMIL_LAST)}",
+                    mother_name=f"{random.choice(MOTHER_FIRST)} {random.choice(TAMIL_LAST)}",
                     guardian_phone=f"9{random.randint(100000000, 999999999)}",
                     date_of_birth=dob,
                     blood_group=random.choice(BLOOD_GROUPS),
                     gender=gender,
                     community_category=random.choice(COMMUNITIES),
-                    address=f"{random.randint(1, 200)}, {random.choice(['Anna Nagar', 'T Nagar', 'Adyar', 'Tambaram', 'Chromepet', 'Velachery', 'Porur', 'Ambattur'])}, Chennai",
+                    address=f"{random.randint(1,200)}, {random.choice(AREAS)}, Chennai",
                     is_bus_user=random.choice([True, False]),
                     is_hostel_user=False,
                 )
-                session.add(s)
-                students_created += 1
+                s.add(st)
+                total_students += 1
+            await s.commit()
 
-            await session.flush()
-            print(f"  ✓  {class_key:<18}  {count_in_class:>2} students  (total: {students_created})")
-
-        await session.commit()
+        print(f"  ✓  {class_key:<18}  {count:>2} students  (total: {total_students})")
 
     print("\n" + "=" * 60)
     print(f"✅  Seeding complete!")
-    print(f"    Students : {students_created} (across ALL 30 classes)")
-    print(f"    Teachers : {len(teachers)}")
-    print(f"    Classes  : {total_classes}")
-    print(f"    Depts    : {len(dept_map)}")
-    print(f"    Subjects : {len(subject_map)}")
-    print(f"    11th/12th streams: 30 students each (6 classes × 30 = 180)")
-    print(f"    LKG–10th classes: ~13-14 students each (24 classes)")
+    print(f"    Students : {total_students} (across ALL 30 classes)")
+    print(f"    Teachers : {len(teacher_ids)}")
+    print(f"    Classes  : {len(class_map)}")
+    print(f"    Depts    : {len(dept_id_map)}")
+    print(f"    Subjects : {len(subj_id_map)}")
+    print(f"    11th/12th: 30 students each × 6 stream classes = 180")
+    print(f"    LKG–10th : 13-14 each × 24 classes = 320")
     print(f"\n    Default password: school@123")
     print("=" * 60)
 
 
 if __name__ == "__main__":
     asyncio.run(seed())
+
