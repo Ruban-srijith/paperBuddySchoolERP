@@ -57,6 +57,13 @@ export default function RootLayout({
                 });
               }
 
+              // Capture PWA install prompt early before React components mount
+              window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window.__pb_deferred_prompt = e;
+                window.dispatchEvent(new Event('pb_pwa_ready'));
+              });
+
               // Auto-recover from ChunkLoadErrors (new Vercel deploy while user has old HTML)
               window.addEventListener('error', function(e) {
                 if (e && e.message && (

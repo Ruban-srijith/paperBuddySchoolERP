@@ -19,8 +19,12 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
   useEffect(() => {
     setMounted(true);
 
-    // Detect if already installed in standalone mode
+    // Check if early capture in <head> already caught beforeinstallprompt
     if (typeof window !== "undefined") {
+      if ((window as any).__pb_deferred_prompt) {
+        setDeferredPrompt((window as any).__pb_deferred_prompt);
+      }
+
       const isStandaloneMode = 
         window.matchMedia("(display-mode: standalone)").matches || 
         (window.navigator as any).standalone === true;
@@ -39,30 +43,45 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      (window as any).__pb_deferred_prompt = e;
       setDeferredPrompt(e);
     };
 
+    const handlePwaReady = () => {
+      if (typeof window !== "undefined" && (window as any).__pb_deferred_prompt) {
+        setDeferredPrompt((window as any).__pb_deferred_prompt);
+      }
+    };
+
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("pb_pwa_ready", handlePwaReady);
 
     window.addEventListener("appinstalled", () => {
       setIsStandalone(true);
       setDeferredPrompt(null);
+      (window as any).__pb_deferred_prompt = null;
       setShowModal(false);
     });
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("pb_pwa_ready", handlePwaReady);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
+    const promptEvent = deferredPrompt || (typeof window !== "undefined" ? (window as any).__pb_deferred_prompt : null);
+    
+    if (promptEvent && typeof promptEvent.prompt === "function") {
       try {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        await promptEvent.prompt();
+        const { outcome } = await promptEvent.userChoice;
         if (outcome === "accepted") {
           setIsStandalone(true);
           setDeferredPrompt(null);
+          if (typeof window !== "undefined") {
+            (window as any).__pb_deferred_prompt = null;
+          }
           return;
         }
       } catch (err) {
