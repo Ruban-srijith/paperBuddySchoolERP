@@ -24,6 +24,7 @@ const BackgroundWallpaper = dynamic(() => import('@/components/BackgroundWallpap
   ssr: false 
 });
 import CommandPalette from '@/components/CommandPalette';
+import InstallPWA from '@/components/InstallPWA';
 
 // Map nav item keys to their config
 const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge?: string }> = {
@@ -463,6 +464,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
               {/* Right Header Controls matching reference image */}
               <div className="flex items-center gap-3">
+                
+                {/* Install App Button */}
+                <InstallPWA />
+
                 {/* Global Command Palette Trigger Button (Search Box with Gold Accent) */}
                 <button
                   onClick={() => {

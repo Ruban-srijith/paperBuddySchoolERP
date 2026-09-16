@@ -48,11 +48,7 @@ export default function RootLayout({
                   }
                 } catch (e) {}
               })();
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js');
-                });
-              }
+
               // Auto-recover from ChunkLoadErrors (new Vercel deploy while user has old HTML)
               window.addEventListener('error', function(e) {
                 if (e && e.message && (
