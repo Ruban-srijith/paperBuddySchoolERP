@@ -520,3 +520,35 @@ html:not(.dark) body {
     color: #000000 !important;
   }
 }
+
+/* Enterprise Clean Card Standards & Backward Compatibility Utilities */
+.text-brand-black {
+  color: #0f172a;
+}
+
+.glass-panel {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.glass-panel:hover {
+  border-color: #cbd5e1;
+}
+
+.glass-panel-glow {
+  background: #ffffff;
+  border-radius: 10px;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+.gradient-text {
+  color: #1e40af;
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+

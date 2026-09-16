@@ -11,10 +11,6 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import Tilt3D from "@/components/Tilt3D";
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 
 // Corner Arch SVG Line Ornament
 function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
