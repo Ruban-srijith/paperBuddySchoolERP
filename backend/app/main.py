@@ -36,10 +36,16 @@ async def lifespan(app: FastAPI):
         async with AsyncSessionLocal() as session:
             user_count = (await session.execute(select(func.count(User.id)))).scalar()
             if user_count == 0:
-                logger.info("Database contains 0 users. Executing initial auto-seed...")
-                from seed_data import seed
-                await seed(drop_first=False)
-                logger.info("Auto-seed completed successfully!")
+                logger.info("Database contains 0 users. Executing initial school auto-seed...")
+                try:
+                    from seed_school import seed as school_seed
+                    await school_seed()
+                    logger.info("School auto-seed completed successfully!")
+                except Exception as s_err:
+                    logger.warning(f"seed_school error ({s_err}), falling back to seed_data...")
+                    from seed_data import seed
+                    await seed(drop_first=False)
+                    logger.info("Fallback auto-seed completed.")
             else:
                 # Also ensure PlatformUsers are seeded if missing
                 plat_count = (await session.execute(select(func.count(PlatformUser.id)))).scalar()

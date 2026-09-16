@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { 
   Search, Command, LayoutDashboard, Users, GraduationCap, 
   CheckSquare, Calendar, CreditCard, 
-  Bus, Home, Library, X, FileText,
+  Bus, Home, Library, X, FileText, Building2,
   DollarSign, Award, Clock, UserCheck, Settings, CornerDownLeft
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
@@ -55,12 +55,14 @@ export default function CommandPalette() {
   const commandList: CommandItem[] = [
     // Navigation
     { id: "nav-dash", title: "Go to Dashboard", category: "Navigation", href: "/dashboard", icon: LayoutDashboard, shortcut: "⌘1" },
-    { id: "nav-students", title: "Student Records & Audit", category: "Navigation", href: "/student/documents", icon: Users, shortcut: "⌘2" },
+    { id: "nav-users", title: "User Directory (Students & Teachers)", category: "Navigation", href: "/users", icon: Users, shortcut: "⌘2" },
+    { id: "nav-students", title: "Student Records & Audit", category: "Navigation", href: "/student/documents", icon: Users, shortcut: "⌘3" },
+    { id: "nav-depts", title: "Academic Departments", category: "Navigation", href: "/departments", icon: Building2 },
+    { id: "nav-classes", title: "Classes & Allotments", category: "Navigation", href: "/classes", icon: Building2 },
+    { id: "nav-staff", title: "Staff Management & Council", category: "Navigation", href: "/staff-management", icon: Users },
     { id: "nav-academics", title: "Academics & Classes View", category: "Navigation", href: "/my-class", icon: GraduationCap },
     { id: "nav-attendance", title: "Daily Attendance Ledger", category: "Navigation", href: "/attendance", icon: CheckSquare },
     { id: "nav-timetable", title: "Timetable & AI Solver", category: "Navigation", href: "/timetable", icon: Calendar },
-    { id: "nav-[#10452]", title: "Inspect Student #10452 (Kishor K - Grade 10A)", category: "Student Lookup", href: "/student/documents", icon: UserCheck },
-    { id: "nav-[#10453]", title: "Inspect Student #10453 (Sarah Connor - Grade 12B)", category: "Student Lookup", href: "/student/documents", icon: UserCheck },
     { id: "nav-exams", title: "Examination Center & Seating", category: "Navigation", href: "/exams", icon: FileText },
     { id: "nav-fees", title: "Fee Payment & Financial Aid", category: "Navigation", href: "/fees", icon: CreditCard },
     { id: "nav-hostel", title: "Hostel Room Allocations", category: "Navigation", href: "/warden/rooms", icon: Home },
