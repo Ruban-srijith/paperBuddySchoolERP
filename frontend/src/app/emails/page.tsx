@@ -46,11 +46,11 @@ export default function EmailsPage() {
   const [selectedStudentId, setSelectedStudentId] = useState("");
 
   const [form, setForm] = useState({
-    recipient_email: "parent.kishor@school.edu",
-    subject: "Grade 10-A Daily Attendance & Performance Intimation",
-    body_summary: "Dear Parent, Kishor Kumar was marked PRESENT in Grade 10-A today. All class periods were attended.",
+    recipient_email: "",
+    subject: "",
+    body_summary: "",
     event_type: "daily_attendance",
-    related_id: "stu11111-1111-1111-1111-111111111111"
+    related_id: ""
   });
 
   const handleStudentSelect = (studentId: string) => {
@@ -73,13 +73,13 @@ export default function EmailsPage() {
     setLoading(true);
     try {
       const res = await api.get("/emails/logs");
-      if (res.data && res.data.length > 0) {
+      if (Array.isArray(res.data) && res.data.length > 0) {
         setLogs(res.data);
-      } else {
-        setLogs(getDemoLogs());
+      } else if (Array.isArray(res.data)) {
+        setLogs(res.data);
       }
     } catch (e) {
-      setLogs(getDemoLogs());
+      console.error("Failed to fetch email logs", e);
     } finally {
       setLoading(false);
     }
@@ -97,37 +97,26 @@ export default function EmailsPage() {
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
+    const relatedId = form.related_id || `rel-${Date.now()}`;
+    const payload = { ...form, related_id: relatedId };
     try {
-      const res = await api.post("/emails/send", form);
-      toast.success(res.data?.message || "Email queued for async dispatch with deduplication lock", "Intimation Dispatched");
-      const newLog: EmailLogItem = {
-        id: `em-${Date.now()}`,
-        recipient_email: form.recipient_email,
-        subject: form.subject,
-        body_summary: form.body_summary,
-        event_type: form.event_type,
-        related_id: form.related_id,
-        dedup_key: `${form.event_type}:${form.related_id}:${form.recipient_email}`,
-        status: "sent",
-        retry_count: 0,
-        created_at: new Date().toISOString(),
-      };
-      setLogs(prev => [newLog, ...prev]);
+      const res = await api.post("/emails/send", payload);
+      toast.success(res.data?.message || "Email dispatched and logged successfully", "Email Sent");
+      if (res.data && res.data.id) {
+        setLogs(prev => [res.data, ...prev.filter(l => l.id !== res.data.id)]);
+      }
+      setForm({
+        recipient_email: "",
+        subject: "",
+        body_summary: "",
+        event_type: "daily_attendance",
+        related_id: ""
+      });
+      setSelectedStudentId("");
+      await fetchLogs();
     } catch (err: any) {
-      toast.success("Email sent to mail queue with deduplication lock!", "Async Delivery");
-      const newLog: EmailLogItem = {
-        id: `em-${Date.now()}`,
-        recipient_email: form.recipient_email,
-        subject: form.subject,
-        body_summary: form.body_summary,
-        event_type: form.event_type,
-        related_id: form.related_id,
-        dedup_key: `${form.event_type}:${form.related_id}:${form.recipient_email}`,
-        status: "sent",
-        retry_count: 0,
-        created_at: new Date().toISOString(),
-      };
-      setLogs(prev => [newLog, ...prev]);
+      console.error("Failed to send email", err);
+      toast.error(err.response?.data?.detail || "Failed to dispatch email");
     } finally {
       setSending(false);
     }
@@ -285,6 +274,7 @@ export default function EmailsPage() {
                 <label className="text-gray-700 font-semibold block mb-1">Recipient Email</label>
                 <input
                   type="email"
+                  placeholder="e.g. parent@school.edu"
                   value={form.recipient_email}
                   onChange={(e) => setForm({ ...form, recipient_email: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
@@ -296,6 +286,7 @@ export default function EmailsPage() {
                 <label className="text-gray-700 font-semibold block mb-1">Subject Line</label>
                 <input
                   type="text"
+                  placeholder="Enter intimation subject..."
                   value={form.subject}
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
@@ -307,6 +298,7 @@ export default function EmailsPage() {
                 <label className="text-gray-700 font-semibold block mb-1">Message Content</label>
                 <textarea
                   rows={4}
+                  placeholder="Write intimation message content here..."
                   value={form.body_summary}
                   onChange={(e) => setForm({ ...form, body_summary: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
@@ -320,7 +312,7 @@ export default function EmailsPage() {
                   <span>Deduplication Hash:</span>
                 </div>
                 <div className="font-mono text-[10px] break-all text-gray-700">
-                  {form.event_type}:{form.related_id.slice(0, 8)}:{form.recipient_email}
+                  {form.event_type}:{form.related_id ? form.related_id.slice(0, 8) : 'auto'}:{form.recipient_email || 'recipient'}
                 </div>
               </div>
 

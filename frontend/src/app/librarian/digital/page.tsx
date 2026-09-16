@@ -29,11 +29,38 @@ export default function LibrarianDigital() {
     fetchResources();
   }, []);
 
+  const isValidHttpUrl = (link: string) => {
+    try {
+      const parsed = new URL(link.trim());
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch (_) {
+      return false;
+    }
+  };
+
   const handleSave = async () => {
+    const trimmedTitle = title.trim();
+    const trimmedUrl = url.trim();
+
+    if (!trimmedTitle) {
+      toast.error("Please enter a resource title");
+      return;
+    }
+
+    if (!trimmedUrl) {
+      toast.error("Please enter a valid HTTP or HTTPS resource URL");
+      return;
+    }
+
+    if (!isValidHttpUrl(trimmedUrl)) {
+      toast.error("Invalid URL! Only valid http:// or https:// links are accepted (e.g. https://example.com/document.pdf)");
+      return;
+    }
+
     try {
       await api.post("/librarian/digital", {
-        title,
-        url,
+        title: trimmedTitle,
+        url: trimmedUrl,
         category
       });
       toast.success("Resource added successfully");
@@ -42,8 +69,9 @@ export default function LibrarianDigital() {
       setUrl("");
       setCategory("E-Book");
       fetchResources();
-    } catch (err) {
-      toast.error("Failed to add resource");
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || "Failed to add resource";
+      toast.error(msg);
     }
   };
 

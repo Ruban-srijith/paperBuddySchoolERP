@@ -39,6 +39,68 @@ export default function RevenuePage() {
 
   const totalCollected = monthlyCollections.reduce((a, b) => a + b.total, 0);
 
+  const handleExportBalanceSheet = () => {
+    try {
+      const escapeCell = (val: any) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      const headers = [
+        "Month",
+        "Tuition Fees (INR)",
+        "Bus Transport (INR)",
+        "Hostel & Boarding (INR)",
+        "Lab & Activities (INR)",
+        "Monthly Total (INR)"
+      ];
+
+      const rows = monthlyCollections.map((m) => [
+        m.month,
+        m.tuition,
+        m.transport,
+        m.hostel,
+        m.lab,
+        m.total
+      ]);
+
+      // Add total summary row
+      const totalTuition = monthlyCollections.reduce((a, b) => a + b.tuition, 0);
+      const totalTransport = monthlyCollections.reduce((a, b) => a + b.transport, 0);
+      const totalHostel = monthlyCollections.reduce((a, b) => a + b.hostel, 0);
+      const totalLab = monthlyCollections.reduce((a, b) => a + b.lab, 0);
+
+      rows.push([
+        "TOTAL (FY 2026-27)",
+        totalTuition,
+        totalTransport,
+        totalHostel,
+        totalLab,
+        totalCollected
+      ]);
+
+      const headerRow = headers.map(escapeCell).join(",");
+      const dataRows = rows.map((row) => row.map(escapeCell).join(",")).join("\r\n");
+      const csvContent = "\uFEFF" + headerRow + "\r\n" + dataRows;
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.setAttribute("download", "Financial_Balance_Sheet_FY2026-27.csv");
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      toast.success("Balance sheet exported successfully to CSV", "Export Complete");
+    } catch (err) {
+      toast.error("Failed to export balance sheet");
+    }
+  };
+
   return (
     <ProtectedRoute allowedRoles={["super_admin", "correspondent"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -60,20 +122,8 @@ export default function RevenuePage() {
           </div>
 
           <button
-            onClick={() => {
-              const headers = ["Month", "Tuition Fee (₹)", "Transport Fee (₹)", "Hostel Fee (₹)", "Lab Kit Fee (₹)", "Total Collections (₹)"];
-              const rows = monthlyCollections.map(m => [
-                m.month,
-                m.tuition,
-                m.transport,
-                m.hostel,
-                m.lab,
-                m.total
-              ]);
-              exportToCsv("Financial_Balance_Sheet_FY2026_27", headers, rows);
-              toast.success("Balance sheet exported successfully!", "Export Completed");
-            }}
-            className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
+            onClick={handleExportBalanceSheet}
+            className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4 text-gray-600" />
             <span>Export Balance Sheet</span>

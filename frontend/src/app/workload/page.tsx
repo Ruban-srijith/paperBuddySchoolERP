@@ -162,6 +162,67 @@ export default function WorkloadPage() {
   const behindCount = teachers.filter(t => t.status === "behind").length;
   const avgSyllabus = (teachers.reduce((a, b) => a + b.syllabus_completed_pct, 0) / (teachers.length || 1)).toFixed(1);
 
+  const handleExportCSV = () => {
+    try {
+      const dataToExport = filteredTeachers.length > 0 ? filteredTeachers : teachers;
+      if (dataToExport.length === 0) {
+        toast.info("No workload data available to export");
+        return;
+      }
+
+      const headers = [
+        "Teacher Name",
+        "Department",
+        "Assigned Classes",
+        "Subjects",
+        "Weekly Periods",
+        "Max Periods Cap",
+        "Syllabus Completed (%)",
+        "Target (%)",
+        "Status",
+        "Curriculum Type"
+      ];
+
+      const escapeCell = (val: any) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      const rows = dataToExport.map(t => [
+        t.teacher_name,
+        t.department,
+        (t.assigned_classes || []).join("; "),
+        (t.subjects || []).join("; "),
+        t.weekly_periods,
+        t.max_periods_cap,
+        `${t.syllabus_completed_pct}%`,
+        `${t.target_pct}%`,
+        t.status === 'ahead' ? 'AHEAD' : t.status === 'behind' ? 'LAG ALERT' : 'ON TRACK',
+        t.has_lab_component ? 'Theory + Practical Lab' : 'Theory Classroom Only'
+      ]);
+
+      const headerRow = headers.map(escapeCell).join(",");
+      const dataRows = rows.map(r => r.map(escapeCell).join(",")).join("\r\n");
+      const csvContent = "\uFEFF" + headerRow + "\r\n" + dataRows;
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.setAttribute("download", `Teachers_Workload_Report_${deptFilter === 'all' ? 'All_Depts' : deptFilter.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      toast.success("Workload report exported successfully to CSV", "Export Complete");
+    } catch (err) {
+      toast.error("Failed to export workload report");
+    }
+  };
+
   return (
     <ProtectedRoute allowedRoles={["principal", "vice_principal", "super_admin", "correspondent"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -183,22 +244,7 @@ export default function WorkloadPage() {
           </div>
 
           <button
-            onClick={() => {
-              const headers = ["Teacher Name", "Department", "Assigned Classes", "Subjects Taught", "Weekly Periods", "Max Cap", "Syllabus Completed (%)", "Target (%)", "Status"];
-              const rows = filteredTeachers.map(t => [
-                t.teacher_name,
-                t.department,
-                t.assigned_classes.join(", "),
-                t.subjects.join(", "),
-                t.weekly_periods,
-                t.max_periods_cap,
-                `${t.syllabus_completed_pct}%`,
-                `${t.target_pct}%`,
-                t.status.toUpperCase()
-              ]);
-              exportToCsv("Teacher_Workload_Syllabus_Report", headers, rows);
-              toast.success("Workload report exported successfully!", "Export Completed");
-            }}
+            onClick={handleExportCSV}
             className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
           >
             <Download className="w-4 h-4 text-gray-600" />

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Building2, Plus, X, Trash2, AlertTriangle } from 'lucide-react';
+import { Building2, Plus, X, Trash2, AlertTriangle, Check, Loader2 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import api from '@/lib/api';
+import { useToast } from '@/components/Toast';
 
 interface ClassItem {
   id: string;
@@ -13,9 +14,10 @@ interface ClassItem {
 }
 
 const ALL_GRADES = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
-const SECTIONS = ["A", "B", "C", "D", "E", "F"];
+const SECTIONS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 function ClassesPageContent() {
+  const { toast } = useToast();
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -24,10 +26,12 @@ function ClassesPageContent() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [classToDelete, setClassToDelete] = useState<ClassItem | null>(null);
 
-  const [newClass, setNewClass] = useState({
-    grade: '10',
-    section: 'A'
-  });
+  const [newGrade, setNewGrade] = useState('10');
+  const [newSection, setNewSection] = useState('C');
+  const [customGrade, setCustomGrade] = useState('');
+  const [customSection, setCustomSection] = useState('');
+  const [isCustomGrade, setIsCustomGrade] = useState(false);
+  const [isCustomSection, setIsCustomSection] = useState(false);
 
   const fetchClasses = async () => {
     setLoading(true);
@@ -44,19 +48,64 @@ function ClassesPageContent() {
     fetchClasses();
   }, []);
 
+  const openCreateModal = () => {
+    // Pick first available grade/section combo
+    let foundGrade = '10';
+    let foundSection = 'C';
+    for (const g of ALL_GRADES) {
+      for (const s of SECTIONS) {
+        const exists = classes.some(c => c.grade.toUpperCase() === g.toUpperCase() && c.section.toUpperCase() === s.toUpperCase());
+        if (!exists) {
+          foundGrade = g;
+          foundSection = s;
+          break;
+        }
+      }
+      if (foundSection !== 'A') break;
+    }
+    setNewGrade(foundGrade);
+    setNewSection(foundSection);
+    setIsCustomGrade(false);
+    setIsCustomSection(false);
+    setCustomGrade('');
+    setCustomSection('');
+    setCreateError('');
+    setShowCreateModal(true);
+  };
+
+  const effectiveGrade = isCustomGrade ? customGrade.trim().toUpperCase() : newGrade.trim().toUpperCase();
+  const effectiveSection = isCustomSection ? customSection.trim().toUpperCase() : newSection.trim().toUpperCase();
+
+  const isAlreadyExists = classes.some(
+    c => c.grade.trim().toUpperCase() === effectiveGrade && c.section.trim().toUpperCase() === effectiveSection
+  );
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!effectiveGrade || !effectiveSection) {
+      setCreateError("Please enter both Grade and Section");
+      return;
+    }
+
+    if (isAlreadyExists) {
+      setCreateError(`Class Grade ${effectiveGrade} - Section ${effectiveSection} already exists.`);
+      return;
+    }
+
     setCreating(true);
     setCreateError('');
     try {
-      await api.post('/classes', newClass);
+      await api.post('/classes', { grade: effectiveGrade, section: effectiveSection });
+      toast.success(`Class Grade ${effectiveGrade} - Section ${effectiveSection} created successfully!`, "Success");
       setShowCreateModal(false);
-      setNewClass({ grade: '10', section: 'A' });
       fetchClasses();
     } catch (err: any) {
-      setCreateError(err.response?.data?.detail || 'Failed to create class');
+      const msg = err.response?.data?.detail || 'Failed to create class';
+      setCreateError(msg);
+      toast.error(msg, "Error");
+    } finally {
+      setCreating(false);
     }
-    setCreating(false);
   };
 
   const handleDelete = async () => {
@@ -64,10 +113,11 @@ function ClassesPageContent() {
     setDeletingId(classToDelete.id);
     try {
       await api.delete(`/classes/${classToDelete.id}`);
+      toast.success(`Grade ${classToDelete.grade} - Section ${classToDelete.section} deleted successfully`);
       setClassToDelete(null);
       fetchClasses();
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Failed to delete class');
+      toast.error(err.response?.data?.detail || 'Failed to delete class');
     } finally {
       setDeletingId(null);
     }
@@ -87,7 +137,7 @@ function ClassesPageContent() {
           <p className="text-sm text-gray-600">Create and manage grades and sections — {classes.length} total classes</p>
         </div>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={openCreateModal}
           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-white text-sm font-bold shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-all whitespace-nowrap flex-shrink-0 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
@@ -98,7 +148,7 @@ function ClassesPageContent() {
       {/* Classes Grid */}
       {loading ? (
         <div className="h-64 flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin"></div>
+          <Loader2 className="w-8 h-8 rounded-full text-indigo-500 animate-spin" />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -187,29 +237,76 @@ function ClassesPageContent() {
                   {createError}
                 </div>
               )}
+
+              {isAlreadyExists && !createError && (
+                <div className="p-2.5 bg-amber-50 text-amber-700 text-xs rounded-lg border border-amber-200 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>Grade {effectiveGrade} - Section {effectiveSection} already exists. Choose a different section or grade.</span>
+                </div>
+              )}
               
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">Grade Level</label>
-                <select
-                  value={newClass.grade}
-                  onChange={e => setNewClass({...newClass, grade: e.target.value})}
-                  className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:border-brand-blue"
-                  required
-                >
-                  {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Grade Level</label>
+                  <button
+                    type="button"
+                    onClick={() => setIsCustomGrade(!isCustomGrade)}
+                    className="text-[11px] text-brand-blue font-semibold hover:underline"
+                  >
+                    {isCustomGrade ? 'Select from list' : '+ Custom Grade'}
+                  </button>
+                </div>
+                {isCustomGrade ? (
+                  <input
+                    type="text"
+                    value={customGrade}
+                    onChange={e => setCustomGrade(e.target.value.toUpperCase())}
+                    placeholder="e.g. Pre-KG, Nursery, 13"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-semibold uppercase focus:outline-none focus:border-brand-blue"
+                    required
+                  />
+                ) : (
+                  <select
+                    value={newGrade}
+                    onChange={e => setNewGrade(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:border-brand-blue font-semibold"
+                    required
+                  >
+                    {ALL_GRADES.map(g => <option key={g} value={g}>Grade {g}</option>)}
+                  </select>
+                )}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">Section</label>
-                <select
-                  value={newClass.section}
-                  onChange={e => setNewClass({...newClass, section: e.target.value})}
-                  className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:border-brand-blue"
-                  required
-                >
-                  {SECTIONS.map(s => <option key={s} value={s}>Section {s}</option>)}
-                </select>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Section</label>
+                  <button
+                    type="button"
+                    onClick={() => setIsCustomSection(!isCustomSection)}
+                    className="text-[11px] text-brand-blue font-semibold hover:underline"
+                  >
+                    {isCustomSection ? 'Select from list' : '+ Custom Section'}
+                  </button>
+                </div>
+                {isCustomSection ? (
+                  <input
+                    type="text"
+                    value={customSection}
+                    onChange={e => setCustomSection(e.target.value.toUpperCase())}
+                    placeholder="e.g. C, D, Lotus, Rose"
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm font-semibold uppercase focus:outline-none focus:border-brand-blue"
+                    required
+                  />
+                ) : (
+                  <select
+                    value={newSection}
+                    onChange={e => setNewSection(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:border-brand-blue font-semibold"
+                    required
+                  >
+                    {SECTIONS.map(s => <option key={s} value={s}>Section {s}</option>)}
+                  </select>
+                )}
               </div>
 
               <div className="pt-4 flex gap-3">
@@ -222,7 +319,7 @@ function ClassesPageContent() {
                 </button>
                 <button
                   type="submit"
-                  disabled={creating}
+                  disabled={creating || isAlreadyExists}
                   className="flex-1 px-4 py-2.5 rounded-xl bg-brand-blue text-white font-bold hover:bg-brand-blue/90 transition-colors disabled:opacity-50"
                 >
                   {creating ? 'Creating...' : 'Create Class'}
@@ -238,7 +335,7 @@ function ClassesPageContent() {
 
 export default function ClassesPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'vice_principal']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal']}>
       <ClassesPageContent />
     </ProtectedRoute>
   );

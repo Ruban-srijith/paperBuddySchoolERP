@@ -44,16 +44,28 @@ export default function EventApprovalsPage() {
   const [activeFilter, setActiveFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // New Proposal Form State
-  const [newProposal, setNewProposal] = useState({
+  // Blank Initial Proposal Form State
+  const initialProposal = {
     title: "",
-    category: "Academic / Competition",
+    category: "",
     description: "",
     budget: "",
     target_grades: "all",
-    start_date: new Date().toISOString().split("T")[0],
-    end_date: new Date().toISOString().split("T")[0]
-  });
+    start_date: "",
+    end_date: ""
+  };
+
+  const [newProposal, setNewProposal] = useState(initialProposal);
+
+  const handleOpenCreateModal = () => {
+    setNewProposal({ ...initialProposal });
+    setShowCreateModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+    setNewProposal({ ...initialProposal });
+  };
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -134,7 +146,8 @@ export default function EventApprovalsPage() {
       await api.post(`/approvals-ext/events/${id}/decision`, { status: "approved" });
       await fetchEvents();
       toast.success(`Sanctioned and approved: ${title}`, "Event Clearance Granted");
-    } catch {
+    } catch (err) {
+      console.error("Failed to approve event via API:", err);
       setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "approved", approved_at: new Date().toISOString() } : e));
       toast.success(`Sanctioned and approved: ${title}`, "Event Clearance Granted");
     }
@@ -145,7 +158,8 @@ export default function EventApprovalsPage() {
       await api.post(`/approvals-ext/events/${id}/decision`, { status: "rejected", feedback: "Budget revision required" });
       await fetchEvents();
       toast.warning(`Proposal rejected for budget revision: ${title}`, "Event Rejected");
-    } catch {
+    } catch (err) {
+      console.error("Failed to reject event via API:", err);
       setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "rejected" } : e));
       toast.warning(`Proposal rejected: ${title}`, "Event Rejected");
     }
@@ -156,7 +170,8 @@ export default function EventApprovalsPage() {
       await api.post(`/approvals-ext/events/${id}/decision`, { status: "pending" });
       await fetchEvents();
       toast.info(`Event proposal reset to pending review: ${title}`, "Decision Reopened");
-    } catch {
+    } catch (err) {
+      console.error("Failed to reopen event via API:", err);
       setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "pending" } : e));
       toast.info(`Event proposal reset to pending review: ${title}`, "Decision Reopened");
     }
@@ -164,36 +179,38 @@ export default function EventApprovalsPage() {
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newProposal.title.trim()) {
+      toast.error("Please enter an event title");
+      return;
+    }
+    const eventCategory = newProposal.category || "Academic / Competition";
+    const startDate = newProposal.start_date || new Date().toISOString().split("T")[0];
+    const endDate = newProposal.end_date || startDate;
+    const parsedBudget = parseFloat(newProposal.budget) || 0;
+
     try {
       await api.post("/approvals-ext/events", {
         title: newProposal.title,
         description: newProposal.description,
-        target_grades: newProposal.target_grades,
-        start_date: newProposal.start_date,
-        end_date: newProposal.end_date,
-        budget: parseFloat(newProposal.budget) || 0
+        target_grades: newProposal.target_grades || "all",
+        start_date: startDate,
+        end_date: endDate,
+        budget: parsedBudget
       });
       toast.success("Event proposal submitted for correspondent clearance!", "Proposal Submitted");
       setShowCreateModal(false);
-      setNewProposal({
-        title: "",
-        category: "Academic / Competition",
-        description: "",
-        budget: "",
-        target_grades: "all",
-        start_date: new Date().toISOString().split("T")[0],
-        end_date: new Date().toISOString().split("T")[0]
-      });
-      fetchEvents();
-    } catch {
+      setNewProposal({ ...initialProposal });
+      await fetchEvents();
+    } catch (err) {
+      console.error("API event creation error, falling back locally:", err);
       const created: SchoolEventProposal = {
         id: `ev-${Date.now()}`,
         title: newProposal.title,
-        category: newProposal.category,
+        category: eventCategory,
         proposed_by_name: "Super Admin",
-        event_date: newProposal.start_date,
-        end_date: newProposal.end_date,
-        budget_estimate: parseFloat(newProposal.budget) || 0,
+        event_date: startDate,
+        end_date: endDate,
+        budget_estimate: parsedBudget,
         expected_participants: 350,
         venue: "School Main Auditorium",
         description: newProposal.description,
@@ -202,6 +219,7 @@ export default function EventApprovalsPage() {
       setEvents(prev => [created, ...prev]);
       toast.success("Event proposal submitted for correspondent clearance!", "Proposal Submitted");
       setShowCreateModal(false);
+      setNewProposal({ ...initialProposal });
     }
   };
 
@@ -229,8 +247,8 @@ export default function EventApprovalsPage() {
           </div>
 
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 text-brand-black font-semibold text-xs shadow-lg shadow-amber-600/30 hover:opacity-95 transition-all self-start md:self-auto"
+            onClick={handleOpenCreateModal}
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 text-brand-black font-semibold text-xs shadow-lg shadow-amber-600/30 hover:opacity-95 transition-all self-start md:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Propose New Event</span>
@@ -403,7 +421,7 @@ export default function EventApprovalsPage() {
             <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-gray-200 space-y-4">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <h3 className="text-lg font-bold text-gray-900">Propose Major School Event</h3>
-                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button onClick={handleCloseCreateModal} className="text-gray-400 hover:text-gray-600 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -427,6 +445,7 @@ export default function EventApprovalsPage() {
                       onChange={e => setNewProposal({ ...newProposal, category: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
                     >
+                      <option value="">Select Category</option>
                       <option value="Academic / Competition">Academic / Competition</option>
                       <option value="Sports & Athletics">Sports & Athletics</option>
                       <option value="Arts & Culture">Arts & Culture</option>
@@ -481,14 +500,14 @@ export default function EventApprovalsPage() {
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
                   <button
                     type="button"
-                    onClick={() => setShowCreateModal(false)}
-                    className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold"
+                    onClick={handleCloseCreateModal}
+                    className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-md shadow-amber-600/20"
+                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-md shadow-amber-600/20 cursor-pointer"
                   >
                     Submit Proposal
                   </button>

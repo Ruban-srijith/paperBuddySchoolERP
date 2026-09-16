@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dayjs from "dayjs";
 import { 
   Users, 
   UserCheck, 
@@ -20,6 +21,28 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useToast } from "@/components/Toast";
 import api from "@/lib/api";
 
+interface CouncilMeeting {
+  id: string;
+  title: string;
+  date: string;
+  venue: string;
+  attendees: string;
+  status: string;
+}
+
+const defaultMeetings: CouncilMeeting[] = [
+  { id: "m1", title: "Term 1 Syllabus Review & Midterm Exam Logistics", date: "14 Aug 2026", venue: "Faculty Conference Room", attendees: "All Department Heads & Deans", status: "Scheduled" },
+  { id: "m2", title: "Inter-School Science Olympiad Planning Committee", date: "19 Aug 2026", venue: "Science Lab Complex", attendees: "Science & CS Faculty", status: "Scheduled" },
+  { id: "m3", title: "Disciplinary & Student Council Meeting", date: "02 Aug 2026", venue: "Principal's Boardroom", attendees: "Vice-Principal & Class Teachers", status: "Completed" },
+];
+
+const initialMeetingState = {
+  title: "",
+  date: "",
+  venue: "Faculty Conference Room",
+  attendees: "All Teaching Faculty",
+};
+
 export default function StaffManagementPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"attendance" | "council" | "directory">("attendance");
@@ -34,89 +57,80 @@ export default function StaffManagementPage() {
     { id: "t5", name: "Mrs. Revathi Raman", role: "Class Teacher (12-A)", department: "English", email: "revathi.raman@school.edu", phone: "+91 98401 22335", status: "late", checkin: "08:45 AM", periods: 4 },
   ]);
 
-  const [meetings, setMeetings] = useState([
-    { id: "m1", title: "Term 1 Syllabus Review & Midterm Exam Logistics", date: "Aug 14, 2026 (03:30 PM)", venue: "Faculty Conference Room", attendees: "All Department Heads & Deans", status: "Scheduled" },
-    { id: "m2", title: "Inter-School Science Olympiad Planning Committee", date: "Aug 19, 2026 (04:00 PM)", venue: "Science Lab Complex", attendees: "Science & CS Faculty", status: "Scheduled" },
-    { id: "m3", title: "Disciplinary & Student Council Meeting", date: "Aug 02, 2026", venue: "Principal's Boardroom", attendees: "Vice-Principal & Class Teachers", status: "Completed" },
-  ]);
-
-  const [newMeeting, setNewMeeting] = useState({
-    title: "",
-    date: new Date().toISOString().split("T")[0],
-    time: "15:30",
-    venue: "Faculty Conference Room",
-    attendees: "All Teaching Faculty",
-  });
+  const [meetings, setMeetings] = useState<CouncilMeeting[]>(defaultMeetings);
 
   useEffect(() => {
-    const saved = localStorage.getItem("pb_staff_meetings");
-    if (saved) {
-      try {
-        setMeetings(JSON.parse(saved));
-      } catch {}
-    }
-    // Also sync with backend calendar
-    api.get("/calendar/events?event_type=Meeting").then(res => {
-      if (Array.isArray(res.data) && res.data.length > 0) {
-        const fromApi = res.data.map((e: any) => ({
-          id: e.id,
-          title: e.title,
-          date: e.start_date,
-          venue: e.description?.includes("Venue:") ? e.description.split("Venue:")[1].split("|")[0].trim() : "Conference Room",
-          attendees: e.description?.includes("Attendees:") ? e.description.split("Attendees:")[1].trim() : "All Faculty",
-          status: "Scheduled"
-        }));
-        setMeetings(prev => {
-          const combined = [...fromApi];
-          prev.forEach(p => {
-            if (!combined.some(c => c.title === p.title)) combined.push(p);
-          });
-          localStorage.setItem("pb_staff_meetings", JSON.stringify(combined));
-          return combined;
-        });
+    try {
+      const stored = localStorage.getItem("pb_staff_council_meetings");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMeetings(parsed);
+        }
       }
-    }).catch(() => {});
+    } catch {
+      // ignore
+    }
   }, []);
+
+  const [newMeeting, setNewMeeting] = useState(initialMeetingState);
+
+  const handleOpenMeetingModal = () => {
+    setNewMeeting(initialMeetingState);
+    setShowMeetingModal(true);
+  };
+
+  const handleCloseMeetingModal = () => {
+    setShowMeetingModal(false);
+    setNewMeeting(initialMeetingState);
+  };
 
   const handleCreateMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isoDate = newMeeting.date || new Date().toISOString().split("T")[0];
-    const created = {
+    if (!newMeeting.title.trim() || !newMeeting.date) {
+      toast.error("Please fill in meeting title and date", "Validation Error");
+      return;
+    }
+    const formattedDate = dayjs(newMeeting.date).isValid()
+      ? dayjs(newMeeting.date).format("DD MMM YYYY")
+      : newMeeting.date;
+
+    const newEntry: CouncilMeeting = {
       id: `m-${Date.now()}`,
-      title: newMeeting.title,
-      date: `${isoDate} ${newMeeting.time ? `(${newMeeting.time})` : ''}`.trim(),
-      venue: newMeeting.venue,
-      attendees: newMeeting.attendees,
+      title: newMeeting.title.trim(),
+      date: formattedDate,
+      venue: newMeeting.venue.trim() || "Faculty Conference Room",
+      attendees: newMeeting.attendees.trim() || "All Teaching Faculty",
       status: "Scheduled"
     };
+
     setMeetings(prev => {
-      const updated = [created, ...prev];
-      localStorage.setItem("pb_staff_meetings", JSON.stringify(updated));
+      const updated = [newEntry, ...prev];
+      try {
+        localStorage.setItem("pb_staff_council_meetings", JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
       return updated;
     });
 
     try {
-      await api.post("/calendar/events", {
-        title: newMeeting.title,
-        description: `Time: ${newMeeting.time || 'TBD'} | Venue: ${newMeeting.venue} | Attendees: ${newMeeting.attendees}`,
-        start_date: isoDate,
-        end_date: isoDate,
-        event_type: "Meeting",
-        grade_scope: "all"
-      });
-    } catch (err) {
-      console.error("Failed to sync meeting with calendar API:", err);
+      if (dayjs(newMeeting.date).isValid()) {
+        await api.post("/calendar/events", {
+          title: `[Council] ${newMeeting.title.trim()}`,
+          description: `Venue: ${newMeeting.venue.trim() || "Faculty Conference Room"} | Attendees: ${newMeeting.attendees.trim() || "All Teaching Faculty"}`,
+          start_date: dayjs(newMeeting.date).format("YYYY-MM-DD"),
+          end_date: dayjs(newMeeting.date).format("YYYY-MM-DD"),
+          event_type: "Meeting",
+          grade_scope: "all"
+        });
+      }
+    } catch {
+      // Optional calendar sync
     }
 
-    toast.success(`Scheduled staff council meeting: ${newMeeting.title}`, "Meeting Scheduled");
-    setShowMeetingModal(false);
-    setNewMeeting({
-      title: "",
-      date: new Date().toISOString().split("T")[0],
-      time: "15:30",
-      venue: "Faculty Conference Room",
-      attendees: "All Teaching Faculty",
-    });
+    toast.success(`Scheduled staff council meeting: ${newMeeting.title.trim()}`, "Meeting Scheduled");
+    handleCloseMeetingModal();
   };
 
   const filteredStaff = staffList.filter(s => 
@@ -147,7 +161,7 @@ export default function StaffManagementPage() {
 
           {activeTab === "council" && (
             <button
-              onClick={() => setShowMeetingModal(true)}
+              onClick={handleOpenMeetingModal}
               className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-brand-black font-semibold text-xs shadow-lg shadow-indigo-600/25 hover:opacity-95 transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -344,13 +358,7 @@ export default function StaffManagementPage() {
             <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl">
               <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                 <h3 className="text-base font-bold text-brand-black">Schedule Staff Council Meeting</h3>
-                <button 
-                  onClick={() => {
-                    setShowMeetingModal(false);
-                    setNewMeeting({ title: "", date: new Date().toISOString().split("T")[0], time: "15:30", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
-                  }} 
-                  className="text-gray-600 hover:text-brand-black"
-                >
+                <button onClick={handleCloseMeetingModal} className="text-gray-600 hover:text-brand-black">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -360,6 +368,7 @@ export default function StaffManagementPage() {
                   <label className="text-gray-700 font-semibold block mb-1">Meeting Agenda / Title</label>
                   <input
                     type="text"
+                    placeholder="e.g. Term 2 Examination Logistics"
                     value={newMeeting.title}
                     onChange={e => setNewMeeting({ ...newMeeting, title: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
@@ -367,26 +376,15 @@ export default function StaffManagementPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-gray-700 font-semibold block mb-1">Date</label>
-                    <input
-                      type="date"
-                      value={newMeeting.date}
-                      onChange={e => setNewMeeting({ ...newMeeting, date: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-gray-700 font-semibold block mb-1">Time</label>
-                    <input
-                      type="time"
-                      value={newMeeting.time}
-                      onChange={e => setNewMeeting({ ...newMeeting, time: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono"
-                    />
-                  </div>
+                <div>
+                  <label className="text-gray-700 font-semibold block mb-1">Meeting Date (Day / Month / Year)</label>
+                  <input
+                    type="date"
+                    value={newMeeting.date}
+                    onChange={e => setNewMeeting({ ...newMeeting, date: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                    required
+                  />
                 </div>
 
                 <div>
@@ -402,10 +400,7 @@ export default function StaffManagementPage() {
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowMeetingModal(false);
-                      setNewMeeting({ title: "", date: new Date().toISOString().split("T")[0], time: "15:30", venue: "Faculty Conference Room", attendees: "All Teaching Faculty" });
-                    }}
+                    onClick={handleCloseMeetingModal}
                     className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 text-xs"
                   >
                     Cancel

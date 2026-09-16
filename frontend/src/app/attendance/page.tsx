@@ -50,20 +50,22 @@ export default function AttendancePage() {
   // Fetch summary data for management
   useEffect(() => {
     const fetchSummary = async () => {
-      if (['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user?.role || '')) {
+      const userRole = (user?.role || '').toLowerCase();
+      if (['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal'].includes(userRole)) {
         setLoadingSummary(true);
         try {
           const res = await api.get(`/attendance/summary?date_str=${selectedDate}`);
           setSummaryData(res.data);
         } catch (err) {
           console.error("Failed to fetch summary data", err);
-          toast.error("Failed to load attendance summary");
         } finally {
           setLoadingSummary(false);
         }
       }
     };
-    fetchSummary();
+    if (user) {
+      fetchSummary();
+    }
   }, [user, selectedDate]);
 
   // Student Attendance Matrix state (for teachers marking)
@@ -71,7 +73,7 @@ export default function AttendancePage() {
 
   // Fetch teacher's students
   useEffect(() => {
-    if (user?.role === "teacher") {
+    if (user?.role?.toLowerCase() === "teacher") {
       api.get("/classes/my-class").then(res => {
         const { id, grade, section } = res.data;
         setSelectedClass(`Grade ${grade}-${section}`);
@@ -96,9 +98,9 @@ export default function AttendancePage() {
     summary: "Covered convex/concave lens calculations, ray diagrams, and solved 4 numerical problems."
   });
 
-  const isManagement = user && ['super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user.role);
-  const isTeacher = user?.role === 'teacher';
-  const isStudent = user?.role === 'student';
+  const isManagement = user && ['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal'].includes(user.role?.toLowerCase() || '');
+  const isTeacher = user && user.role?.toLowerCase() === 'teacher';
+  const isStudent = user && user.role?.toLowerCase() === 'student';
 
   const overallPct = summaryData ? summaryData.overall_student_attendance : 0;
   const overallPresent = summaryData ? summaryData.overall_present : 0;
@@ -125,43 +127,170 @@ export default function AttendancePage() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const escapeCell = (val: any) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      if (isManagement) {
+        let currentSummary = summaryData;
+        if (!currentSummary) {
+          toast.info("Preparing attendance report for export...", "Exporting");
+          const res = await api.get(`/attendance/summary?date_str=${selectedDate}`);
+          currentSummary = res.data;
+        }
+
+        const matrix = currentSummary?.grade_matrix_data || [];
+        if (matrix.length === 0) {
+          toast.error("No attendance data available to export for this date");
+          return;
+        }
+
+        const headers = [
+          "Grade Level",
+          "Category",
+          "Total Strength",
+          "Present",
+          "Absent",
+          "Late",
+          "Attendance Rate (%)"
+        ];
+
+        const rows = matrix.map((row: any) => {
+          const category = ['LKG', 'UKG'].includes(row.grade)
+            ? 'Pre-Primary'
+            : parseInt(row.grade) <= 5
+            ? 'Primary'
+            : parseInt(row.grade) <= 8
+            ? 'Middle School'
+            : parseInt(row.grade) <= 10
+            ? 'Secondary'
+            : 'Sr. Secondary';
+
+          return [
+            `Grade ${row.grade}`,
+            category,
+            row.strength,
+            row.present,
+            row.absent,
+            row.late,
+            `${row.percentage}%`
+          ];
+        });
+
+        const totalStrength = currentSummary.overall_strength || matrix.reduce((acc: number, r: any) => acc + (r.strength || 0), 0);
+        const totalPresent = currentSummary.overall_present || matrix.reduce((acc: number, r: any) => acc + (r.present || 0), 0);
+        const totalAbsent = matrix.reduce((acc: number, r: any) => acc + (r.absent || 0), 0);
+        const totalLate = matrix.reduce((acc: number, r: any) => acc + (r.late || 0), 0);
+        const overallRate = currentSummary.overall_student_attendance !== undefined 
+          ? currentSummary.overall_student_attendance 
+          : (totalStrength > 0 ? ((totalPresent / totalStrength) * 100).toFixed(1) : 0);
+
+        rows.push([
+          "OVERALL SUMMARY",
+          "All Grades",
+          totalStrength,
+          totalPresent,
+          totalAbsent,
+          totalLate,
+          `${overallRate}%`
+        ]);
+
+        const headerRow = headers.map(escapeCell).join(",");
+        const dataRows = rows.map((row: any[]) => row.map(escapeCell).join(",")).join("\r\n");
+        const csvContent = "\uFEFF" + headerRow + "\r\n" + dataRows;
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.setAttribute("download", `Attendance_Summary_Matrix_${selectedDate}.csv`);
+        anchor.style.display = "none";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        toast.success("Attendance summary exported successfully to CSV", "Export Complete");
+      } else if (isTeacher) {
+        if (students.length === 0) {
+          toast.error("No student attendance records available to export");
+          return;
+        }
+
+        const headers = ["Roll No", "Student Name", "Class", "Date", "Status"];
+        const rows = students.map((stu) => [
+          stu.roll,
+          stu.name,
+          selectedClass,
+          selectedDate,
+          stu.status.toUpperCase()
+        ]);
+
+        const headerRow = headers.map(escapeCell).join(",");
+        const dataRows = rows.map((row: any[]) => row.map(escapeCell).join(",")).join("\r\n");
+        const csvContent = "\uFEFF" + headerRow + "\r\n" + dataRows;
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.setAttribute("download", `Attendance_${selectedClass.replace(/\s+/g, '_')}_${selectedDate}.csv`);
+        anchor.style.display = "none";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        toast.success("Student attendance roster exported successfully to CSV", "Export Complete");
+      } else if (isStudent) {
+        const studentSubjects = [
+          { subject: "Mathematics", present: 24, total: 24, pct: 100 },
+          { subject: "Physics (Theory + Lab)", present: 22, total: 24, pct: 91.6 },
+          { subject: "Chemistry", present: 20, total: 20, pct: 100 },
+          { subject: "Computer Science", present: 16, total: 17, pct: 94.1 },
+        ];
+
+        const headers = ["Subject", "Periods Attended", "Total Periods", "Attendance (%)"];
+        const rows = studentSubjects.map((sub) => [
+          sub.subject,
+          sub.present,
+          sub.total,
+          `${sub.pct}%`
+        ]);
+
+        const headerRow = headers.map(escapeCell).join(",");
+        const dataRows = rows.map((row: any[]) => row.map(escapeCell).join(",")).join("\r\n");
+        const csvContent = "\uFEFF" + headerRow + "\r\n" + dataRows;
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.setAttribute("download", `Student_Attendance_Report_${selectedDate}.csv`);
+        anchor.style.display = "none";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+        toast.success("Personal attendance report exported successfully to CSV", "Export Complete");
+      } else {
+        toast.info("No export data available for your current role");
+      }
+    } catch (err) {
+      console.error("Failed to export attendance data", err);
+      toast.error("Failed to export attendance report");
+    }
+  };
+
   const handleSubmitWorkLog = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success("Daily Work Log submitted! Syllabus node auto-updated.", "Portion Synced");
     setDrawerOpen(false);
-  };
-
-  const handleExportAttendance = () => {
-    if (isTeacher && students.length > 0) {
-      const headers = ["Roll No", "Student Name", "Status", "Date", "Class"];
-      const rows = students.map(s => [
-        s.roll,
-        s.name,
-        s.status.toUpperCase(),
-        selectedDate,
-        selectedClass
-      ]);
-      exportToCsv(`Attendance_${selectedClass.replace(/\s+/g, "_")}_${selectedDate}`, headers, rows);
-      toast.success(`Exported ${students.length} attendance records`, "CSV Downloaded");
-      return;
-    }
-
-    if (gradeMatrixData && gradeMatrixData.length > 0) {
-      const headers = ["Grade", "Total Strength", "Present", "Absent", "Attendance %", "Date"];
-      const rows = gradeMatrixData.map(g => [
-        g.grade,
-        g.strength,
-        g.present,
-        g.absent,
-        `${g.percentage}%`,
-        selectedDate
-      ]);
-      exportToCsv(`Institutional_Attendance_Summary_${selectedDate}`, headers, rows);
-      toast.success(`Exported attendance summary for ${selectedDate}`, "CSV Downloaded");
-      return;
-    }
-
-    toast.info("No attendance records to export for this date", "Export Info");
   };
 
   return (
@@ -196,7 +325,7 @@ export default function AttendancePage() {
               className="px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs font-mono"
             />
             <button
-              onClick={handleExportAttendance}
+              onClick={handleExport}
               className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
             >
               <Download className="w-4 h-4 text-gray-600" />

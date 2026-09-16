@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Users, Plus, Search, Filter, Shield, Building2, X, Check } from 'lucide-react';
+import { Users, Plus, Search, Filter, Shield, X, Check, Phone, GraduationCap, Mail, User as UserIcon } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ROLE_LABELS, ROLE_COLORS, UserRole } from '@/store/authStore';
+import { useToast } from '@/components/Toast';
 import api from '@/lib/api';
 
 interface UserItem {
@@ -11,18 +12,12 @@ interface UserItem {
   email: string;
   full_name: string;
   role: string;
-  department_id: string | null;
-  department_name: string | null;
   assigned_grade: string | null;
+  phone: string | null;
   is_active: boolean;
   created_at: string;
   roll_number?: string | null;
   admission_number?: string | null;
-}
-
-interface DeptItem {
-  id: string;
-  name: string;
 }
 
 const ALL_ROLES: UserRole[] = [
@@ -34,8 +29,8 @@ const ALL_ROLES: UserRole[] = [
 const ALL_GRADES = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 function UsersPageContent() {
+  const { toast } = useToast();
   const [users, setUsers] = useState<UserItem[]>([]);
-  const [departments, setDepartments] = useState<DeptItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,9 +38,15 @@ function UsersPageContent() {
 
   // Create form state
   const [newUser, setNewUser] = useState({
-    email: '', full_name: '', password: 'school@123',
-    role: 'student', department_id: '', assigned_grade: '',
-    phone: '', roll_number: '', admission_number: '', age: ''
+    email: '',
+    full_name: '',
+    password: 'school@123',
+    role: 'student',
+    assigned_grade: '',
+    phone: '',
+    roll_number: '',
+    admission_number: '',
+    age: ''
   });
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
@@ -57,20 +58,13 @@ function UsersPageContent() {
       setUsers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setUsers([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
-  const fetchDepartments = async () => {
-    try {
-      const res = await api.get('/departments');
-      setDepartments(res.data);
-    } catch {}
   };
 
   useEffect(() => {
     fetchUsers();
-    fetchDepartments();
   }, []);
 
   const filteredUsers = users.filter(u => {
@@ -78,8 +72,9 @@ function UsersPageContent() {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return matchesRole;
     const matchesSearch =
-      u.full_name?.toLowerCase().includes(q) ||
-      u.email?.toLowerCase().includes(q) ||
+      (u.full_name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.phone && u.phone.toLowerCase().includes(q)) ||
       (u.roll_number && u.roll_number.toLowerCase().includes(q)) ||
       (u.admission_number && u.admission_number.toLowerCase().includes(q));
     return matchesRole && matchesSearch;
@@ -90,22 +85,42 @@ function UsersPageContent() {
     setCreating(true);
     setCreateError('');
     try {
-      await api.post('/users', {
-        ...newUser,
-        department_id: newUser.department_id || null,
+      const payload = {
+        email: newUser.email.trim().toLowerCase(),
+        full_name: newUser.full_name.trim(),
+        password: newUser.password || 'school@123',
+        role: newUser.role,
+        department_id: null,
         assigned_grade: newUser.assigned_grade || null,
         phone: newUser.phone || null,
         roll_number: newUser.roll_number || null,
         admission_number: newUser.admission_number || null,
         age: newUser.age ? parseInt(newUser.age) : null,
-      });
+      };
+
+      const res = await api.post('/users', payload);
+      toast.success(`User "${newUser.full_name}" created successfully as ${ROLE_LABELS[newUser.role as UserRole] || newUser.role}!`, 'User Created');
       setShowCreateModal(false);
-      setNewUser({ email: '', full_name: '', password: 'school@123', role: 'student', department_id: '', assigned_grade: '', phone: '', roll_number: '', admission_number: '', age: '' });
-      fetchUsers();
+      setNewUser({
+        email: '',
+        full_name: '',
+        password: 'school@123',
+        role: 'student',
+        assigned_grade: '',
+        phone: '',
+        roll_number: '',
+        admission_number: '',
+        age: ''
+      });
+      await fetchUsers();
     } catch (err: any) {
-      setCreateError(err.response?.data?.detail || 'Failed to create user');
+      console.error('Create user error:', err);
+      const errMsg = err.response?.data?.detail || 'Failed to create user. Please check form inputs.';
+      setCreateError(errMsg);
+      toast.error(errMsg, 'Creation Failed');
+    } finally {
+      setCreating(false);
     }
-    setCreating(false);
   };
 
   const roleCounts = ALL_ROLES.reduce((acc, role) => {
@@ -124,10 +139,13 @@ function UsersPageContent() {
             </div>
             User Management
           </h1>
-          <p className="text-sm text-gray-600">Manage users across all {ALL_ROLES.length - 1} roles — {users.length} total users</p>
+          <p className="text-sm text-gray-600">Manage institutional users across all roles — {users.length} total active profiles</p>
         </div>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => {
+            setCreateError('');
+            setShowCreateModal(true);
+          }}
           className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-brand-black text-sm font-medium shadow-lg shadow-indigo-500/25 hover:opacity-90 transition-all whitespace-nowrap flex-shrink-0 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
@@ -157,7 +175,7 @@ function UsersPageContent() {
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or email..."
+            placeholder="Search by name, email, roll or admission ID..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
@@ -181,8 +199,8 @@ function UsersPageContent() {
               <tr className="border-b border-gray-200/60">
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Department</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Grade</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned Grade / Class</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Contact Phone</th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
@@ -200,7 +218,7 @@ function UsersPageContent() {
                     <tr key={user.id} className="hover:bg-gray-100/20 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${ROLE_COLORS[role]} flex items-center justify-center text-brand-black font-semibold text-xs`}>
+                          <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${ROLE_COLORS[role] || 'from-gray-500 to-slate-600'} flex items-center justify-center text-brand-black font-semibold text-xs`}>
                             {user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                           </div>
                           <div>
@@ -210,15 +228,15 @@ function UsersPageContent() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`text-xs px-2.5 py-1 rounded-full bg-gradient-to-r ${ROLE_COLORS[role]} text-brand-black font-medium`}>
-                          {ROLE_LABELS[role]}
+                        <span className={`text-xs px-2.5 py-1 rounded-full bg-gradient-to-r ${ROLE_COLORS[role] || 'from-gray-500 to-slate-600'} text-brand-black font-medium`}>
+                          {ROLE_LABELS[role] || role}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-700 text-xs">
-                        {user.department_name || <span className="text-gray-600">—</span>}
-                      </td>
-                      <td className="px-6 py-4 text-gray-700 text-xs">
                         {user.assigned_grade ? `Grade ${user.assigned_grade}` : <span className="text-gray-600">—</span>}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700 text-xs font-mono">
+                        {user.phone || <span className="text-gray-600">—</span>}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
@@ -254,17 +272,22 @@ function UsersPageContent() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Full Name</label>
                   <input
-                    value={newUser.full_name} onChange={e => setNewUser({...newUser, full_name: e.target.value})}
-                    required placeholder="Dr. John Doe"
+                    value={newUser.full_name} 
+                    onChange={e => setNewUser({...newUser, full_name: e.target.value})}
+                    required 
+                    placeholder="e.g. John Doe"
                     className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Email</label>
                   <input
-                    type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})}
-                    required placeholder="john.doe@school.edu"
-                    className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                    type="email" 
+                    value={newUser.email} 
+                    onChange={e => setNewUser({...newUser, email: e.target.value})}
+                    required 
+                    placeholder="user@school.edu"
+                    className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-mono"
                   />
                 </div>
               </div>
@@ -273,7 +296,8 @@ function UsersPageContent() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Role</label>
                   <select
-                    value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})}
+                    value={newUser.role} 
+                    onChange={e => setNewUser({...newUser, role: e.target.value})}
                     className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black focus:outline-none focus:border-indigo-500"
                   >
                     {ALL_ROLES.filter(r => r !== 'super_admin').map(r => (
@@ -284,38 +308,40 @@ function UsersPageContent() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Password</label>
                   <input
-                    value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})}
-                    required placeholder="school@123"
+                    value={newUser.password} 
+                    onChange={e => setNewUser({...newUser, password: e.target.value})}
+                    required 
+                    placeholder="school@123"
                     className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               {newUser.role === 'teacher' && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Department</label>
-                      <select
-                        value={newUser.department_id} onChange={e => setNewUser({...newUser, department_id: e.target.value})}
-                        className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black focus:outline-none focus:border-indigo-500"
-                      >
-                        <option value="">None</option>
-                        {departments.map(d => (
-                          <option key={d.id} value={d.id}>{d.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Phone Number</label>
-                      <input
-                        value={newUser.phone} onChange={e => setNewUser({...newUser, phone: e.target.value})}
-                        placeholder="+1 234 567 8900"
-                        className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Grade (Class Teacher)</label>
+                    <select
+                      value={newUser.assigned_grade} 
+                      onChange={e => setNewUser({...newUser, assigned_grade: e.target.value})}
+                      className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="">None (Subject Teacher)</option>
+                      {ALL_GRADES.map(g => (
+                        <option key={g} value={g}>Grade {g}</option>
+                      ))}
+                    </select>
                   </div>
-                </>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Phone Number</label>
+                    <input
+                      value={newUser.phone} 
+                      onChange={e => setNewUser({...newUser, phone: e.target.value})}
+                      placeholder="+91 98765 43210"
+                      className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-mono"
+                    />
+                  </div>
+                </div>
               )}
 
               {newUser.role === 'student' && (
@@ -324,19 +350,22 @@ function UsersPageContent() {
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Grade</label>
                       <select
-                        value={newUser.assigned_grade} onChange={e => setNewUser({...newUser, assigned_grade: e.target.value})}
+                        value={newUser.assigned_grade} 
+                        onChange={e => setNewUser({...newUser, assigned_grade: e.target.value})}
                         className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black focus:outline-none focus:border-indigo-500"
                       >
                         <option value="">None</option>
                         {ALL_GRADES.map(g => (
-                          <option key={g} value={g}>{g}</option>
+                          <option key={g} value={g}>Grade {g}</option>
                         ))}
                       </select>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Age</label>
                       <input
-                        type="number" value={newUser.age} onChange={e => setNewUser({...newUser, age: e.target.value})}
+                        type="number" 
+                        value={newUser.age} 
+                        onChange={e => setNewUser({...newUser, age: e.target.value})}
                         placeholder="e.g. 15"
                         className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                       />
@@ -346,7 +375,8 @@ function UsersPageContent() {
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Roll Number</label>
                       <input
-                        value={newUser.roll_number} onChange={e => setNewUser({...newUser, roll_number: e.target.value})}
+                        value={newUser.roll_number} 
+                        onChange={e => setNewUser({...newUser, roll_number: e.target.value})}
                         placeholder="e.g. 1045"
                         className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                       />
@@ -354,13 +384,26 @@ function UsersPageContent() {
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Admission ID</label>
                       <input
-                        value={newUser.admission_number} onChange={e => setNewUser({...newUser, admission_number: e.target.value})}
-                        placeholder="e.g. ADM-2024-001"
+                        value={newUser.admission_number} 
+                        onChange={e => setNewUser({...newUser, admission_number: e.target.value})}
+                        placeholder="e.g. ADM-2026-001"
                         className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
                 </>
+              )}
+
+              {!['teacher', 'student'].includes(newUser.role) && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Contact Phone</label>
+                  <input
+                    value={newUser.phone} 
+                    onChange={e => setNewUser({...newUser, phone: e.target.value})}
+                    placeholder="+91 98765 43210"
+                    className="w-full px-3 py-2.5 rounded-lg bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500 font-mono"
+                  />
+                </div>
               )}
 
               {createError && (
@@ -369,13 +412,15 @@ function UsersPageContent() {
 
               <div className="flex gap-3 pt-2">
                 <button
-                  type="button" onClick={() => setShowCreateModal(false)}
+                  type="button" 
+                  onClick={() => setShowCreateModal(false)}
                   className="flex-1 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 text-sm font-medium hover:text-brand-black transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit" disabled={creating}
+                  type="submit" 
+                  disabled={creating}
                   className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-brand-black text-sm font-medium shadow-lg shadow-indigo-500/25 hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                 >
                   {creating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <Check className="w-4 h-4" />}
@@ -392,7 +437,7 @@ function UsersPageContent() {
 
 export default function UsersPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal']}>
       <UsersPageContent />
     </ProtectedRoute>
   );

@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Search,
   Filter,
-  Check
+  Check,
+  Printer
 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
@@ -242,9 +243,554 @@ export default function FeesPage() {
   };
 
 
+function numberToWords(amount: number): string {
+  const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+  if (!amount || amount === 0) return "Zero Rupees Only";
+
+  const convertLessThanOneThousand = (num: number): string => {
+    let current = "";
+    if (num >= 100) {
+      current += units[Math.floor(num / 100)] + " Hundred ";
+      num %= 100;
+    }
+    if (num >= 20) {
+      current += tens[Math.floor(num / 10)] + " ";
+      num %= 10;
+    }
+    if (num > 0) {
+      current += units[num] + " ";
+    }
+    return current;
+  };
+
+  let num = Math.floor(amount);
+  let result = "";
+
+  if (num >= 10000000) {
+    result += convertLessThanOneThousand(Math.floor(num / 10000000)) + "Crore ";
+    num %= 10000000;
+  }
+  if (num >= 100000) {
+    result += convertLessThanOneThousand(Math.floor(num / 100000)) + "Lakh ";
+    num %= 100000;
+  }
+  if (num >= 1000) {
+    result += convertLessThanOneThousand(Math.floor(num / 1000)) + "Thousand ";
+    num %= 1000;
+  }
+  if (num > 0) {
+    result += convertLessThanOneThousand(num);
+  }
+
+  return result.trim() + " Rupees Only";
+}
+
+const generateReceiptHtml = (receipt: ReceiptItem): string => {
+  const amountInWords = numberToWords(receipt.amount);
+  const formattedDate = receipt.created_at ? new Date(receipt.created_at).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }) : new Date().toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fee Receipt - ${receipt.receipt_number}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 30px 20px;
+      display: flex;
+      justify-content: center;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .receipt-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 800px;
+      padding: 40px 48px;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e2e8f0;
+      position: relative;
+    }
+    
+    .watermark {
+      position: absolute;
+      top: 52%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-28deg);
+      font-size: 88px;
+      font-weight: 800;
+      color: rgba(16, 185, 129, 0.05);
+      letter-spacing: 12px;
+      pointer-events: none;
+      user-select: none;
+      text-transform: uppercase;
+      z-index: 0;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .school-info h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    
+    .school-info p {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+    
+    .receipt-badge {
+      text-align: right;
+    }
+    
+    .badge-pill {
+      display: inline-block;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    .receipt-no {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    
+    .receipt-date {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .meta-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+    
+    .meta-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    
+    .meta-value.mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #0284c7;
+    }
+    
+    .table-container {
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    
+    th {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    
+    td {
+      padding: 14px 14px;
+      font-size: 12px;
+      color: #334155;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .amount-col {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    
+    .summary-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-top: 2px solid #e2e8f0;
+      padding-top: 16px;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .words-box {
+      max-width: 55%;
+    }
+    
+    .words-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    
+    .words-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+      font-style: italic;
+      line-height: 1.4;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .total-box {
+      width: 40%;
+    }
+    
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+      color: #64748b;
+    }
+    
+    .grand-total {
+      display: flex;
+      justify-content: space-between;
+      border-top: 2px solid #0f172a;
+      padding-top: 8px;
+      margin-top: 6px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    
+    .grand-total .amount {
+      color: #059669;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-top: 20px;
+      margin-top: 20px;
+      border-top: 1px dashed #cbd5e1;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .seal-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .stamp-circle {
+      width: 64px;
+      height: 64px;
+      border: 2px dashed #059669;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #059669;
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      text-align: center;
+      transform: rotate(-10deg);
+      line-height: 1.1;
+    }
+    
+    .stamp-details {
+      font-size: 10px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    
+    .sign-box {
+      text-align: center;
+      min-width: 160px;
+    }
+    
+    .sign-line {
+      border-top: 1px solid #94a3b8;
+      margin-top: 40px;
+      padding-top: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+    }
+    
+    .sign-sub {
+      font-size: 9px;
+      color: #64748b;
+    }
+    
+    .footer-note {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+      font-size: 10px;
+      color: #94a3b8;
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+    
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .receipt-container {
+        border: none;
+        box-shadow: none;
+        padding: 16px 20px;
+        max-width: 100%;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-container">
+    <div class="watermark">PAID</div>
+    
+    <div class="header">
+      <div class="school-info">
+        <h1>PAPERBUDDY INTERNATIONAL SCHOOL</h1>
+        <p>Affiliated to CBSE, New Delhi • Affiliation No. 1930842</p>
+        <p>104 Knowledge Park Boulevard, Cyber City, Chennai - 600113</p>
+        <p>Email: accounts@paperbuddy.edu • Phone: +91 44 2847 9000</p>
+        <p style="margin-top: 3px; font-weight: 600; color: #475569;">GSTIN: 33AAAAA0000A1Z5</p>
+      </div>
+      <div class="receipt-badge">
+        <div class="badge-pill">✓ Official Fee Receipt</div>
+        <div class="receipt-no">${receipt.receipt_number}</div>
+        <div class="receipt-date">Date: ${formattedDate}</div>
+        <div class="receipt-date" style="font-weight: 600; color: #334155;">Academic Year: 2026 - 2027</div>
+      </div>
+    </div>
+    
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">Student Full Name</span>
+        <span class="meta-value">${receipt.student_name}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Class & Section</span>
+        <span class="meta-value">${receipt.grade}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Payment Mode / Gateway</span>
+        <span class="meta-value">${receipt.payment_method}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Transaction Reference / UTR</span>
+        <span class="meta-value mono">${receipt.transaction_id || 'TXN_PB_' + receipt.receipt_number.replace(/[^0-9]/g, '')}</span>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">#</th>
+            <th>Fee Description / Particulars</th>
+            <th style="width: 140px;">Category</th>
+            <th class="amount-col" style="width: 130px;">Amount (INR)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="text-align: center; font-weight: 600;">1</td>
+            <td>
+              <div style="font-weight: 700; color: #0f172a;">${receipt.title}</div>
+              <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Term Academic Tuition, Labs & Institution Services</div>
+            </td>
+            <td><span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">${receipt.category}</span></td>
+            <td class="amount-col">₹${receipt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="summary-section">
+      <div class="words-box">
+        <div class="words-label">Amount in Words</div>
+        <div class="words-text">${amountInWords}</div>
+      </div>
+      <div class="total-box">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span style="font-family: 'JetBrains Mono', monospace;">₹${receipt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div class="total-row">
+          <span>Educational Tax (Exempt)</span>
+          <span style="font-family: 'JetBrains Mono', monospace;">₹0.00</span>
+        </div>
+        <div class="grand-total">
+          <span>Total Paid</span>
+          <span class="amount">₹${receipt.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="signatures">
+      <div class="seal-box">
+        <div class="stamp-circle">
+          <span>★ PAID ★</span>
+          <span>ONLINE</span>
+          <span>VERIFIED</span>
+        </div>
+        <div class="stamp-details">
+          <div style="font-weight: 700; color: #059669;">Verified Electronic Payment</div>
+          <div>Bank Hash: ${receipt.transaction_id ? receipt.transaction_id.slice(-12) : 'SECURE_HASH_OK'}</div>
+          <div>Status: Fully Realized & Credited</div>
+        </div>
+      </div>
+      <div class="sign-box">
+        <div class="sign-line">Authorized Signatory</div>
+        <div class="sign-sub">Finance & Accounts Department</div>
+      </div>
+    </div>
+    
+    <div class="footer-note">
+      This is a digitally generated electronic receipt verified by PaperBuddy School ERP. No physical signature is required under the Information Technology Act, 2000. For billing inquiries, contact accounts@paperbuddy.edu.
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
   const handleDownload = (receipt: ReceiptItem) => {
     setSelectedReceipt(receipt);
-    toast.info(`Generated printable fee receipt ${receipt.receipt_number}`, "Receipt Ready");
+  };
+
+  const handlePrintReceipt = (receipt: ReceiptItem) => {
+    const printWindow = window.open('', '_blank', 'width=850,height=950');
+    if (!printWindow) {
+      toast.error("Popup blocked! Please allow popups to print receipt.");
+      return;
+    }
+
+    const htmlContent = generateReceiptHtml(receipt) + `
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+          }, 300);
+        };
+      </script>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    toast.success(`Print preview generated for ${receipt.receipt_number}`, "Printing Receipt");
+  };
+
+  const handleDownloadReceiptDoc = (receipt: ReceiptItem) => {
+    try {
+      const htmlContent = generateReceiptHtml(receipt);
+      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.setAttribute("download", `Fee_Receipt_${receipt.receipt_number}.html`);
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success(`Fee receipt ${receipt.receipt_number} downloaded successfully`, "Download Complete");
+    } catch (err) {
+      toast.error("Failed to download fee receipt");
+    }
   };
 
   const getDemoReceipts = (): ReceiptItem[] => [
@@ -590,122 +1136,117 @@ export default function FeesPage() {
           </div>
         </div>
 
-        {/* Printable Official Fee Receipt Modal */}
+        {/* Printable Receipt Modal */}
         {selectedReceipt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-            <div id="printable-receipt" className="print-container bg-white text-gray-900 border border-gray-300 max-w-2xl w-full rounded-2xl shadow-2xl overflow-hidden my-8">
-              {/* Actions Header Bar */}
-              <div className="px-6 py-3 bg-gray-100 border-b border-gray-200 flex justify-between items-center print:hidden">
-                <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">Official Payment Voucher Preview</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      window.print();
-                      toast.success("Receipt sent to printer", "Printing");
-                    }}
-                    className="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 flex items-center gap-1.5 shadow-sm"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    Print Receipt
-                  </button>
-                  <button onClick={() => setSelectedReceipt(null)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-200">
-                    <X className="w-5 h-5" />
-                  </button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white max-w-xl w-full rounded-2xl p-6 space-y-5 shadow-2xl border border-gray-200">
+              {/* Modal Top Header */}
+              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center border border-emerald-500/30">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-brand-black">PaperBuddy School ERP — Official Fee Receipt</h3>
+                    <p className="text-[11px] text-gray-600">GST Registration: 33AAAAA0000A1Z5 • Affiliation: CBSE-1930842</p>
+                  </div>
                 </div>
+                <button onClick={() => setSelectedReceipt(null)} className="text-gray-600 hover:text-brand-black p-1">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* Printable Body */}
-              <div className="p-8 space-y-6 print:p-0">
-                {/* School Letterhead */}
-                <div className="text-center border-b-2 border-indigo-900 pb-5">
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    <div className="w-12 h-12 rounded-xl bg-indigo-900 text-amber-400 flex items-center justify-center font-black text-xl shadow-md">
-                      BP
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-black tracking-tight text-indigo-950 uppercase">
-                        Bharathi Matriculation Higher Secondary School
-                      </h2>
-                      <p className="text-[11px] font-semibold text-gray-600">
-                        Recognized by Govt. of Tamil Nadu | Affiliation No: TN-CHE-0941
-                      </p>
-                    </div>
+              {/* Receipt Preview Body Card */}
+              <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4 text-xs">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-600 tracking-wider block">Receipt Number</span>
+                    <span className="font-mono text-cyan-600 font-bold text-sm">{selectedReceipt.receipt_number}</span>
                   </div>
-                  <p className="text-[11px] text-gray-500">
-                    124, Anna Salai, Chennai, Tamil Nadu - 600002 • Phone: +91 44 2841 9900 • Email: accounts@bharathischool.edu.in
-                  </p>
-                  <div className="mt-3 inline-block px-4 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-black tracking-wider uppercase">
-                    Fee Payment Receipt (Original Copy)
+                  <div className="text-right">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">
+                      <CheckCircle2 className="w-3 h-3" /> Paid & Verified
+                    </span>
+                    <div className="text-[10px] text-gray-500 mt-0.5">
+                      {selectedReceipt.created_at ? new Date(selectedReceipt.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
                   </div>
                 </div>
 
-                {/* Receipt Details Grid */}
-                <div className="grid grid-cols-2 gap-4 text-xs bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <div className="space-y-1.5">
-                    <div><span className="text-gray-500 font-medium">Receipt Number:</span> <span className="font-mono font-bold text-gray-900">{selectedReceipt.receipt_number}</span></div>
-                    <div><span className="text-gray-500 font-medium">Payment Date:</span> <span className="font-semibold text-gray-900">{new Date(selectedReceipt.created_at || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></div>
-                    <div><span className="text-gray-500 font-medium">Transaction ID:</span> <span className="font-mono text-gray-800">{selectedReceipt.transaction_id || "TXN_PB_9842109"}</span></div>
-                    <div><span className="text-gray-500 font-medium">Payment Mode:</span> <span className="font-semibold text-gray-900 uppercase">{selectedReceipt.payment_method}</span></div>
+                <div className="grid grid-cols-2 gap-3 py-1 text-xs">
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-600 block">Student Name</span>
+                    <span className="text-brand-black font-bold text-sm">{selectedReceipt.student_name}</span>
                   </div>
-                  <div className="space-y-1.5">
-                    <div><span className="text-gray-500 font-medium">Student Name:</span> <span className="font-bold text-gray-900">{selectedReceipt.student_name}</span></div>
-                    <div><span className="text-gray-500 font-medium">Admission No:</span> <span className="font-mono font-bold text-gray-900">{selectedReceipt.admission_number || "ADM-2026-0812"}</span></div>
-                    <div><span className="text-gray-500 font-medium">Grade & Section:</span> <span className="font-bold text-gray-900">Grade {selectedReceipt.grade}</span></div>
-                    <div><span className="text-gray-500 font-medium">Academic Year:</span> <span className="font-semibold text-gray-900">2026 - 2027</span></div>
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-600 block">Grade / Section</span>
+                    <span className="text-brand-black font-semibold">{selectedReceipt.grade}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-600 block">Payment Mode</span>
+                    <span className="text-brand-black">{selectedReceipt.payment_method}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-semibold text-gray-600 block">Transaction Reference</span>
+                    <span className="font-mono text-gray-700 text-[11px]">{selectedReceipt.transaction_id || 'TXN_PB_' + selectedReceipt.receipt_number.replace(/[^0-9]/g, '')}</span>
                   </div>
                 </div>
 
-                {/* Particulars Table */}
-                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                {/* Table of items */}
+                <div className="rounded-lg border border-slate-200 overflow-hidden bg-white">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-100 text-gray-700 font-bold border-b border-gray-200">
+                    <thead className="bg-slate-100 text-gray-600 text-[10px] uppercase font-bold border-b border-slate-200">
                       <tr>
-                        <th className="p-3 w-12 text-center">#</th>
-                        <th className="p-3">Fee Particulars / Category</th>
-                        <th className="p-3">Billing Term</th>
-                        <th className="p-3 text-right">Amount (INR)</th>
+                        <th className="p-2.5">Particulars</th>
+                        <th className="p-2.5">Category</th>
+                        <th className="p-2.5 text-right">Amount</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody>
                       <tr>
-                        <td className="p-3 text-center text-gray-500">1</td>
-                        <td className="p-3">
-                          <span className="font-bold text-gray-900">{selectedReceipt.title}</span>
-                          <span className="block text-[11px] text-gray-500">Category: {selectedReceipt.category || "Tuition / Academic"}</span>
-                        </td>
-                        <td className="p-3 text-gray-600">Term 1 (Academic 2026-27)</td>
-                        <td className="p-3 text-right font-mono font-bold text-gray-900">₹{selectedReceipt.amount.toLocaleString('en-IN')}</td>
-                      </tr>
-                      <tr className="bg-gray-50 font-bold">
-                        <td colSpan={3} className="p-3 text-right text-gray-700 uppercase tracking-wider text-[11px]">Total Paid Amount:</td>
-                        <td className="p-3 text-right font-mono text-indigo-900 text-sm">₹{selectedReceipt.amount.toLocaleString('en-IN')}</td>
+                        <td className="p-2.5 font-medium text-brand-black">{selectedReceipt.title}</td>
+                        <td className="p-2.5 text-gray-600">{selectedReceipt.category}</td>
+                        <td className="p-2.5 text-right font-mono font-bold text-brand-black">₹{selectedReceipt.amount.toLocaleString()}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
-                {/* Footer Signatures and Verification */}
-                <div className="pt-6 border-t border-gray-200 flex justify-between items-end">
-                  <div className="space-y-1">
-                    <div className="w-32 border-b border-gray-400"></div>
-                    <p className="text-[10px] text-gray-500 font-semibold uppercase">Parent / Depositor Signature</p>
+                {/* Amount in words and Total */}
+                <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="text-[11px] text-gray-600 italic">
+                    <span className="font-semibold not-italic">In Words: </span>
+                    {numberToWords(selectedReceipt.amount)}
                   </div>
-
-                  <div className="text-center px-4 py-2 border border-emerald-600/30 rounded-lg bg-emerald-50">
-                    <span className="text-[10px] text-emerald-800 font-black tracking-widest uppercase block">PAID & VERIFIED</span>
-                    <span className="text-[9px] text-emerald-700 font-mono">PaperBuddy Core ERP</span>
-                  </div>
-
-                  <div className="text-right space-y-1">
-                    <div className="w-36 border-b border-gray-400 ml-auto"></div>
-                    <p className="text-[10px] text-gray-700 font-bold uppercase">Cashier / Accounts Officer</p>
-                    <p className="text-[9px] text-gray-400">Authorized Signatory</p>
+                  <div className="flex items-center gap-2 text-sm justify-end">
+                    <span className="font-bold text-brand-black">Total Paid:</span>
+                    <span className="text-emerald-600 font-mono font-bold text-base">₹{selectedReceipt.amount.toLocaleString()}</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="text-center text-[10px] text-gray-400 pt-2 border-t border-dashed border-gray-200">
-                  This is a computer-generated official receipt issued by Bharathi Matriculation Hr Sec School. No physical signature required.
-                </div>
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-gray-200">
+                <button
+                  onClick={() => setSelectedReceipt(null)}
+                  className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => handleDownloadReceiptDoc(selectedReceipt)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download HTML Voucher
+                </button>
+                <button
+                  onClick={() => handlePrintReceipt(selectedReceipt)}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500 flex items-center gap-1.5 shadow-md shadow-emerald-600/30 transition-all"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Print / Save PDF
+                </button>
               </div>
             </div>
           </div>

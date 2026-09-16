@@ -8,7 +8,7 @@ import {
   UserCircle, Settings, Shield, Bell, Key, Camera,
   Briefcase, Clock, Calendar, CheckCircle2,
   FileSignature, PieChart, Users, BookOpen, AlertTriangle, Building, CreditCard,
-  MapPin, Phone, Mail, Activity, GraduationCap, TrendingUp, Loader2, Upload
+  MapPin, Phone, Mail, Activity, GraduationCap, TrendingUp, Loader2, Upload, Trash2
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // General details
   const [fullName, setFullName] = useState(user?.full_name || "");
   const [phone, setPhone] = useState(user?.phone || "+91 9876543210");
   const [address, setAddress] = useState(user?.address || "123 Main Street, Chennai, TN - 600040");
@@ -26,7 +27,62 @@ export default function ProfilePage() {
   const [broadcastSignature, setBroadcastSignature] = useState(user?.broadcast_signature || "");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Extended personal details
+  const [gender, setGender] = useState("Male");
+  const [dob, setDob] = useState("1985-05-15");
+  const [bloodGroup, setBloodGroup] = useState("O+");
+  const [aadhaar, setAadhaar] = useState("XXXX-XXXX-1234");
+  const [nationality, setNationality] = useState("Indian");
+
+  // Family details
+  const [fatherName, setFatherName] = useState("");
+  const [fatherPhone, setFatherPhone] = useState("");
+  const [fatherOccupation, setFatherOccupation] = useState("");
+  const [motherName, setMotherName] = useState("");
+  const [motherPhone, setMotherPhone] = useState("");
+  const [motherOccupation, setMotherOccupation] = useState("");
+
+  // Principal-specific dashboard states
+  const [officeHours, setOfficeHours] = useState("Mon-Fri, 10:00 AM - 12:00 PM");
+  const [isDelegated, setIsDelegated] = useState(false);
+
   useEffect(() => {
+    if (user) {
+      if (user.full_name) setFullName(user.full_name);
+      if (user.phone) setPhone(user.phone);
+      if (user.address) setAddress(user.address);
+      if (user.signature) setSignature(user.signature);
+      if (user.broadcast_signature) setBroadcastSignature(user.broadcast_signature);
+    }
+
+    // Load persisted extras from localStorage
+    if (typeof window !== 'undefined' && user?.id) {
+      try {
+        const storedExtras = localStorage.getItem(`pb_profile_extra_${user.id}`);
+        if (storedExtras) {
+          const parsed = JSON.parse(storedExtras);
+          if (parsed.gender) setGender(parsed.gender);
+          if (parsed.dob) setDob(parsed.dob);
+          if (parsed.bloodGroup) setBloodGroup(parsed.bloodGroup);
+          if (parsed.aadhaar) setAadhaar(parsed.aadhaar);
+          if (parsed.nationality) setNationality(parsed.nationality);
+          if (parsed.fatherName) setFatherName(parsed.fatherName);
+          if (parsed.fatherPhone) setFatherPhone(parsed.fatherPhone);
+          if (parsed.fatherOccupation) setFatherOccupation(parsed.fatherOccupation);
+          if (parsed.motherName) setMotherName(parsed.motherName);
+          if (parsed.motherPhone) setMotherPhone(parsed.motherPhone);
+          if (parsed.motherOccupation) setMotherOccupation(parsed.motherOccupation);
+        }
+        const storedHours = localStorage.getItem(`pb_principal_office_hours_${user.id}`);
+        if (storedHours) setOfficeHours(storedHours);
+        const storedDelegated = localStorage.getItem(`pb_principal_delegated_${user.id}`);
+        if (storedDelegated) setIsDelegated(storedDelegated === 'true');
+      } catch (e) {
+        console.error("Failed to load local extras", e);
+      }
+    }
+
+    // Refresh from backend
     api.get('/auth/me').then(res => {
       if (res.data) {
         if (res.data.full_name) setFullName(res.data.full_name);
@@ -36,7 +92,7 @@ export default function ProfilePage() {
         if (res.data.broadcast_signature) setBroadcastSignature(res.data.broadcast_signature);
       }
     }).catch(() => {});
-  }, []);
+  }, [user?.id]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -49,8 +105,28 @@ export default function ProfilePage() {
       await api.put('/auth/me', {
         full_name: fullName,
         phone: phone,
-        address: address
+        address: address,
+        signature: signature || undefined,
+        broadcast_signature: broadcastSignature || undefined
       });
+      
+      // Persist extended fields locally
+      if (typeof window !== 'undefined' && user?.id) {
+        localStorage.setItem(`pb_profile_extra_${user.id}`, JSON.stringify({
+          gender,
+          dob,
+          bloodGroup,
+          aadhaar,
+          nationality,
+          fatherName,
+          fatherPhone,
+          fatherOccupation,
+          motherName,
+          motherPhone,
+          motherOccupation
+        }));
+      }
+
       await useAuthStore.getState().refreshUser();
       showToast("Profile information saved successfully.");
     } catch (err: any) {
@@ -70,10 +146,76 @@ export default function ProfilePage() {
         await api.put('/auth/me', { signature: sigBase64 });
       }
       await useAuthStore.getState().refreshUser();
-      showToast("Official signature saved successfully!");
+      showToast(isBroadcast ? "Broadcast signature updated!" : "Official digital signature saved successfully!");
     } catch (err: any) {
       showToast(err.response?.data?.detail || "Failed to save signature.");
     }
+  };
+
+  const handleDeleteSignature = async (isBroadcast: boolean = false) => {
+    try {
+      if (isBroadcast) {
+        setBroadcastSignature("");
+        await api.put('/auth/me', { broadcast_signature: "" });
+      } else {
+        setSignature("");
+        try {
+          await api.delete('/auth/me/signature');
+        } catch {
+          await api.put('/auth/me', { signature: "" });
+        }
+      }
+      await useAuthStore.getState().refreshUser();
+      showToast(isBroadcast ? "Broadcast signature text removed." : "Official digital signature & stamp removed successfully!");
+    } catch (err: any) {
+      showToast(err.response?.data?.detail || "Failed to remove signature.");
+    }
+  };
+
+  const handleRemoveProfilePicture = async () => {
+    setIsUploading(true);
+    try {
+      try {
+        await api.delete('/auth/me/profile-picture');
+      } catch {
+        await api.patch('/auth/me/profile-picture', { profile_picture: "" });
+      }
+
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('pb_user');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            parsed.profile_picture = null;
+            localStorage.setItem('pb_user', JSON.stringify(parsed));
+          } catch (e) {}
+        }
+      }
+      useAuthStore.getState().checkAuth();
+      await useAuthStore.getState().refreshUser();
+      showToast("Profile photo removed successfully.");
+    } catch (err: any) {
+      console.error("Failed to remove profile picture", err);
+      showToast("Failed to remove profile photo.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSaveOfficeHours = () => {
+    if (typeof window !== 'undefined' && user?.id) {
+      localStorage.setItem(`pb_principal_office_hours_${user.id}`, officeHours);
+    }
+    showToast("Public office hours saved successfully.");
+  };
+
+  const handleToggleDelegation = () => {
+    const nextVal = !isDelegated;
+    setIsDelegated(nextVal);
+    if (typeof window !== 'undefined' && user?.id) {
+      localStorage.setItem(`pb_principal_delegated_${user.id}`, String(nextVal));
+    }
+    showToast(nextVal ? "Approval authority delegated to Vice-Principal." : "Authority delegation revoked.");
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,9 +294,28 @@ export default function ProfilePage() {
                 )}
               </div>
             </div>
-            <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => fileInputRef.current?.click()}>
+            
+            {/* Camera Change Icon */}
+            <div 
+              className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg cursor-pointer hover:bg-gray-50 transition-colors" 
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload new profile photo"
+            >
               <Camera className="w-4 h-4 text-gray-500" />
             </div>
+
+            {/* Remove Photo Icon on Avatar */}
+            {user.profile_picture && (
+              <button
+                onClick={handleRemoveProfilePicture}
+                disabled={isUploading}
+                title="Remove profile photo"
+                className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-lg transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             <input 
               type="file" 
               ref={fileInputRef}
@@ -165,17 +326,17 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex-1 text-center md:text-left z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 border border-gray-700 text-xs font-semibold text-gray-300 mb-3 uppercase tracking-wider">
-              <Shield className="w-3 h-3" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">
+              <Shield className="w-3 h-3 text-indigo-600" />
               {role.replace('_', ' ')}
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-brand-black mb-2">{user.full_name}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-brand-black mb-2">{fullName || user.full_name}</h1>
             <p className="text-gray-500 text-lg mb-4">{user.email}</p>
             
-            <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+            <div className="flex flex-wrap gap-3 justify-center md:justify-start items-center">
               <button 
                 onClick={() => showToast("Password reset link sent to email.")}
-                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-700 text-brand-black text-sm font-medium transition-colors flex items-center gap-2"
+                className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-brand-black text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <Key className="w-4 h-4" /> Change Password
               </button>
@@ -189,8 +350,8 @@ export default function ProfilePage() {
             onClick={() => setActiveTab('general')}
             className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
               activeTab === 'general' 
-                ? 'bg-gray-100 text-brand-black shadow-sm' 
-                : 'text-gray-500 hover:text-brand-black hover:bg-gray-100'
+                ? 'bg-gray-100 text-brand-black shadow-sm font-bold' 
+                : 'text-gray-500 hover:text-brand-black hover:bg-gray-50'
             }`}
           >
             General Information
@@ -199,8 +360,8 @@ export default function ProfilePage() {
             onClick={() => setActiveTab('role')}
             className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
               activeTab === 'role' 
-                ? 'bg-gray-100 text-brand-black shadow-sm' 
-                : 'text-gray-500 hover:text-brand-black hover:bg-gray-100'
+                ? 'bg-gray-100 text-brand-black shadow-sm font-bold' 
+                : 'text-gray-500 hover:text-brand-black hover:bg-gray-50'
             }`}
           >
             Role Dashboard
@@ -237,27 +398,40 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Gender</label>
-                  <select className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none">
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
+                  <select 
+                    value={gender}
+                    onChange={e => setGender(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Date of Birth</label>
-                  <input type="date" defaultValue="1990-01-01" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="date" 
+                    value={dob}
+                    onChange={e => setDob(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Blood Group</label>
-                  <select className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none">
-                    <option>O+</option>
-                    <option>O-</option>
-                    <option>A+</option>
-                    <option>A-</option>
-                    <option>B+</option>
-                    <option>B-</option>
-                    <option>AB+</option>
-                    <option>AB-</option>
+                  <select 
+                    value={bloodGroup}
+                    onChange={e => setBloodGroup(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                  >
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
                   </select>
                 </div>
                 <div>
@@ -271,13 +445,23 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Aadhaar Number</label>
-                  <input type="text" defaultValue="XXXX-XXXX-1234" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="text" 
+                    value={aadhaar}
+                    onChange={e => setAadhaar(e.target.value)}
+                    placeholder="XXXX-XXXX-1234"
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Nationality</label>
-                  <select className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none">
-                    <option>Indian</option>
-                    <option>Other</option>
+                  <select 
+                    value={nationality}
+                    onChange={e => setNationality(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none"
+                  >
+                    <option value="Indian">Indian</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
               </div>
@@ -291,27 +475,63 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Father/Guardian Name</label>
-                  <input type="text" placeholder="John Doe Sr." className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. S. Raman" 
+                    value={fatherName}
+                    onChange={e => setFatherName(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Father's Mobile</label>
-                  <input type="text" placeholder="+91 9876500001" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="text" 
+                    placeholder="+91 9876500001" 
+                    value={fatherPhone}
+                    onChange={e => setFatherPhone(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Father's Occupation</label>
-                  <input type="text" placeholder="Engineer" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Professor / Civil Servant" 
+                    value={fatherOccupation}
+                    onChange={e => setFatherOccupation(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Mother Name</label>
-                  <input type="text" placeholder="Jane Doe" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. R. Lakshmi" 
+                    value={motherName}
+                    onChange={e => setMotherName(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Mother's Mobile</label>
-                  <input type="text" placeholder="+91 9876500002" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="text" 
+                    placeholder="+91 9876500002" 
+                    value={motherPhone}
+                    onChange={e => setMotherPhone(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Mother's Occupation</label>
-                  <input type="text" placeholder="Teacher" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" />
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Senior Educator" 
+                    value={motherOccupation}
+                    onChange={e => setMotherOccupation(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:border-indigo-500 outline-none" 
+                  />
                 </div>
               </div>
             </div>
@@ -323,7 +543,7 @@ export default function ProfilePage() {
               </h2>
               
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3">Residential / Postal Address</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Residential / Postal Address</h3>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Full Postal Address</label>
                   <input
@@ -341,7 +561,7 @@ export default function ProfilePage() {
               <button 
                 onClick={handleSaveGeneral}
                 disabled={isSaving}
-                className="px-6 py-2.5 bg-brand-blue hover:bg-brand-blue/90 text-brand-black rounded-xl transition-colors text-sm font-bold shadow-lg shadow-indigo-900/20 flex items-center gap-2"
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors text-sm font-bold shadow-lg shadow-indigo-600/20 flex items-center gap-2"
               >
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin text-white" />}
                 <span>Save Changes</span>
@@ -392,9 +612,20 @@ export default function ProfilePage() {
                           }
                         }}
                       />
-                      <label htmlFor="signatureUpload" className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
-                        {signature ? "Replace Signature" : "Upload Signature"}
-                      </label>
+                      <div className="flex items-center gap-2 flex-wrap justify-center">
+                        <label htmlFor="signatureUpload" className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
+                          {signature ? "Replace Signature" : "Upload Signature"}
+                        </label>
+                        {signature && (
+                          <button
+                            onClick={() => handleDeleteSignature(false)}
+                            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Signature & Stamp
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -409,10 +640,10 @@ export default function ProfilePage() {
                         { label: "Disciplinary Escalations", active: false }
                       ].map((item, i) => (
                         <div key={i} className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center justify-between">
-                          <span className="text-sm text-gray-300">{item.label}</span>
+                          <span className="text-sm text-gray-700">{item.label}</span>
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" className="sr-only peer" defaultChecked={item.active} onChange={() => showToast("Notification preference updated.")} />
-                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500"></div>
+                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-500"></div>
                           </label>
                         </div>
                       ))}
@@ -439,13 +670,13 @@ export default function ProfilePage() {
                           <td className="px-4 py-3">Today, 10:45 AM</td>
                           <td className="px-4 py-3 font-mono text-xs">192.168.1.104</td>
                           <td className="px-4 py-3">Windows / Chrome</td>
-                          <td className="px-4 py-3"><span className="text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded text-xs">Success</span></td>
+                          <td className="px-4 py-3"><span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded text-xs">Success</span></td>
                         </tr>
                         <tr className="border-b border-gray-100 bg-gray-50/20">
                           <td className="px-4 py-3">Yesterday, 08:30 PM</td>
                           <td className="px-4 py-3 font-mono text-xs">10.0.0.15</td>
                           <td className="px-4 py-3">iPhone / Safari</td>
-                          <td className="px-4 py-3"><span className="text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded text-xs">Success</span></td>
+                          <td className="px-4 py-3"><span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded text-xs">Success</span></td>
                         </tr>
                       </tbody>
                     </table>
@@ -454,37 +685,142 @@ export default function ProfilePage() {
               </>
             )}
 
-            {/* Principal */}
+            {/* Principal Role Dashboard */}
             {role === 'principal' && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Digital Signature & Seal */}
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-amber-400" /> Public Office Hours
+                      <FileSignature className="w-5 h-5 text-amber-500" /> Official Signatory & Seal
                     </h2>
-                    <input type="text" defaultValue="Mon-Fri, 10:00 AM - 12:00 PM" className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 focus:outline-none focus:border-amber-500 mb-3" />
-                    <button onClick={() => showToast("Office hours saved.")} className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-700 text-brand-black rounded-lg transition-colors text-sm">Save Hours</button>
+                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 border-dashed text-center min-h-40 flex flex-col justify-center items-center">
+                      {signature ? (
+                        <div className="space-y-2 mb-3">
+                          <img src={signature} alt="Digital Signature" className="h-14 max-w-full mx-auto object-contain border p-1 rounded bg-white shadow-sm" />
+                          <p className="text-xs text-emerald-600 font-semibold flex items-center justify-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Official Principal Signature Verified
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1 mb-3">
+                          <FileSignature className="w-10 h-10 text-gray-400 mx-auto" />
+                          <p className="text-sm text-gray-500">Upload your digital signature to auto-sign marksheets, report cards & ID passes.</p>
+                        </div>
+                      )}
+                      <input 
+                        type="file" 
+                        id="principalSignatureUpload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              handleSaveSignature(reader.result as string, false);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <div className="flex items-center gap-2 flex-wrap justify-center">
+                        <label htmlFor="principalSignatureUpload" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors text-xs font-semibold cursor-pointer shadow-sm">
+                          {signature ? "Replace Signature" : "Upload Digital Signature"}
+                        </label>
+                        {signature && (
+                          <button
+                            onClick={() => handleDeleteSignature(false)}
+                            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete Signature & Seal
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
-                    <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-amber-400" /> Authority Delegation
-                    </h2>
-                    <p className="text-sm text-gray-500 mb-4">Temporarily delegate approval authority to the Vice-Principal when on leave.</p>
-                    <button onClick={() => showToast("Authority delegated to Vice-Principal.")} className="w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 text-brand-black rounded-lg transition-colors text-sm font-bold">Delegate Authority</button>
+
+                  {/* Public Office Hours */}
+                  <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100 flex flex-col justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-amber-500" /> Public Office Hours
+                      </h2>
+                      <p className="text-xs text-gray-500 mb-2">Office hours displayed on parent portal for visitor meetings.</p>
+                      <input 
+                        type="text" 
+                        value={officeHours}
+                        onChange={e => setOfficeHours(e.target.value)}
+                        placeholder="e.g. Mon-Fri, 10:00 AM - 12:00 PM" 
+                        className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2.5 focus:outline-none focus:border-amber-500 mb-3 text-sm" 
+                      />
+                    </div>
+                    <button 
+                      onClick={handleSaveOfficeHours} 
+                      className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors text-xs font-bold shadow-sm"
+                    >
+                      Save Office Hours
+                    </button>
                   </div>
                 </div>
 
-                <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
-                  <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                    <Mail className="w-5 h-5 text-orange-400" /> Broadcast Signature
-                  </h2>
-                  <textarea 
-                    rows={3} 
-                    defaultValue="Dr. Alan Grant, Principal&#10;Genesis ERP International School&#10;Excellence in Education" 
-                    className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-amber-500 mb-3" 
-                  />
-                  <button onClick={() => showToast("Signature saved.")} className="px-6 py-2 bg-gray-100 hover:bg-gray-700 text-brand-black rounded-lg transition-colors text-sm">Save Signature</button>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Authority Delegation */}
+                  <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
+                    <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-amber-500" /> Authority Delegation
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-4">Temporarily delegate approval authority to the Vice-Principal when away from campus.</p>
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-gray-900">Vice-Principal Proxy Status</h4>
+                        <span className="text-[11px] text-gray-500">{isDelegated ? "Active • Vice-Principal has proxy access" : "Inactive • Principal exclusive"}</span>
+                      </div>
+                      <button 
+                        onClick={handleToggleDelegation} 
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                          isDelegated 
+                            ? "bg-rose-600 hover:bg-rose-700 text-white" 
+                            : "bg-amber-600 hover:bg-amber-700 text-white"
+                        }`}
+                      >
+                        {isDelegated ? "Revoke Delegation" : "Delegate Authority"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Broadcast Signature */}
+                  <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
+                    <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
+                      <Mail className="w-5 h-5 text-orange-500" /> Broadcast Signature Text
+                    </h2>
+                    <p className="text-xs text-gray-500 mb-2">Appended to circulars and official email dispatches.</p>
+                    <textarea 
+                      rows={3} 
+                      value={broadcastSignature}
+                      onChange={e => setBroadcastSignature(e.target.value)}
+                      placeholder="e.g. Dr. K. Bharathi, Principal&#10;Bharathi Matriculation Higher Secondary School&#10;Excellence in Education" 
+                      className="w-full bg-gray-50 border border-gray-200 text-brand-black rounded-lg px-4 py-2 text-xs focus:outline-none focus:border-amber-500 mb-3" 
+                    />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button 
+                        onClick={() => handleSaveSignature(broadcastSignature, true)} 
+                        className="px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors text-xs font-bold shadow-sm"
+                      >
+                        Save Signature Text
+                      </button>
+                      {broadcastSignature && (
+                        <button
+                          onClick={() => handleDeleteSignature(true)}
+                          className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Clear Text
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </>
             )}
@@ -501,7 +837,7 @@ export default function ProfilePage() {
                       <h3 className="text-brand-black font-medium">Principal Proxy Mode</h3>
                       <p className="text-sm text-gray-500">Act on behalf of the Principal (Requires their delegation).</p>
                     </div>
-                    <button onClick={() => showToast("Proxy mode activated.")} className="px-6 py-2 bg-rose-600 hover:bg-rose-700 text-brand-black rounded-lg transition-colors text-sm font-bold">
+                    <button onClick={() => showToast("Proxy mode activated.")} className="px-6 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors text-sm font-bold">
                       Activate Proxy
                     </button>
                   </div>
@@ -514,11 +850,11 @@ export default function ProfilePage() {
                     </h2>
                     <div className="space-y-4">
                       <div>
-                        <div className="flex justify-between text-sm mb-1"><span className="text-gray-300">Casual Leave (CL)</span><span className="text-brand-black font-bold">8 / 12</span></div>
+                        <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Casual Leave (CL)</span><span className="text-brand-black font-bold">8 / 12</span></div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-orange-500 w-[66%] rounded-full"></div></div>
                       </div>
                       <div>
-                        <div className="flex justify-between text-sm mb-1"><span className="text-gray-300">Sick Leave (SL)</span><span className="text-brand-black font-bold">4 / 10</span></div>
+                        <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Sick Leave (SL)</span><span className="text-brand-black font-bold">4 / 10</span></div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-rose-500 w-[40%] rounded-full"></div></div>
                       </div>
                     </div>
@@ -557,14 +893,14 @@ export default function ProfilePage() {
                           <p className="text-brand-black font-medium text-sm">Physics</p>
                           <p className="text-gray-500 text-xs">Grade 11 & 12</p>
                         </div>
-                        <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs font-bold">18 Periods/Wk</span>
+                        <span className="bg-emerald-500/20 text-emerald-600 px-2 py-1 rounded text-xs font-bold">18 Periods/Wk</span>
                       </div>
                       <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex justify-between items-center">
                         <div>
                           <p className="text-brand-black font-medium text-sm">Mathematics</p>
                           <p className="text-gray-500 text-xs">Grade 10</p>
                         </div>
-                        <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs font-bold">8 Periods/Wk</span>
+                        <span className="bg-emerald-500/20 text-emerald-600 px-2 py-1 rounded text-xs font-bold">8 Periods/Wk</span>
                       </div>
                     </div>
                   </div>
@@ -575,12 +911,12 @@ export default function ProfilePage() {
                     </h2>
                     <div className="flex flex-wrap gap-3">
                       <div className="bg-gray-50 border border-teal-500/30 px-3 py-2 rounded-lg flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center"><BookOpen className="w-3 h-3 text-teal-400" /></div>
-                        <span className="text-xs text-gray-300">Advanced OCR Grader</span>
+                        <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center"><BookOpen className="w-3 h-3 text-teal-600" /></div>
+                        <span className="text-xs text-gray-700">Advanced OCR Grader</span>
                       </div>
                       <div className="bg-gray-50 border border-emerald-500/30 px-3 py-2 rounded-lg flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center"><Activity className="w-3 h-3 text-emerald-400" /></div>
-                        <span className="text-xs text-gray-300">First Aid Certified</span>
+                        <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center"><Activity className="w-3 h-3 text-emerald-600" /></div>
+                        <span className="text-xs text-gray-700">First Aid Certified</span>
                       </div>
                     </div>
                   </div>
@@ -593,14 +929,14 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                       <h3 className="text-brand-black text-sm font-medium mb-2">Default Meeting Link</h3>
-                      <input type="text" defaultValue="https://meet.google.com/abc-defg-hij" className="w-full bg-gray-100 border border-gray-700 text-brand-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 mb-3" />
-                      <button onClick={() => showToast("Meeting link saved.")} className="px-4 py-2 bg-gray-100 hover:bg-gray-700 text-brand-black rounded-lg transition-colors text-xs">Save Link</button>
+                      <input type="text" defaultValue="https://meet.google.com/abc-defg-hij" className="w-full bg-white border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 mb-3" />
+                      <button onClick={() => showToast("Meeting link saved.")} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-brand-black rounded-lg transition-colors text-xs font-semibold">Save Link</button>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                       <h3 className="text-brand-black text-sm font-medium mb-2">Quiet Hours (DND)</h3>
                       <p className="text-xs text-gray-500 mb-3">Mute non-critical parent messages.</p>
-                      <input type="time" defaultValue="18:00" className="w-full bg-gray-100 border border-gray-700 text-brand-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 mb-3" />
-                      <button onClick={() => showToast("DND hours updated.")} className="px-4 py-2 bg-gray-100 hover:bg-gray-700 text-brand-black rounded-lg transition-colors text-xs">Save DND</button>
+                      <input type="time" defaultValue="18:00" className="w-full bg-white border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 mb-3" />
+                      <button onClick={() => showToast("DND hours updated.")} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-brand-black rounded-lg transition-colors text-xs font-semibold">Save DND</button>
                     </div>
                   </div>
                 </div>
@@ -614,7 +950,7 @@ export default function ProfilePage() {
                   
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100 text-center flex flex-col items-center justify-center">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-cyan-400" /> Digital ID Card
+                      <CreditCard className="w-5 h-5 text-cyan-500" /> Digital ID Card
                     </h2>
                     <div className="w-40 h-40 bg-white rounded-xl p-3 flex items-center justify-center border-4 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
                       <div className="grid grid-cols-5 gap-1 w-full h-full opacity-80">
@@ -628,13 +964,13 @@ export default function ProfilePage() {
 
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100 flex flex-col justify-center">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <PieChart className="w-5 h-5 text-blue-400" /> Academic Progress
+                      <PieChart className="w-5 h-5 text-blue-500" /> Academic Progress
                     </h2>
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-300">Credits Earned</span>
-                          <span className="text-cyan-400 font-bold">85 / 120</span>
+                          <span className="text-gray-500">Credits Earned</span>
+                          <span className="text-cyan-600 font-bold">85 / 120</span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div className="h-full bg-cyan-500 w-[70%] rounded-full"></div>
@@ -642,8 +978,8 @@ export default function ProfilePage() {
                       </div>
                       <div>
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-300">Overall Attendance</span>
-                          <span className="text-emerald-400 font-bold">92%</span>
+                          <span className="text-gray-500">Overall Attendance</span>
+                          <span className="text-emerald-600 font-bold">92%</span>
                         </div>
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div className="h-full bg-emerald-500 w-[92%] rounded-full"></div>
@@ -654,14 +990,14 @@ export default function ProfilePage() {
 
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <AlertTriangle className="w-5 h-5 text-rose-400" /> Medical Alerts
+                      <AlertTriangle className="w-5 h-5 text-rose-500" /> Medical Alerts
                     </h2>
-                    <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-xl text-rose-300 text-sm">
-                      <strong className="block text-rose-400 mb-1">Severe Peanut Allergy</strong>
+                    <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-800 text-sm">
+                      <strong className="block text-rose-900 mb-1">Severe Peanut Allergy</strong>
                       EpiPen stored in Nurse Station A. Must carry secondary EpiPen at all times.
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <span className="bg-gray-100 text-gray-300 text-xs px-2 py-1 rounded">Asthma (Mild)</span>
+                      <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">Asthma (Mild)</span>
                     </div>
                   </div>
 
@@ -669,16 +1005,16 @@ export default function ProfilePage() {
 
                 <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                   <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-blue-400" /> Extracurricular Portfolio
+                    <GraduationCap className="w-5 h-5 text-blue-500" /> Extracurricular Portfolio
                   </h2>
                   <div className="flex gap-4 overflow-x-auto pb-2">
                     <div className="min-w-[150px] bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
-                      <div className="w-10 h-10 mx-auto rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mb-2 font-bold">DB</div>
+                      <div className="w-10 h-10 mx-auto rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center mb-2 font-bold">DB</div>
                       <p className="text-sm text-brand-black font-medium">Debate Team</p>
                       <p className="text-xs text-gray-500">Captain (2026)</p>
                     </div>
                     <div className="min-w-[150px] bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
-                      <div className="w-10 h-10 mx-auto rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center mb-2 font-bold">CS</div>
+                      <div className="w-10 h-10 mx-auto rounded-full bg-blue-500/20 text-blue-600 flex items-center justify-center mb-2 font-bold">CS</div>
                       <p className="text-sm text-brand-black font-medium">Coding Club</p>
                       <p className="text-xs text-gray-500">Member</p>
                     </div>
@@ -693,11 +1029,11 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Users className="w-5 h-5 text-violet-400" /> Mentee Roster
+                      <Users className="w-5 h-5 text-violet-500" /> Mentee Roster
                     </h2>
                     <div className="flex flex-wrap gap-2">
                       {Array.from({length: 12}).map((_, i) => (
-                        <div key={i} className="w-10 h-10 rounded-full bg-gray-100 border border-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 hover:bg-violet-500/20 hover:text-violet-300 transition-colors cursor-pointer" title={`Student ${i+1}`}>
+                        <div key={i} className="w-10 h-10 rounded-full bg-gray-100 border border-gray-300 flex items-center justify-center text-xs font-bold text-gray-700 hover:bg-violet-500/20 hover:text-violet-700 transition-colors cursor-pointer" title={`Student ${i+1}`}>
                           S{i+1}
                         </div>
                       ))}
@@ -708,7 +1044,7 @@ export default function ProfilePage() {
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100 flex flex-col justify-between">
                     <div>
                       <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-purple-400" /> Availability & Booking
+                        <Calendar className="w-5 h-5 text-purple-500" /> Availability & Booking
                       </h2>
                       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between mb-4">
                         <div>
@@ -717,11 +1053,11 @@ export default function ProfilePage() {
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input type="checkbox" className="sr-only peer" defaultChecked onChange={() => showToast("Booking status updated.")} />
-                          <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-violet-500"></div>
+                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-violet-500"></div>
                         </label>
                       </div>
                     </div>
-                    <button className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-700 text-brand-black rounded-lg transition-colors text-sm flex items-center justify-center gap-2">
+                    <button className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-brand-black rounded-lg transition-colors text-sm flex items-center justify-center gap-2 font-semibold">
                       <BookOpen className="w-4 h-4" /> Edit Shared Resource Locker
                     </button>
                   </div>
@@ -735,20 +1071,20 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-green-400" /> Approval Limit
+                      <CreditCard className="w-5 h-5 text-green-600" /> Approval Limit
                     </h2>
                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-center">
-                      <p className="text-4xl font-bold text-brand-black mb-2">$50,000</p>
+                      <p className="text-4xl font-bold text-brand-black mb-2">₹5,00,000</p>
                       <p className="text-xs text-gray-500">Max per-transaction authorization</p>
                     </div>
                   </div>
 
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-emerald-400" /> Financial Year
+                      <Calendar className="w-5 h-5 text-emerald-600" /> Financial Year
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 h-full flex flex-col justify-center">
-                      <select className="w-full bg-gray-100 border border-gray-700 text-brand-black rounded-lg px-4 py-3 focus:outline-none focus:border-green-500" onChange={() => showToast("Financial year switched.")}>
+                      <select className="w-full bg-white border border-gray-200 text-brand-black rounded-lg px-4 py-3 focus:outline-none focus:border-green-500" onChange={() => showToast("Financial year switched.")}>
                         <option>FY 2026-2027</option>
                         <option>FY 2025-2026</option>
                       </select>
@@ -757,16 +1093,16 @@ export default function ProfilePage() {
 
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Building className="w-5 h-5 text-teal-400" /> Bank Integration
+                      <Building className="w-5 h-5 text-teal-600" /> Bank Integration
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-300">HDFC Primary</span>
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Connected</span>
+                        <span className="text-sm text-gray-700">HDFC Primary</span>
+                        <span className="text-xs bg-green-50 text-green-700 font-bold px-2 py-1 rounded border border-green-200">Connected</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-300">SBI Salary A/C</span>
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Connected</span>
+                        <span className="text-sm text-gray-700">SBI Salary A/C</span>
+                        <span className="text-xs bg-green-50 text-green-700 font-bold px-2 py-1 rounded border border-green-200">Connected</span>
                       </div>
                     </div>
                   </div>
@@ -774,22 +1110,22 @@ export default function ProfilePage() {
 
                 <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                   <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-green-400" /> Recent Audit Trail
+                    <Activity className="w-5 h-5 text-green-600" /> Recent Audit Trail
                   </h2>
                   <div className="space-y-2">
-                    <div className="bg-gray-50/30 p-3 rounded-lg border border-gray-100 flex justify-between items-center">
+                    <div className="bg-gray-50/50 p-3 rounded-lg border border-gray-100 flex justify-between items-center">
                       <div>
-                        <p className="text-sm text-brand-black">Approved Lab Equipment Invoice #8892</p>
+                        <p className="text-sm font-semibold text-brand-black">Approved Lab Equipment Invoice #8892</p>
                         <p className="text-xs text-gray-500">Today, 11:20 AM</p>
                       </div>
-                      <span className="text-sm font-mono text-gray-500">-$4,200.00</span>
+                      <span className="text-sm font-mono font-bold text-gray-700">-₹42,000.00</span>
                     </div>
-                    <div className="bg-gray-50/30 p-3 rounded-lg border border-gray-100 flex justify-between items-center">
+                    <div className="bg-gray-50/50 p-3 rounded-lg border border-gray-100 flex justify-between items-center">
                       <div>
-                        <p className="text-sm text-brand-black">Approved Bus Maintenance Bill</p>
+                        <p className="text-sm font-semibold text-brand-black">Approved Bus Maintenance Bill</p>
                         <p className="text-xs text-gray-500">Yesterday, 04:15 PM</p>
                       </div>
-                      <span className="text-sm font-mono text-gray-500">-$1,850.00</span>
+                      <span className="text-sm font-mono font-bold text-gray-700">-₹18,500.00</span>
                     </div>
                   </div>
                 </div>
@@ -802,50 +1138,50 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Building className="w-5 h-5 text-indigo-400" /> Assigned Blocks
+                      <Building className="w-5 h-5 text-indigo-500" /> Assigned Blocks
                     </h2>
                     <div className="flex gap-3">
-                      <div className="bg-indigo-500/20 border border-indigo-500/30 rounded-xl p-4 flex-1 text-center">
-                        <p className="text-2xl font-bold text-indigo-400">A</p>
-                        <p className="text-xs text-indigo-200 mt-1">Boys Hostel</p>
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex-1 text-center">
+                        <p className="text-2xl font-bold text-indigo-700">A</p>
+                        <p className="text-xs text-indigo-800 mt-1">Boys Hostel</p>
                       </div>
-                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-4 flex-1 text-center">
-                        <p className="text-2xl font-bold text-blue-400">B</p>
-                        <p className="text-xs text-blue-200 mt-1">Boys Hostel</p>
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex-1 text-center">
+                        <p className="text-2xl font-bold text-blue-700">B</p>
+                        <p className="text-xs text-blue-800 mt-1">Boys Hostel</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-blue-400" /> Shift Schedule
+                      <Clock className="w-5 h-5 text-blue-500" /> Shift Schedule
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center h-[104px] flex flex-col justify-center">
                       <p className="text-brand-black font-medium">Night Duty</p>
                       <p className="text-sm text-gray-500">08:00 PM — 06:00 AM</p>
-                      <p className="text-xs text-indigo-400 mt-1">Active Shift</p>
+                      <p className="text-xs text-indigo-600 font-bold mt-1">Active Shift</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                   <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-rose-400" /> Emergency Protocols
+                    <AlertTriangle className="w-5 h-5 text-rose-500" /> Emergency Protocols
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex justify-between items-center p-4 bg-gray-50/80 border border-gray-100 rounded-xl">
+                    <div className="flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-xl">
                       <div>
                         <span className="block text-sm text-brand-black font-medium">City Hospital</span>
                         <span className="text-xs text-gray-500">Ambulance Dispatch</span>
                       </div>
-                      <button onClick={() => showToast("Calling Hospital...")} className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-xs font-bold transition-colors">CALL</button>
+                      <button onClick={() => showToast("Calling Hospital...")} className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold transition-colors border border-rose-200">CALL</button>
                     </div>
-                    <div className="flex justify-between items-center p-4 bg-gray-50/80 border border-gray-100 rounded-xl">
+                    <div className="flex justify-between items-center p-4 bg-gray-50 border border-gray-100 rounded-xl">
                       <div>
                         <span className="block text-sm text-brand-black font-medium">Principal</span>
                         <span className="text-xs text-gray-500">Direct Line (Urgent only)</span>
                       </div>
-                      <button onClick={() => showToast("Calling Principal...")} className="px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 rounded-lg text-xs font-bold transition-colors">CALL</button>
+                      <button onClick={() => showToast("Calling Principal...")} className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition-colors border border-indigo-200">CALL</button>
                     </div>
                   </div>
                 </div>
@@ -858,10 +1194,10 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-teal-400" /> Scanner Config
+                      <Settings className="w-5 h-5 text-teal-500" /> Scanner Config
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 h-24 flex flex-col justify-center">
-                      <select className="w-full bg-gray-100 border border-gray-700 text-brand-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500" onChange={() => showToast("Hardware mode updated.")}>
+                      <select className="w-full bg-white border border-gray-200 text-brand-black rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500" onChange={() => showToast("Hardware mode updated.")}>
                         <option>RFID Reader (Active)</option>
                         <option>Barcode Scanner</option>
                       </select>
@@ -870,27 +1206,27 @@ export default function ProfilePage() {
 
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-emerald-400" /> Reading Stats
+                      <BookOpen className="w-5 h-5 text-emerald-500" /> Reading Stats
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 h-24 flex items-center justify-between">
                       <div>
                         <p className="text-2xl font-bold text-brand-black">412</p>
                         <p className="text-xs text-gray-500">Books Issued This Month</p>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <TrendingUp className="w-5 h-5 text-emerald-400" />
+                      <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                        <TrendingUp className="w-5 h-5" />
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-white shadow-sm p-6 rounded-2xl border border-gray-100">
                     <h2 className="text-lg font-bold text-brand-black mb-4 flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-teal-400" /> Procurement Limit
+                      <CreditCard className="w-5 h-5 text-teal-500" /> Procurement Limit
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 h-24 flex flex-col justify-center">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-300">Budget Used</span>
-                        <span className="text-teal-400 font-bold">$2k / $5k</span>
+                        <span className="text-gray-500">Budget Used</span>
+                        <span className="text-teal-700 font-bold">₹1,25,000 / ₹3,50,000</span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div className="h-full bg-teal-500 w-[40%] rounded-full"></div>
@@ -908,7 +1244,7 @@ export default function ProfilePage() {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-gray-100 border border-gray-700 text-brand-black px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 z-50">
+        <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom-5 z-50">
           <CheckCircle2 className="w-5 h-5 text-emerald-400" />
           {toastMessage}
         </div>
