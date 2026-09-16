@@ -92,6 +92,60 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
     setShowModal(true);
   };
 
+  const handleDownloadLauncher = () => {
+    const launcherContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Genesis ERP</title>
+  <link rel="icon" href="https://genisis-seven.vercel.app/icon-192x192.png">
+  <link rel="manifest" href="https://genisis-seven.vercel.app/manifest.json">
+  <meta name="theme-color" content="#122218">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta http-equiv="refresh" content="0; url=https://genisis-seven.vercel.app/dashboard">
+  <style>
+    body {
+      background: #14251c;
+      color: #f4f0e6;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .logo { width: 72px; height: 72px; border-radius: 18px; border: 2px solid #e5c158; margin-bottom: 16px; }
+    h1 { font-size: 20px; font-weight: 800; margin: 0 0 8px 0; color: #f4f0e6; }
+    p { font-size: 13px; color: #a3c9b0; margin: 0 0 20px 0; }
+    a { background: #e5c158; color: #14251c; font-weight: bold; text-decoration: none; padding: 10px 24px; border-radius: 20px; }
+  </style>
+</head>
+<body>
+  <img src="https://genisis-seven.vercel.app/icon-192x192.png" alt="Genesis ERP" class="logo">
+  <h1>Genesis School ERP</h1>
+  <p>Launching autonomous portal...</p>
+  <a href="https://genisis-seven.vercel.app/dashboard">Open Genesis ERP</a>
+  <script>
+    window.location.replace("https://genisis-seven.vercel.app/dashboard");
+  </script>
+</body>
+</html>`;
+
+    const blob = new Blob([launcherContent], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Genesis-ERP-Launcher.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   if (isStandalone) return null;
 
   return (
@@ -100,7 +154,7 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
         <button
           onClick={handleInstallClick}
           className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#43634e]/50 hover:bg-[#43634e]/80 border border-[#f4f0e6]/25 text-xs font-bold text-[#f4f0e6] shadow-sm transition-all hover:scale-105 cursor-pointer ${className}`}
-          title="Install Genesis ERP App"
+          title="Download & Install Genesis ERP App"
         >
           <Download className="w-3.5 h-3.5 text-[#e5c158]" />
           <span>Download App</span>
@@ -108,19 +162,19 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
       ) : variant === "mobile" ? (
         <button
           onClick={handleInstallClick}
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#e5c158] bg-[#e5c158]/10 border border-[#e5c158]/30 hover:bg-[#e5c158]/20 transition-all w-full ${className}`}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#e5c158] bg-[#e5c158]/10 border border-[#e5c158]/30 hover:bg-[#e5c158]/20 transition-all w-full cursor-pointer ${className}`}
         >
           <Download className="w-4 h-4 text-[#e5c158]" />
-          <span>Install Genesis ERP App</span>
+          <span>Download Genesis ERP App</span>
         </button>
       ) : (
         <button
           onClick={handleInstallClick}
           className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#e5c158]/20 to-[#e5c158]/10 text-[#e5c158] border border-[#e5c158]/40 hover:border-[#e5c158] hover:bg-[#e5c158]/20 transition-all font-syne text-xs font-bold shadow-[0_0_10px_rgba(229,193,88,0.2)] cursor-pointer hover:scale-105 ${className}`}
-          title="Install Genesis ERP App"
+          title="Download & Install Genesis ERP App"
         >
           <Download className="w-3.5 h-3.5" />
-          <span>Install App</span>
+          <span>Download App</span>
         </button>
       )}
 
@@ -149,7 +203,7 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-2 rounded-xl text-[#a3c9b0] hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-xl text-[#a3c9b0] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -224,8 +278,19 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
               )}
             </div>
 
+            {/* Direct Download Launcher File Action */}
+            <div className="pt-2 border-t border-[#43634e]/30 flex flex-col gap-2">
+              <button
+                onClick={handleDownloadLauncher}
+                className="w-full py-2.5 rounded-xl bg-[#1b3527] hover:bg-[#234533] border border-[#e5c158]/50 text-[#e5c158] font-syne font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:border-[#e5c158]"
+              >
+                <Download className="w-4 h-4 text-[#e5c158]" />
+                <span>Download Desktop App Launcher (.html)</span>
+              </button>
+            </div>
+
             {/* Feature Highlights */}
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#43634e]/30 text-[11px] text-[#a3c9b0]">
+            <div className="grid grid-cols-2 gap-2 text-[11px] text-[#a3c9b0]">
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/20 border border-white/5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158] shrink-0" />
                 <span className="truncate">Instant Launch</span>
@@ -249,7 +314,7 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
               onClick={() => setShowModal(false)}
               className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#f0d276] via-[#e5c158] to-[#c9a032] hover:brightness-110 text-[#14251c] font-syne font-extrabold text-xs transition-all shadow-lg shadow-[#e5c158]/20 cursor-pointer"
             >
-              Got it, thanks!
+              Close
             </button>
           </div>
         </div>,
