@@ -59,10 +59,25 @@ export default function RootLayout({
                   navigator.serviceWorker.register('/sw.js');
                 });
               }
+              // Auto-recover from ChunkLoadErrors (new Vercel deploy while user has old HTML)
+              window.addEventListener('error', function(e) {
+                if (e && e.message && (
+                  e.message.indexOf('Loading chunk') !== -1 ||
+                  e.message.indexOf('ChunkLoadError') !== -1 ||
+                  e.message.indexOf('Failed to fetch dynamically imported module') !== -1
+                )) {
+                  var key = '__chunk_reload__';
+                  if (!sessionStorage.getItem(key)) {
+                    sessionStorage.setItem(key, '1');
+                    window.location.reload();
+                  }
+                }
+              });
             `,
           }}
         />
       </head>
+
       <body className="min-h-screen antialiased bg-[#14251c] text-[#e8e2d3] overflow-x-hidden">
         <SmoothScroller>
           <ClientLayout>{children}</ClientLayout>
