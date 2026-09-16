@@ -63,6 +63,8 @@ export default function CommandPalette() {
     { id: "nav-academics", title: "Academics & Classes View", category: "Navigation", href: "/my-class", icon: GraduationCap },
     { id: "nav-attendance", title: "Daily Attendance Ledger", category: "Navigation", href: "/attendance", icon: CheckSquare },
     { id: "nav-timetable", title: "Timetable & AI Solver", category: "Navigation", href: "/timetable", icon: Calendar },
+    { id: "nav-[#10452]", title: "Inspect Student #10452 (Kishor K - Grade 10A)", category: "Student Lookup", href: "/student/documents", icon: UserCheck },
+    { id: "nav-[#10453]", title: "Inspect Student #10453 (Sarah Connor - Grade 12B)", category: "Student Lookup", href: "/student/documents", icon: UserCheck },
     { id: "nav-exams", title: "Examination Center & Seating", category: "Navigation", href: "/exams", icon: FileText },
     { id: "nav-fees", title: "Fee Payment & Financial Aid", category: "Navigation", href: "/fees", icon: CreditCard },
     { id: "nav-hostel", title: "Hostel Room Allocations", category: "Navigation", href: "/warden/rooms", icon: Home },

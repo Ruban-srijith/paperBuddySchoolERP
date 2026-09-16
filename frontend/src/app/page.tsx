@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import Tilt3D from "@/components/Tilt3D";
-import BackgroundWallpaper from "@/components/BackgroundWallpaper";
 
 // Corner Arch SVG Line Ornament
 function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
@@ -45,9 +44,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#14251c] text-[#f4f0e6] relative overflow-hidden selection:bg-[#43634e] selection:text-white font-sans">
-      
-      {/* ─── BACKGROUND ARCHITECTURAL WALLPAPER & LINE-ART DESIGNS ────────── */}
-      <BackgroundWallpaper />
 
       {/* ─── 1. NAVIGATION BAR ────────────────────────────────────────────── */}
       <nav className="relative z-50 w-full border-b border-[#f4f0e6]/10 backdrop-blur-md bg-[#122218]/85 py-4 px-6 sm:px-12 transition-colors">
