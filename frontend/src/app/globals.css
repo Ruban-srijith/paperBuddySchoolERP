@@ -705,15 +705,12 @@ select option {
   background: rgba(244, 240, 230, 0.4);
 }
 
-/* Custom Sidebar Y-Axis Scrollbar System - Always Visible Gold & Emerald Track */
+/* Custom Sidebar Y-Axis Scrollbar System - Cross-Browser Compatible */
 .custom-sidebar-scroll {
-  overflow-y: scroll !important;
+  overflow-y: auto !important;
   overflow-x: hidden !important;
-  overscroll-behavior-y: contain !important;
-  overscroll-behavior-x: none !important;
-  touch-action: pan-y !important;
-  scrollbar-width: auto !important;
-  scrollbar-color: #e5c158 #0d1e15 !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #e5c158 rgba(10, 22, 16, 0.95) !important;
   -webkit-overflow-scrolling: touch;
 }
 

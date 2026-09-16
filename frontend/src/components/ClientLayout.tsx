@@ -226,7 +226,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main Brutalist Concrete Frame Chassis */}
       <div className="relative z-10 flex-1 flex flex-col h-[100dvh] max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4">
-        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative">
+        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative min-h-0">
           
           {/* Mobile Sidebar Overlay */}
           {showMobileMenu && (
@@ -361,7 +361,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 {scrollPercent > 5 && (
                   <button
                     onClick={() => navRef.current?.scrollBy({ top: -140, behavior: 'smooth' })}
-                    className="absolute top-2 right-4 z-30 p-1 rounded-full bg-[#e5c158] text-[#14251c] shadow-[0_0_12px_rgba(229,193,88,0.9)] hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
+                    className="absolute top-2 right-6 z-20 p-1 rounded-full bg-[#e5c158] text-[#14251c] shadow-[0_0_12px_rgba(229,193,88,0.9)] hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
                     title="Scroll Up"
                   >
                     <ChevronUp className="w-3.5 h-3.5 stroke-[3]" />
@@ -372,7 +372,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 {scrollPercent < 95 && (
                   <button
                     onClick={() => navRef.current?.scrollBy({ top: 140, behavior: 'smooth' })}
-                    className="absolute bottom-2 right-4 z-30 p-1 rounded-full bg-[#e5c158] text-[#14251c] shadow-[0_0_12px_rgba(229,193,88,0.9)] hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
+                    className="absolute bottom-2 right-6 z-20 p-1 rounded-full bg-[#e5c158] text-[#14251c] shadow-[0_0_12px_rgba(229,193,88,0.9)] hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
                     title="Scroll Down"
                   >
                     <ChevronDown className="w-3.5 h-3.5 stroke-[3]" />
@@ -382,7 +382,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 <nav 
                   ref={navRef}
                   onScroll={handleNavScroll}
-                  className="flex-1 min-h-0 overflow-y-scroll custom-sidebar-scroll space-y-1.5 p-2 pr-3 relative select-none"
+                  className="flex-1 min-h-0 overflow-y-auto custom-sidebar-scroll space-y-1.5 p-2 pr-2.5 relative"
                 >
                   {/* Vertical Y-Axis Guide Line with Gold Accents */}
                   <div className="absolute left-2.5 top-3 bottom-3 w-[1.5px] bg-gradient-to-b from-[#e5c158]/50 via-[#43634e]/30 to-transparent pointer-events-none z-0 hidden sm:block" />
