@@ -16,8 +16,29 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
-
 import api from "@/lib/api";
+import Tilt3D from "@/components/Tilt3D";
+
+function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
+  if (position === "tr") {
+    return (
+      <svg className="corner-arch-tr" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+        <path d="M 100 0 A 100 100 0 0 0 0 100" />
+        <path d="M 100 20 A 80 80 0 0 0 20 100" />
+        <path d="M 100 40 A 60 60 0 0 0 40 100" />
+        <path d="M 100 60 A 40 40 0 0 0 60 100" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="corner-arch-bl" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+      <path d="M 0 100 A 100 100 0 0 1 100 0" />
+      <path d="M 0 80 A 80 80 0 0 1 80 0" />
+      <path d="M 0 60 A 60 60 0 0 1 60 0" />
+      <path d="M 0 40 A 40 40 0 0 1 40 0" />
+    </svg>
+  );
+}
 
 interface StudentClassRecord {
   id: string;
@@ -64,27 +85,27 @@ export default function MyClassPage() {
 
   return (
     <ProtectedRoute allowedRoles={["teacher", "super_admin", "principal", "vice_principal"]}>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
+          <div className="space-y-1">
             <div className="flex items-center space-x-2">
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/40">
                 Class Teacher Management
               </span>
-              <span className="text-xs text-gray-600">• Student Roster</span>
+              <span className="text-xs text-[#a3c9b0]">• Student Roster & Live Performance</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
-              {assignedClass} Class Roster & Performance
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne tracking-tight mt-1">
+              {assignedClass} Roster & Performance
             </h1>
-            <p className="text-xs text-gray-600">
+            <p className="text-sm text-[#a3c9b0] font-medium">
               Direct student directory, attendance metrics, academic GPA ratings, and verified parent communication records.
             </p>
           </div>
 
           <button
-            onClick={() => toast.success("Triggered SMS/Email class intimation to all 30 parents", "Intimations Sent")}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 text-brand-black font-semibold text-xs shadow-lg shadow-indigo-600/25 hover:opacity-95 transition-all"
+            onClick={() => toast.success("Triggered SMS/Email class intimation to all parents", "Intimations Sent")}
+            className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-[#e5c158] hover:bg-[#d4b047] text-black font-extrabold text-xs shadow-lg shadow-[#e5c158]/20 hover:scale-105 transition-all self-start md:self-auto cursor-pointer"
           >
             <MessageSquare className="w-4 h-4" />
             <span>Broadcast Notice to Parents</span>
@@ -93,85 +114,100 @@ export default function MyClassPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-            <div className="text-xs text-gray-600">Enrolled Students</div>
-            <div className="text-2xl font-bold text-brand-black">{students.length} Students</div>
-            <div className="text-[11px] text-emerald-600 font-medium">All student profiles verified</div>
-          </div>
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-            <div className="text-xs text-gray-600">Class Average Attendance</div>
-            <div className="text-2xl font-bold text-cyan-600">97.2%</div>
-            <div className="text-[11px] text-gray-600">Highest among Grade 10 sections</div>
-          </div>
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-            <div className="text-xs text-gray-600">Cumulative Class GPA</div>
-            <div className="text-2xl font-bold text-emerald-600">3.87 / 4.0</div>
-            <div className="text-[11px] text-gray-600">Term 1 Assessment Aggregate</div>
-          </div>
+          <Tilt3D>
+            <div className="glass-emerald-tile p-5 rounded-[22px] space-y-1">
+              <CornerArchOrnament position="tr" />
+              <div className="text-xs text-[#a3c9b0] font-semibold relative z-10">Enrolled Students</div>
+              <div className="text-2xl font-extrabold text-[#f4f0e6] font-syne relative z-10">{students.length} Students</div>
+              <div className="text-[11px] text-emerald-400 font-semibold relative z-10">All student profiles verified</div>
+            </div>
+          </Tilt3D>
+
+          <Tilt3D>
+            <div className="glass-emerald-tile p-5 rounded-[22px] space-y-1">
+              <CornerArchOrnament position="bl" />
+              <div className="text-xs text-[#a3c9b0] font-semibold relative z-10">Class Average Attendance</div>
+              <div className="text-2xl font-extrabold text-sky-300 font-syne relative z-10">97.2%</div>
+              <div className="text-[11px] text-[#a3c9b0] relative z-10">Highest among Grade 10 sections</div>
+            </div>
+          </Tilt3D>
+
+          <Tilt3D>
+            <div className="glass-emerald-tile p-5 rounded-[22px] space-y-1">
+              <CornerArchOrnament position="tr" />
+              <div className="text-xs text-[#a3c9b0] font-semibold relative z-10">Cumulative Class GPA</div>
+              <div className="text-2xl font-extrabold text-[#e5c158] font-syne relative z-10">3.87 / 4.0</div>
+              <div className="text-[11px] text-emerald-400 font-semibold relative z-10">Term 1 Assessment Aggregate</div>
+            </div>
+          </Tilt3D>
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 flex items-center justify-between">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-500" />
+        <div className="glass-emerald-tile p-4 rounded-[22px] flex items-center justify-between">
+          <div className="relative z-10 flex items-center gap-2">
+            <Search className="w-4 h-4 text-[#e5c158]" />
             <input
               type="text"
-              placeholder="Search student or roll no..."
+              placeholder="Search student or admission no..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs w-60"
+              className="px-3.5 py-2 rounded-xl glass-input-dark text-[#f4f0e6] text-xs w-64 border border-[#e5c158]/30"
             />
           </div>
-          <span className="text-xs text-gray-600 font-mono">{filteredStudents.length} Students</span>
+          <span className="text-xs text-[#e5c158] font-mono font-bold relative z-10">{filteredStudents.length} Students</span>
         </div>
 
         {/* Student Table */}
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4">
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
-                <tr>
-                  <th className="p-3.5 text-center">Roll #</th>
-                  <th className="p-3.5">Student Name</th>
-                  <th className="p-3.5">Admission ID</th>
-                  <th className="p-3.5">Parent Contact</th>
-                  <th className="p-3.5 text-center">Attendance %</th>
-                  <th className="p-3.5 text-right font-bold text-brand-black">Term GPA</th>
-                  <th className="p-3.5 text-center">Today's Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredStudents.length === 0 ? (
+        <Tilt3D>
+          <div className="glass-emerald-tile p-6 rounded-[24px] space-y-4">
+            <CornerArchOrnament position="tr" />
+            <div className="overflow-x-auto relative z-10">
+              <table>
+                <thead>
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-gray-500 font-medium">
-                      No students found in this class.
-                    </td>
+                    <th className="text-center">Roll #</th>
+                    <th>Student Name</th>
+                    <th>Admission ID</th>
+                    <th>Parent Contact</th>
+                    <th className="text-center">Attendance %</th>
+                    <th className="text-right font-extrabold text-[#e5c158]">Term GPA</th>
+                    <th className="text-center">Today's Status</th>
                   </tr>
-                ) : (
-                  filteredStudents.map((s, index) => (
-                    <tr key={s.id} className="hover:bg-gray-50/40 transition-colors">
-                      <td className="p-3.5 text-center font-bold text-cyan-300 font-mono">{index + 1}</td>
-                      <td className="p-3.5 font-bold text-brand-black">{s.full_name}</td>
-                      <td className="p-3.5 font-mono text-gray-600 text-[11px]">{s.admission_number}</td>
-                      <td className="p-3.5">
-                        <div className="text-gray-700 font-medium">{s.father_name}</div>
-                        <div className="text-[11px] text-gray-500 font-mono">{s.guardian_phone}</div>
-                      </td>
-                      <td className="p-3.5 text-center font-mono font-bold text-cyan-300">{s.attendance_pct}%</td>
-                      <td className="p-3.5 text-right font-mono font-bold text-emerald-600 text-sm">{s.gpa}</td>
-                      <td className="p-3.5 text-center">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`}>
-                          PRESENT
-                        </span>
+                </thead>
+                <tbody>
+                  {filteredStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-[#a3c9b0] font-medium">
+                        No students found in this class roster.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredStudents.map((s, index) => (
+                      <tr key={s.id}>
+                        <td className="text-center font-bold text-[#e5c158] font-mono">{index + 1}</td>
+                        <td className="font-extrabold text-[#f4f0e6]">{s.full_name}</td>
+                        <td className="font-mono text-[#a3c9b0] text-[11px]">{s.admission_number}</td>
+                        <td>
+                          <div className="text-[#f4f0e6] font-semibold">{s.father_name}</div>
+                          <div className="text-[11px] text-[#a3c9b0] font-mono">{s.guardian_phone}</div>
+                        </td>
+                        <td className="text-center font-mono font-bold text-sky-300">{s.attendance_pct}%</td>
+                        <td className="text-right font-mono font-extrabold text-[#e5c158] text-sm">{s.gpa}</td>
+                        <td className="text-center">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            PRESENT
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </Tilt3D>
       </div>
     </ProtectedRoute>
   );
 }
+

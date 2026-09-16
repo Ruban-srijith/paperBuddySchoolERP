@@ -297,18 +297,19 @@ export default function AttendancePage() {
     <ProtectedRoute>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header Bar */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="glass-box-gold p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/30">
                 Attendance Management
               </span>
-              <span className="text-xs text-gray-600">• Real-Time Tracking</span>
+              <span className="text-xs text-[#a3c9b0]">• Real-Time Operational Tracking</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne tracking-tight mt-2 flex items-center gap-3">
+              <CheckSquare className="w-8 h-8 text-[#e5c158]" />
               Attendance & Work Log Hub
             </h1>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-[#a3c9b0] mt-1 font-medium">
               {isManagement
                 ? "Per-grade summary matrix across LKG to 12th Standard and staff duty attendance."
                 : isTeacher
@@ -322,77 +323,75 @@ export default function AttendancePage() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3.5 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs font-mono"
+              className="px-3.5 py-2 glass-input-dark text-xs font-mono"
             />
             <button
               onClick={handleExport}
-              className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
+              className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#f4f0e6] text-xs font-bold transition-colors cursor-pointer"
             >
-              <Download className="w-4 h-4 text-gray-600" />
+              <Download className="w-4 h-4 text-[#e5c158]" />
               <span>Export</span>
             </button>
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════════
-            MANAGEMENT VIEW: PER-GRADE SUMMARY MATRIX (SUPERADMIN / ADMIN / SUB-ADMIN)
-        ═══════════════════════════════════════════════════════ */}
+        {/* MANAGEMENT VIEW: PER-GRADE SUMMARY MATRIX */}
         {isManagement && (
           <div className="space-y-6">
             {/* Top Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
-                <div className="text-xs text-gray-600">Overall Student Attendance</div>
-                <div className="text-2xl font-bold text-emerald-600">{overallPct}%</div>
-                <div className="text-[11px] text-gray-600">{overallPresent} of {overallStrength} students present today</div>
+              <div className="glass-box p-4 space-y-1">
+                <div className="text-xs text-[#a3c9b0] font-bold uppercase tracking-wider">Overall Student Attendance</div>
+                <div className="text-2xl font-black text-emerald-400 font-syne">{overallPct}%</div>
+                <div className="text-[11px] text-[#a3c9b0]">{overallPresent} of {overallStrength} students present today</div>
               </div>
 
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
-                <div className="text-xs text-gray-600">Staff & Faculty Present</div>
-                <div className="text-2xl font-bold text-cyan-600">
+              <div className="glass-box p-4 space-y-1">
+                <div className="text-xs text-[#a3c9b0] font-bold uppercase tracking-wider">Staff & Faculty Present</div>
+                <div className="text-2xl font-black text-cyan-300 font-syne">
                   {summaryData ? summaryData.staff_duty_attendance.present_on_campus : 0} / {summaryData ? summaryData.staff_duty_attendance.total_teachers : 0}
                 </div>
-                <div className="text-[11px] text-gray-600">
+                <div className="text-[11px] text-[#a3c9b0]">
                   {summaryData ? summaryData.staff_duty_attendance.approved_duty_leave : 0} on approved leave
                 </div>
               </div>
 
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
-                <div className="text-xs text-gray-600">Total Classes Active</div>
-                <div className="text-2xl font-bold text-brand-blue">{summaryData ? summaryData.total_classes_active : 0} Classes</div>
-                <div className="text-[11px] text-gray-600">Classes with records today</div>
+              <div className="glass-box p-4 space-y-1">
+                <div className="text-xs text-[#a3c9b0] font-bold uppercase tracking-wider">Total Classes Active</div>
+                <div className="text-2xl font-black text-[#e5c158] font-syne">{summaryData ? summaryData.total_classes_active : 0} Classes</div>
+                <div className="text-[11px] text-[#a3c9b0]">Classes with records today</div>
               </div>
 
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-1">
-                <div className="text-xs text-gray-600">Low Attendance Alerts</div>
-                <div className="text-2xl font-bold text-amber-400">{summaryData ? summaryData.low_attendance_alerts : 0} Classes</div>
-                <div className="text-[11px] text-emerald-600 font-medium">Classes below 90% threshold</div>
+              <div className="glass-box p-4 space-y-1 border-amber-500/30">
+                <div className="text-xs text-amber-300 font-bold uppercase tracking-wider">Low Attendance Alerts</div>
+                <div className="text-2xl font-black text-amber-300 font-syne">{summaryData ? summaryData.low_attendance_alerts : 0} Classes</div>
+                <div className="text-[11px] text-[#a3c9b0] font-medium">Classes below 90% threshold</div>
               </div>
             </div>
 
             {/* Per-Grade Attendance Summary Matrix Table */}
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
+            <div className="glass-box p-5 space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
                 <div>
-                  <h3 className="text-base font-bold text-brand-black flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-base font-bold text-[#f4f0e6] font-syne flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-[#e5c158]" />
                     <span>Per-Grade Attendance Breakdown ({selectedDate})</span>
                   </h3>
-                  <p className="text-xs text-gray-600">View-only institutional oversight for Correspondent, Principal, and Vice-Principal</p>
+                  <p className="text-xs text-[#a3c9b0]">Institutional oversight for Correspondent, Principal, and Vice-Principal</p>
                 </div>
-                <span className="text-xs px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 whitespace-nowrap flex-shrink-0">
+                <span className="text-xs px-3 py-1 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/30">
                   LKG through 12th Standard
                 </span>
               </div>
 
-              <div className="relative overflow-x-auto rounded-xl border border-gray-200">
+              <div className="relative overflow-x-auto rounded-xl border border-white/10">
                 {loadingSummary && (
-                  <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#e5c158]"></div>
                   </div>
                 )}
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
+                  <thead>
                     <tr>
                       <th className="p-3.5">Grade Level</th>
                       <th className="p-3.5">Category</th>
@@ -403,35 +402,35 @@ export default function AttendancePage() {
                       <th className="p-3.5 text-right">Attendance %</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-white/10">
                     {gradeMatrixData.length === 0 && !loadingSummary && (
                       <tr>
-                        <td colSpan={7} className="p-8 text-center text-gray-500 font-medium">No attendance data found for this date.</td>
+                        <td colSpan={7} className="p-8 text-center text-[#a3c9b0] font-medium">No attendance data found for this date.</td>
                       </tr>
                     )}
                     {gradeMatrixData.map((row: any) => (
-                      <tr key={row.grade} className="hover:bg-gray-50/40 transition-colors">
-                        <td className="p-3.5 font-bold text-brand-black flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs">
+                      <tr key={row.grade} className="hover:bg-white/5 transition-colors">
+                        <td className="p-3.5 font-bold text-[#f4f0e6] flex items-center gap-2 font-syne">
+                          <div className="w-7 h-7 rounded-lg bg-[#e5c158]/20 text-[#e5c158] flex items-center justify-center font-bold text-xs border border-[#e5c158]/30">
                             {row.grade}
                           </div>
                           <span>Grade {row.grade}</span>
                         </td>
-                        <td className="p-3.5 text-gray-600">
+                        <td className="p-3.5 text-[#a3c9b0]">
                           {['LKG', 'UKG'].includes(row.grade) ? 'Pre-Primary'
                             : parseInt(row.grade) <= 5 ? 'Primary'
                             : parseInt(row.grade) <= 8 ? 'Middle School'
                             : parseInt(row.grade) <= 10 ? 'Secondary'
                             : 'Sr. Secondary'}
                         </td>
-                        <td className="p-3.5 text-center font-mono text-gray-700">{row.strength}</td>
-                        <td className="p-3.5 text-center font-mono text-emerald-600 font-bold">{row.present}</td>
+                        <td className="p-3.5 text-center font-mono text-[#f4f0e6]">{row.strength}</td>
+                        <td className="p-3.5 text-center font-mono text-emerald-400 font-bold">{row.present}</td>
                         <td className="p-3.5 text-center font-mono text-rose-400">{row.absent}</td>
-                        <td className="p-3.5 text-center font-mono text-amber-400">{row.late}</td>
+                        <td className="p-3.5 text-center font-mono text-amber-300">{row.late}</td>
                         <td className="p-3.5 text-right font-mono">
                           <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
                             row.percentage >= 95 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                            : 'bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/30'
                           }`}>
                             {row.percentage}%
                           </span>
@@ -444,71 +443,69 @@ export default function AttendancePage() {
             </div>
 
             {/* Staff Attendance Breakdown Section */}
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
-              <h3 className="text-base font-bold text-brand-black flex items-center gap-2">
-                <Users className="w-4 h-4 text-cyan-600" />
+            <div className="glass-box p-5 space-y-4">
+              <h3 className="text-base font-bold text-[#f4f0e6] font-syne flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#e5c158]" />
                 <span>Staff & Faculty Duty Attendance</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-800/40 space-y-1">
-                  <div className="text-xs text-emerald-600 font-semibold flex items-center gap-1.5">
+                <div className="p-4 rounded-xl bg-black/30 border border-white/10 space-y-1">
+                  <div className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
                     <UserCheck className="w-4 h-4" /> Present on Campus
                   </div>
-                  <div className="text-xl font-bold text-brand-black">
+                  <div className="text-xl font-black text-[#f4f0e6] font-syne">
                     {summaryData ? summaryData.staff_duty_attendance.present_on_campus : 0} Faculty Members
                   </div>
-                  <div className="text-[11px] text-gray-600">All periods covered • Zero unassigned slots</div>
+                  <div className="text-[11px] text-[#a3c9b0]">All periods covered • Zero unassigned slots</div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-800/40 space-y-1">
-                  <div className="text-xs text-amber-400 font-semibold flex items-center gap-1.5">
+                <div className="p-4 rounded-xl bg-black/30 border border-white/10 space-y-1">
+                  <div className="text-xs text-amber-300 font-bold flex items-center gap-1.5">
                     <Clock className="w-4 h-4" /> Approved Duty Leave
                   </div>
-                  <div className="text-xl font-bold text-brand-black">
+                  <div className="text-xl font-black text-[#f4f0e6] font-syne">
                     {summaryData ? summaryData.staff_duty_attendance.approved_duty_leave : 0} Faculty Members
                   </div>
-                  <div className="text-[11px] text-gray-600">Substitutes successfully allocated</div>
+                  <div className="text-[11px] text-[#a3c9b0]">Substitutes successfully allocated</div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-800/40 space-y-1">
-                  <div className="text-xs text-brand-blue font-semibold flex items-center gap-1.5">
+                <div className="p-4 rounded-xl bg-black/30 border border-white/10 space-y-1">
+                  <div className="text-xs text-[#e5c158] font-bold flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4" /> Syllabus Work Logs
                   </div>
-                  <div className="text-xl font-bold text-brand-black">
+                  <div className="text-xl font-black text-[#f4f0e6] font-syne">
                     {summaryData ? summaryData.staff_duty_attendance.syllabus_work_logs : 0} / {summaryData ? summaryData.staff_duty_attendance.total_teachers : 0} Submitted
                   </div>
-                  <div className="text-[11px] text-gray-600">Log submission compliance today</div>
+                  <div className="text-[11px] text-[#a3c9b0]">Log submission compliance today</div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════════════════
-            TEACHER VIEW: BATCH MARKING & WORK LOG DRAWER
-        ═══════════════════════════════════════════════════════ */}
+        {/* TEACHER VIEW: BATCH MARKING & WORK LOG DRAWER */}
         {isTeacher && (
           <div className="space-y-6">
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
+            <div className="glass-box p-5 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-bold text-brand-black flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-base font-bold text-[#f4f0e6] font-syne flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-[#e5c158]" />
                     <span>Mark Daily Attendance: Grade 10-A</span>
                   </h3>
-                  <p className="text-xs text-gray-600">Tap status buttons to toggle student attendance for today</p>
+                  <p className="text-xs text-[#a3c9b0]">Tap status buttons to toggle student attendance for today</p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setDrawerOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 text-brand-black font-medium text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15] font-extrabold text-xs shadow-md hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
                     Submit Daily Work Log
                   </button>
                   <button
                     onClick={handleSaveAttendance}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 text-brand-black font-semibold text-xs shadow-md shadow-emerald-600/30 hover:bg-emerald-500 transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#0f1c15] font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Save Attendance
@@ -517,48 +514,48 @@ export default function AttendancePage() {
               </div>
 
               {/* Students Marking Table */}
-              <div className="overflow-x-auto rounded-xl border border-gray-200">
+              <div className="overflow-x-auto rounded-xl border border-white/10">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
+                  <thead>
                     <tr>
                       <th className="p-3.5">Roll No</th>
                       <th className="p-3.5">Student Name</th>
                       <th className="p-3.5 text-center">Status Selection</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-white/10">
                     {students.map((stu) => (
-                      <tr key={stu.student_id} className="hover:bg-gray-50/40 transition-colors">
-                        <td className="p-3.5 font-mono text-gray-600">{stu.roll}</td>
-                        <td className="p-3.5 font-bold text-brand-black">{stu.name}</td>
+                      <tr key={stu.student_id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-3.5 font-mono text-[#e5c158] font-bold">{stu.roll}</td>
+                        <td className="p-3.5 font-bold text-[#f4f0e6] font-syne">{stu.name}</td>
                         <td className="p-3.5">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => toggleStatus(stu.student_id, "present")}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                                 stu.status === "present"
-                                  ? "bg-emerald-600 text-brand-black shadow-sm"
-                                  : "bg-gray-50 text-gray-600 hover:text-gray-800"
+                                  ? "bg-emerald-500 text-[#0f1c15] shadow-md"
+                                  : "bg-black/30 text-[#a3c9b0] hover:text-[#f4f0e6]"
                               }`}
                             >
                               Present
                             </button>
                             <button
                               onClick={() => toggleStatus(stu.student_id, "late")}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                                 stu.status === "late"
-                                  ? "bg-amber-600 text-brand-black shadow-sm"
-                                  : "bg-gray-50 text-gray-600 hover:text-gray-800"
+                                  ? "bg-amber-400 text-[#0f1c15] shadow-md"
+                                  : "bg-black/30 text-[#a3c9b0] hover:text-[#f4f0e6]"
                               }`}
                             >
                               Late
                             </button>
                             <button
                               onClick={() => toggleStatus(stu.student_id, "absent")}
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                                 stu.status === "absent"
-                                  ? "bg-rose-600 text-brand-black shadow-sm"
-                                  : "bg-gray-50 text-gray-600 hover:text-gray-800"
+                                  ? "bg-rose-500 text-white shadow-md"
+                                  : "bg-black/30 text-[#a3c9b0] hover:text-[#f4f0e6]"
                               }`}
                             >
                               Absent
@@ -574,57 +571,57 @@ export default function AttendancePage() {
 
             {/* Work Log Drawer */}
             {drawerOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-                  <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-                    <h3 className="text-lg font-bold text-brand-black flex items-center gap-2">
-                      <BookOpen className="w-5 h-5 text-amber-400" />
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in">
+                <div className="glass-box-gold p-6 max-w-lg w-full space-y-4 shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <h3 className="text-lg font-bold text-[#f4f0e6] font-syne flex items-center gap-2">
+                      <BookOpen className="w-5 h-5 text-[#e5c158]" />
                       <span>Submit Daily Teaching Work Log</span>
                     </h3>
-                    <button onClick={() => setDrawerOpen(false)} className="text-gray-600 hover:text-brand-black">
+                    <button onClick={() => setDrawerOpen(false)} className="text-[#a3c9b0] hover:text-[#f4f0e6]">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
                   <form onSubmit={handleSubmitWorkLog} className="space-y-4 text-xs">
                     <div>
-                      <label className="text-gray-700 font-semibold block mb-1">Subject & Topic Covered</label>
+                      <label className="text-[#a3c9b0] font-bold uppercase tracking-wider block mb-1">Subject & Topic Covered</label>
                       <input
                         type="text"
                         value={workLog.topic}
                         onChange={e => setWorkLog({ ...workLog, topic: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                        className="w-full px-3 py-2 glass-input-dark"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="text-gray-700 font-semibold block mb-1">Summary / Numerical Exercises Covered</label>
+                      <label className="text-[#a3c9b0] font-bold uppercase tracking-wider block mb-1">Summary / Numerical Exercises Covered</label>
                       <textarea
                         rows={4}
                         value={workLog.summary}
                         onChange={e => setWorkLog({ ...workLog, summary: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                        className="w-full px-3 py-2 glass-input-dark"
                         required
                       />
                     </div>
 
-                    <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
-                      <Sparkles className="w-4 h-4 inline mr-1 text-cyan-300" />
+                    <div className="p-3 rounded-xl bg-black/30 border border-white/10 text-[#a3c9b0]">
+                      <Sparkles className="w-4 h-4 inline mr-1 text-[#e5c158]" />
                       Submitting this work log will auto-update the Syllabus Portion Tracker for this topic.
                     </div>
 
-                    <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
+                    <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
                       <button
                         type="button"
                         onClick={() => setDrawerOpen(false)}
-                        className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700"
+                        className="px-4 py-2 rounded-xl bg-white/10 text-[#a3c9b0] font-bold"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-amber-600 text-brand-black font-semibold shadow-md shadow-amber-600/30 hover:bg-amber-500"
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15] font-extrabold shadow-lg"
                       >
                         Submit Work Log
                       </button>
@@ -636,31 +633,29 @@ export default function AttendancePage() {
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════════════════
-            STUDENT VIEW: PERSONAL ATTENDANCE LEDGER
-        ═══════════════════════════════════════════════════════ */}
+        {/* STUDENT VIEW: PERSONAL ATTENDANCE LEDGER */}
         {isStudent && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-                <div className="text-xs text-gray-600">Total Attendance Rate</div>
-                <div className="text-3xl font-bold text-emerald-600">96.4%</div>
-                <div className="text-[11px] text-gray-600">82 of 85 sessions attended</div>
+              <div className="glass-box p-5 space-y-1">
+                <div className="text-xs text-[#a3c9b0] font-bold uppercase tracking-wider">Total Attendance Rate</div>
+                <div className="text-3xl font-black text-emerald-400 font-syne">96.4%</div>
+                <div className="text-[11px] text-[#a3c9b0]">82 of 85 sessions attended</div>
               </div>
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-                <div className="text-xs text-gray-600">Late Arrivals</div>
-                <div className="text-3xl font-bold text-amber-400">2 Days</div>
-                <div className="text-[11px] text-gray-600">Marked within permissible limit</div>
+              <div className="glass-box p-5 space-y-1 border-amber-500/30">
+                <div className="text-xs text-amber-300 font-bold uppercase tracking-wider">Late Arrivals</div>
+                <div className="text-3xl font-black text-amber-300 font-syne">2 Days</div>
+                <div className="text-[11px] text-[#a3c9b0]">Marked within permissible limit</div>
               </div>
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-1">
-                <div className="text-xs text-gray-600">Approved Leaves</div>
-                <div className="text-3xl font-bold text-cyan-600">1 Day</div>
-                <div className="text-[11px] text-gray-600">Science Olympiad duty leave</div>
+              <div className="glass-box p-5 space-y-1 border-[#e5c158]/30">
+                <div className="text-xs text-[#e5c158] font-bold uppercase tracking-wider">Approved Leaves</div>
+                <div className="text-3xl font-black text-[#e5c158] font-syne">1 Day</div>
+                <div className="text-[11px] text-[#a3c9b0]">Science Olympiad duty leave</div>
               </div>
             </div>
 
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
-              <h3 className="text-base font-bold text-brand-black">Subject-wise Attendance Breakdown</h3>
+            <div className="glass-box p-5 space-y-4">
+              <h3 className="text-base font-bold text-[#f4f0e6] font-syne">Subject-wise Attendance Breakdown</h3>
               <div className="space-y-3">
                 {[
                   { subject: "Mathematics", present: 24, total: 24, pct: 100 },
@@ -668,12 +663,12 @@ export default function AttendancePage() {
                   { subject: "Chemistry", present: 20, total: 20, pct: 100 },
                   { subject: "Computer Science", present: 16, total: 17, pct: 94.1 },
                 ].map((sub) => (
-                  <div key={sub.subject} className="p-3.5 rounded-xl bg-white border border-gray-200 flex items-center justify-between">
+                  <div key={sub.subject} className="p-3.5 rounded-xl bg-black/30 border border-white/10 flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-brand-black">{sub.subject}</div>
-                      <div className="text-xs text-gray-600">{sub.present} of {sub.total} periods attended</div>
+                      <div className="text-sm font-bold text-[#f4f0e6] font-syne">{sub.subject}</div>
+                      <div className="text-xs text-[#a3c9b0]">{sub.present} of {sub.total} periods attended</div>
                     </div>
-                    <div className="text-sm font-bold text-emerald-600 font-mono">{sub.pct}%</div>
+                    <div className="text-sm font-black text-emerald-400 font-mono">{sub.pct}%</div>
                   </div>
                 ))}
               </div>

@@ -339,18 +339,19 @@ export default function TimetablePage() {
     <ProtectedRoute>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header Bar */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="glass-box-gold p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/30">
                 {isSubAdmin ? "Vice-Principal Control Center" : isSuperOrAdmin ? "Institutional Master Timetable" : "Class Schedule"}
               </span>
-              <span className="text-xs text-gray-600">• CP-SAT Constraint Engine</span>
+              <span className="text-xs text-[#a3c9b0]">• CP-SAT Constraint Engine</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne tracking-tight mt-2 flex items-center gap-3">
+              <CalendarIcon className="w-8 h-8 text-[#e5c158]" />
               Timetable {canEdit ? "Optimizer & Slot Editor" : "Viewer"}
             </h1>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-[#a3c9b0] mt-1 font-medium">
               {canEdit 
                 ? "Generate zero-conflict timetables, modify subject allocations, and resolve teacher period clashes."
                 : "View conflict-free class schedules and teacher allocations across all grade levels."}
@@ -363,17 +364,17 @@ export default function TimetablePage() {
               <button
                 onClick={handleGenerateORTools}
                 disabled={generating}
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 text-brand-black font-medium text-xs shadow-lg shadow-indigo-500/25 hover:opacity-95 transition-all disabled:opacity-50"
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15] font-extrabold text-xs shadow-lg hover:opacity-95 transition-all disabled:opacity-50 cursor-pointer"
               >
-                {generating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-cyan-200" />}
+                {generating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-[#0f1c15]" />}
                 <span>{generating ? "Solving Constraints..." : "Run OR-Tools Solver"}</span>
               </button>
             )}
             <button
               onClick={handleExportTimetable}
-              className="inline-flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:text-brand-black text-xs font-medium border border-gray-200 hover:border-gray-600 transition-colors"
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-[#f4f0e6] text-xs font-bold transition-colors cursor-pointer"
             >
-              <Download className="w-4 h-4 text-gray-600" />
+              <Download className="w-4 h-4 text-[#e5c158]" />
               <span>Export</span>
             </button>
           </div>
@@ -381,16 +382,16 @@ export default function TimetablePage() {
 
         {/* View Mode & Filter Controls */}
         {!isStudent && (
-          <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 space-y-4">
+          <div className="glass-box p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               {/* View Mode Switcher */}
-              <div className="inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200">
+              <div className="inline-flex rounded-xl bg-black/40 p-1 border border-white/10">
                 <button
                   onClick={() => setViewMode("by_grade")}
-                  className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     viewMode === "by_grade"
-                      ? "bg-brand-blue text-brand-black shadow-md shadow-indigo-600/30"
-                      : "text-gray-600 hover:text-gray-800"
+                      ? "bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15] shadow-md"
+                      : "text-[#a3c9b0] hover:text-[#f4f0e6]"
                   }`}
                 >
                   <GraduationCap className="w-3.5 h-3.5" />
@@ -398,10 +399,10 @@ export default function TimetablePage() {
                 </button>
                 <button
                   onClick={() => setViewMode("by_teacher")}
-                  className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     viewMode === "by_teacher"
-                      ? "bg-brand-blue text-brand-black shadow-md shadow-indigo-600/30"
-                      : "text-gray-600 hover:text-gray-800"
+                      ? "bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15] shadow-md"
+                      : "text-[#a3c9b0] hover:text-[#f4f0e6]"
                   }`}
                 >
                   <User className="w-3.5 h-3.5" />
@@ -411,11 +412,11 @@ export default function TimetablePage() {
 
               {/* Constraint Health Metric */}
               <div className="flex items-center gap-3 text-xs">
-                <div className="flex items-center gap-1.5 text-emerald-600 font-medium bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20">
+                <div className="flex items-center gap-1.5 text-emerald-300 font-bold bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>0 Teacher Collisions</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-cyan-600 font-medium bg-cyan-500/10 px-3 py-1.5 rounded-xl border border-cyan-500/20">
+                <div className="flex items-center gap-1.5 text-cyan-300 font-bold bg-cyan-500/20 px-3 py-1.5 rounded-xl border border-cyan-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>0 Lab Overlaps</span>
                 </div>
@@ -424,19 +425,19 @@ export default function TimetablePage() {
 
             {/* Filter Pickers */}
             {viewMode === "by_grade" ? (
-              <div className="space-y-2 pt-2 border-t border-gray-200/80">
+              <div className="space-y-2 pt-3 border-t border-white/10">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold uppercase text-gray-600 tracking-wider">Select Grade Level (LKG - 12th)</label>
+                  <label className="text-[11px] font-bold uppercase text-[#a3c9b0] tracking-wider">Select Grade Level (LKG - 12th)</label>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-600">Section:</span>
+                    <span className="text-xs text-[#a3c9b0] font-semibold">Section:</span>
                     {SECTIONS.map(sec => (
                       <button
                         key={sec}
                         onClick={() => setSelectedSection(sec)}
                         className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
                           selectedSection === sec
-                            ? "bg-indigo-500 text-brand-black shadow-sm"
-                            : "bg-gray-100/70 text-gray-600 hover:bg-gray-700"
+                            ? "bg-[#e5c158] text-[#0f1c15] shadow-md"
+                            : "bg-black/30 text-[#a3c9b0] hover:bg-white/10"
                         }`}
                       >
                         {sec}
@@ -449,11 +450,11 @@ export default function TimetablePage() {
                 {isTeacher ? (
                   <div className="flex flex-wrap gap-2">
                     {user?.assigned_grade ? (
-                      <button className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-brand-blue text-brand-black border border-indigo-400 shadow-md shadow-indigo-500/20">
+                      <button className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15]">
                         My Assigned Class (Grade {user.assigned_grade})
                       </button>
                     ) : (
-                      <div className="text-xs text-gray-500 italic p-2 bg-gray-50/50 rounded-lg border border-gray-200">
+                      <div className="text-xs text-[#a3c9b0] italic p-2 bg-black/30 rounded-lg border border-white/10">
                         You are not currently assigned as a Class Teacher.
                       </div>
                     )}
@@ -464,10 +465,10 @@ export default function TimetablePage() {
                       <button
                         key={grade}
                         onClick={() => setSelectedGrade(grade)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                           selectedGrade === grade
-                            ? "bg-brand-blue text-brand-black border border-indigo-400 shadow-md shadow-indigo-500/20"
-                            : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 hover:border-indigo-500/40 hover:text-brand-black"
+                            ? "bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15] shadow-md"
+                            : "bg-black/30 text-[#a3c9b0] border border-white/10 hover:border-[#e5c158]/50 hover:text-[#f4f0e6]"
                         }`}
                       >
                         Grade {grade}
@@ -477,13 +478,13 @@ export default function TimetablePage() {
                 )}
               </div>
             ) : (
-              <div className="space-y-2 pt-2 border-t border-gray-200/80">
-                <label className="text-[11px] font-bold uppercase text-gray-600 tracking-wider">Select Faculty Member</label>
+              <div className="space-y-2 pt-3 border-t border-white/10">
+                <label className="text-[11px] font-bold uppercase text-[#a3c9b0] tracking-wider">Select Faculty Member</label>
                 {isTeacher ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                    <button className="p-3 rounded-xl text-left transition-all bg-brand-blue/20 border border-indigo-500 text-brand-black shadow-md shadow-indigo-500/10">
-                      <div className="font-semibold text-sm">{user?.full_name}</div>
-                      <div className="text-[11px] mt-1 opacity-70">My Personal Schedule</div>
+                    <button className="p-3 rounded-xl text-left transition-all bg-[#e5c158]/20 border border-[#e5c158] text-[#f4f0e6] shadow-md">
+                      <div className="font-bold text-sm text-[#e5c158]">{user?.full_name}</div>
+                      <div className="text-[11px] mt-1 text-[#a3c9b0]">My Personal Schedule</div>
                     </button>
                   </div>
                 ) : (
@@ -494,12 +495,12 @@ export default function TimetablePage() {
                         onClick={() => setSelectedTeacher(t.id)}
                         className={`p-3 rounded-xl text-left transition-all ${
                           selectedTeacher === t.id
-                            ? "bg-brand-blue/20 border border-indigo-500 text-brand-black shadow-md shadow-indigo-500/10"
-                            : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-gray-800 border-gray-200"
+                            ? "bg-[#e5c158]/20 border border-[#e5c158] text-[#f4f0e6] shadow-md"
+                            : "bg-black/30 border border-white/10 text-[#a3c9b0] hover:text-[#f4f0e6]"
                         }`}
                       >
-                        <div className="font-semibold text-sm">{t.name}</div>
-                        <div className="text-[11px] mt-1 opacity-70">{t.subject}</div>
+                        <div className="font-bold text-sm text-[#f4f0e6]">{t.name}</div>
+                        <div className="text-[11px] mt-1 text-[#a3c9b0]">{t.subject}</div>
                       </button>
                     ))}
                   </div>
@@ -510,38 +511,38 @@ export default function TimetablePage() {
         )}
 
         {/* Timetable Grid */}
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 rounded-2xl border border-gray-200 space-y-4">
+        <div className="glass-box p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-brand-black flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-brand-blue" />
+            <h3 className="text-base font-bold text-[#f4f0e6] font-syne flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4 text-[#e5c158]" />
               <span>
                 {viewMode === "by_grade"
                   ? `Weekly Schedule for Grade ${selectedGrade}-${selectedSection}`
                   : `Schedule for ${teachers.find(t => t.id === selectedTeacher)?.name || "Faculty"}`}
               </span>
             </h3>
-            <span className="text-xs text-gray-600 font-mono">5 Working Days • 6 Daily Periods</span>
+            <span className="text-xs text-[#e5c158] font-mono font-bold">5 Working Days • 6 Daily Periods</span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-800">
+          <div className="overflow-x-auto rounded-xl border border-white/10">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-transparent text-gray-700 dark:text-slate-300 uppercase text-[10px] font-semibold border-b border-gray-200 dark:border-slate-800">
+              <thead>
                 <tr>
-                  <th className="p-3.5 w-28 bg-transparent text-gray-800 dark:text-slate-200 border-r border-gray-200 dark:border-slate-800">Day / Period</th>
+                  <th className="p-3.5 w-28 border-r border-white/10">Day / Period</th>
                   {TIME_SLOTS.slice(0, 6).map((time, idx) => (
-                    <th key={time} className="p-3.5 text-center min-w-[140px] bg-transparent">
+                    <th key={time} className="p-3.5 text-center min-w-[140px]">
                       <div>Period {idx + 1}</div>
-                      <div className="text-[9px] text-gray-500 dark:text-slate-400 font-mono normal-case">{time}</div>
+                      <div className="text-[9px] text-[#a3c9b0] font-mono normal-case">{time}</div>
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
+              <tbody className="divide-y divide-white/10">
                 {DAYS.map(day => {
                   const daySlots = schedule.filter(s => s.day_of_week === day);
                   return (
-                    <tr key={day} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                      <td className="p-3.5 font-bold text-gray-800 dark:text-slate-200 bg-transparent border-r border-gray-200 dark:border-slate-800">
+                    <tr key={day} className="hover:bg-white/5 transition-colors">
+                      <td className="p-3.5 font-extrabold text-[#f4f0e6] font-syne border-r border-white/10">
                         {day}
                       </td>
                       {TIME_SLOTS.slice(0, 6).map(slotTime => {
@@ -549,7 +550,7 @@ export default function TimetablePage() {
                         if (!slot) {
                           return (
                             <td key={slotTime} className="p-2 text-center">
-                              <div className="p-3 rounded-lg border border-dashed border-gray-200 dark:border-slate-800 text-gray-400 dark:text-slate-500 text-[11px]">
+                              <div className="p-3 rounded-xl border border-dashed border-white/10 text-[#a3c9b0]/50 text-[11px] font-mono">
                                 Free Slot
                               </div>
                             </td>
@@ -562,32 +563,32 @@ export default function TimetablePage() {
                           <td key={slotTime} className="p-2">
                             <div
                               onClick={() => canEdit && setEditingSlot(slot)}
-                              className={`p-3 rounded-xl border transition-all space-y-1 relative group ${
+                              className={`p-3 rounded-xl border transition-all space-y-1.5 relative group ${
                                 isLab
-                                  ? "bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800/50 hover:border-purple-400"
-                                  : "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-400"
+                                  ? "bg-purple-950/40 border-purple-500/40 hover:border-purple-300"
+                                  : "bg-emerald-950/40 border-[#e5c158]/30 hover:border-[#e5c158]"
                               } ${canEdit ? "cursor-pointer hover:scale-[1.02]" : ""}`}
                             >
                               <div className="flex items-center justify-between">
-                                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded ${
                                   isLab 
-                                    ? "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300" 
-                                    : "bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300"
+                                    ? "bg-purple-500/20 text-purple-300 border border-purple-500/30" 
+                                    : "bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/30"
                                 }`}>
                                   {viewMode === "by_teacher" ? slot.class_name : slot.subject_name}
                                 </span>
                                 {canEdit && (
-                                  <Edit3 className="w-3 h-3 text-gray-400 dark:text-slate-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors opacity-0 group-hover:opacity-100" />
+                                  <Edit3 className="w-3 h-3 text-[#a3c9b0] group-hover:text-[#e5c158] transition-colors opacity-0 group-hover:opacity-100" />
                                 )}
                               </div>
 
-                              <div className="text-xs font-bold text-gray-900 dark:text-slate-100 truncate">
+                              <div className="text-xs font-extrabold text-[#f4f0e6] font-syne truncate">
                                 {viewMode === "by_teacher" ? slot.subject_name : slot.teacher_name}
                               </div>
 
-                              <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-slate-400">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-2.5 h-2.5 text-cyan-600 dark:text-cyan-400" />
+                              <div className="flex items-center justify-between text-[10px] text-[#a3c9b0]">
+                                <span className="flex items-center gap-1 font-mono">
+                                  <MapPin className="w-2.5 h-2.5 text-[#e5c158]" />
                                   {slot.classroom_name}
                                 </span>
                               </div>
@@ -605,16 +606,16 @@ export default function TimetablePage() {
 
         {/* Slot Editor Modal (Sub-admin / VP only) */}
         {editingSlot && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-md w-full rounded-2xl p-6 space-y-5 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in">
+            <div className="glass-box-gold p-6 max-w-md w-full space-y-5 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <div>
-                  <h3 className="text-lg font-bold text-brand-black">Edit Timetable Period</h3>
-                  <p className="text-xs text-gray-600">{editingSlot.day_of_week} • {editingSlot.time_slot}</p>
+                  <h3 className="text-lg font-bold text-[#f4f0e6] font-syne">Edit Timetable Period</h3>
+                  <p className="text-xs text-[#a3c9b0]">{editingSlot.day_of_week} • {editingSlot.time_slot}</p>
                 </div>
                 <button
                   onClick={() => setEditingSlot(null)}
-                  className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 hover:text-brand-black flex items-center justify-center"
+                  className="w-7 h-7 rounded-lg bg-black/40 text-[#a3c9b0] hover:text-[#f4f0e6] flex items-center justify-center"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -622,21 +623,21 @@ export default function TimetablePage() {
 
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="text-gray-700 font-semibold block mb-1">Subject</label>
+                  <label className="text-[#a3c9b0] font-bold uppercase tracking-wider block mb-1">Subject</label>
                   <input
                     type="text"
                     value={editingSlot.subject_name}
                     onChange={e => setEditingSlot({ ...editingSlot, subject_name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                    className="w-full px-3 py-2 glass-input-dark"
                   />
                 </div>
 
                 <div>
-                  <label className="text-gray-700 font-semibold block mb-1">Teacher</label>
+                  <label className="text-[#a3c9b0] font-bold uppercase tracking-wider block mb-1">Teacher</label>
                   <select
                     value={editingSlot.teacher_name}
                     onChange={e => setEditingSlot({ ...editingSlot, teacher_name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                    className="w-full px-3 py-2 glass-input-dark"
                   >
                     {teachers.map(t => (
                       <option key={t.id} value={t.name}>{t.name} ({t.subject})</option>
@@ -645,32 +646,32 @@ export default function TimetablePage() {
                 </div>
 
                 <div>
-                  <label className="text-gray-700 font-semibold block mb-1">Classroom / Lab</label>
+                  <label className="text-[#a3c9b0] font-bold uppercase tracking-wider block mb-1">Classroom / Lab</label>
                   <input
                     type="text"
                     value={editingSlot.classroom_name}
                     onChange={e => setEditingSlot({ ...editingSlot, classroom_name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black"
+                    className="w-full px-3 py-2 glass-input-dark"
                   />
                 </div>
 
                 {/* AI Conflict Checker */}
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center gap-2">
+                <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                   <span>Verified: Teacher and Room are free at {editingSlot.time_slot}.</span>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
                 <button
                   onClick={() => setEditingSlot(null)}
-                  className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-700 transition-colors text-xs"
+                  className="px-4 py-2 rounded-xl bg-white/10 text-[#a3c9b0] font-bold text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleSaveSlotEdit(editingSlot)}
-                  className="px-4 py-2 rounded-xl bg-brand-blue text-brand-black hover:bg-indigo-500 transition-colors font-semibold text-xs shadow-md shadow-indigo-600/30"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#e5c158] to-[#c49a32] text-[#0f1c15] font-extrabold text-xs shadow-md"
                 >
                   Save Period
                 </button>
