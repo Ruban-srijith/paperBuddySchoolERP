@@ -39,7 +39,10 @@ self.addEventListener('fetch', (event) => {
       if (cachedResponse) {
         return cachedResponse;
       }
-      return fetch(event.request);
+      return fetch(event.request).catch((err) => {
+        // Fallback or ignore fetch errors when network/dev-server restarts
+        return Response.error();
+      });
     })
   );
 });
