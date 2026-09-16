@@ -217,7 +217,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen w-screen overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
+    <div className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
       {/* Background Architectural & Line-Art Wallpaper Designs */}
       <BackgroundWallpaper />
 
@@ -225,8 +225,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
 
       {/* Main Brutalist Concrete Frame Chassis */}
-      <div className="relative z-10 flex-1 flex flex-col h-[100dvh] max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4">
-        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative min-h-0">
+      <div className="relative z-10 flex-1 flex flex-col h-[100dvh] max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4 overflow-x-clip">
+        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative min-h-0 w-full max-w-full">
           
           {/* Mobile Sidebar Overlay */}
           {showMobileMenu && (
@@ -237,8 +237,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
           )}
 
           {/* SIDEBAR - BRUTALIST CONCRETE RIM & GLASS CREST MOUNT */}
-          <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] lg:static lg:w-[245px] h-full brutal-stone-sidebar p-3.5 flex flex-col justify-between overflow-hidden transform transition-transform duration-200 ease-out lg:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className="flex-1 flex flex-col space-y-2.5 overflow-hidden min-h-0">
+          <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] lg:static lg:w-[245px] h-full brutal-stone-sidebar p-2.5 sm:p-3 flex flex-col justify-between overflow-x-clip overflow-y-hidden transform transition-transform duration-200 ease-out lg:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="flex-1 flex flex-col space-y-2 overflow-x-clip overflow-y-hidden min-h-0 w-full max-w-full">
               
               {/* Shield & Torch Crest Emblem inside Carved Concrete Mount (Reference Top Left Badge) */}
               <div className="flex-none flex flex-col items-center justify-center pt-1 pb-2 border-b border-[#e5c158]/20 relative">
@@ -264,92 +264,94 @@ function AppShell({ children }: { children: React.ReactNode }) {
               </div>
 
               {/* Interactive Y-Axis Navigation Controls & Options */}
-              <div className="flex-none flex flex-col space-y-1.5 px-1.5 py-2 bg-black/45 rounded-xl border border-[#e5c158]/35 shadow-inner">
-                <div className="flex items-center justify-between px-0.5">
-                  <span className="text-[9px] font-mono tracking-widest text-[#e5c158] uppercase flex items-center gap-1 font-extrabold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#e5c158] inline-block animate-pulse" />
+              <div className="flex-none flex flex-col space-y-1.5 px-1.5 py-1.5 bg-black/45 rounded-xl border border-[#e5c158]/35 shadow-inner w-full min-w-0 max-w-full overflow-x-clip">
+                <div className="flex items-center justify-between px-0.5 w-full min-w-0">
+                  <span className="text-[9px] font-mono tracking-widest text-[#e5c158] uppercase flex items-center gap-1 font-extrabold truncate">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#e5c158] inline-block animate-pulse shrink-0" />
                     SIDEBAR Y-SCROLL OPTIONS
                   </span>
-                  <span className="text-[9px] font-mono text-[#a3c9b0] font-bold">
+                  <span className="text-[9px] font-mono text-[#a3c9b0] font-bold shrink-0">
                     Y: {scrollPercent}%
                   </span>
                 </div>
 
                 {/* Y-Axis Scroll Distance / Step Mode Selector */}
-                <div className="flex items-center justify-between gap-1 text-[8.5px] font-mono font-bold text-[#a3c9b0]">
-                  <span className="text-[#e5c158]/80 uppercase font-bold">STEP:</span>
-                  {[100, 200, 350].map((step) => (
-                    <button
-                      key={step}
-                      onClick={() => setScrollStep(step)}
-                      className={`px-1.5 py-0.5 rounded border transition-all ${
-                        scrollStep === step 
-                          ? 'bg-[#e5c158] text-[#14251c] font-black border-[#e5c158] shadow-[0_0_8px_rgba(229,193,88,0.5)]' 
-                          : 'bg-[#122218] text-[#a3c9b0] border-[#43634e]/40 hover:text-white'
-                      }`}
-                    >
-                      {step}px
-                    </button>
-                  ))}
+                <div className="flex items-center gap-1 text-[8.5px] font-mono font-bold text-[#a3c9b0] w-full min-w-0">
+                  <span className="text-[#e5c158]/80 uppercase font-bold shrink-0">STEP:</span>
+                  <div className="flex-1 flex items-center gap-1 min-w-0">
+                    {[100, 200, 350].map((step) => (
+                      <button
+                        key={step}
+                        onClick={() => setScrollStep(step)}
+                        className={`flex-1 py-0.5 px-0.5 text-center rounded border transition-all truncate ${
+                          scrollStep === step 
+                            ? 'bg-[#e5c158] text-[#14251c] font-black border-[#e5c158] shadow-[0_0_8px_rgba(229,193,88,0.5)]' 
+                            : 'bg-[#122218] text-[#a3c9b0] border-[#43634e]/40 hover:text-white'
+                        }`}
+                      >
+                        {step}px
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Main Action Scroll Buttons */}
-                <div className="grid grid-cols-4 gap-1 p-1 bg-[#122218] rounded-lg border border-[#43634e]/40">
+                <div className="grid grid-cols-4 gap-1 p-0.5 bg-[#122218] rounded-lg border border-[#43634e]/40 w-full min-w-0">
                   <button 
                     onClick={handleScrollToTop}
                     title="Scroll to Top (Y: 0%)"
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#e5c158] hover:text-white text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#e5c158]/30 transition-all shadow active:scale-95"
+                    className="py-1 px-0.5 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#e5c158] hover:text-white text-[8px] font-bold flex items-center justify-center gap-0.5 border border-[#e5c158]/30 transition-all shadow active:scale-95 min-w-0 truncate"
                   >
-                    <ChevronsUp className="w-3 h-3" />
-                    <span>TOP</span>
+                    <ChevronsUp className="w-2.5 h-2.5 shrink-0" />
+                    <span className="truncate">TOP</span>
                   </button>
                   <button 
                     onClick={() => navRef.current?.scrollBy({ top: -scrollStep, behavior: 'smooth' })}
                     title={`Scroll Up ${scrollStep}px`}
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#f4f0e6] hover:text-[#e5c158] text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#43634e]/50 transition-all shadow active:scale-95"
+                    className="py-1 px-0.5 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#f4f0e6] hover:text-[#e5c158] text-[8px] font-bold flex items-center justify-center gap-0.5 border border-[#43634e]/50 transition-all shadow active:scale-95 min-w-0 truncate"
                   >
-                    <ChevronUp className="w-3 h-3 text-[#e5c158]" />
-                    <span>UP</span>
+                    <ChevronUp className="w-2.5 h-2.5 text-[#e5c158] shrink-0" />
+                    <span className="truncate">UP</span>
                   </button>
                   <button 
                     onClick={() => navRef.current?.scrollBy({ top: scrollStep, behavior: 'smooth' })}
                     title={`Scroll Down ${scrollStep}px`}
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#f4f0e6] hover:text-[#e5c158] text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#43634e]/50 transition-all shadow active:scale-95"
+                    className="py-1 px-0.5 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#f4f0e6] hover:text-[#e5c158] text-[8px] font-bold flex items-center justify-center gap-0.5 border border-[#43634e]/50 transition-all shadow active:scale-95 min-w-0 truncate"
                   >
-                    <ChevronDown className="w-3 h-3 text-[#e5c158]" />
-                    <span>DOWN</span>
+                    <ChevronDown className="w-2.5 h-2.5 text-[#e5c158] shrink-0" />
+                    <span className="truncate">DN</span>
                   </button>
                   <button 
                     onClick={handleScrollToBottom}
                     title="Scroll to Bottom (Y: 100%)"
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#e5c158] hover:text-white text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#e5c158]/30 transition-all shadow active:scale-95"
+                    className="py-1 px-0.5 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#e5c158] hover:text-white text-[8px] font-bold flex items-center justify-center gap-0.5 border border-[#e5c158]/30 transition-all shadow active:scale-95 min-w-0 truncate"
                   >
-                    <ChevronsDown className="w-3 h-3" />
-                    <span>BOT</span>
+                    <ChevronsDown className="w-2.5 h-2.5 shrink-0" />
+                    <span className="truncate">BOT</span>
                   </button>
                 </div>
 
                 {/* Extra Special Controls: Focus Active & Auto-Scroll Toggle */}
-                <div className="flex items-center justify-between gap-1 pt-0.5">
+                <div className="flex items-center justify-between gap-1 pt-0.5 w-full min-w-0">
                   <button
                     onClick={handleJumpToActive}
-                    className="flex-1 py-1 px-1 bg-[#1b3325] hover:bg-[#244532] text-[#f4f0e6] hover:text-[#e5c158] text-[8.5px] font-bold rounded border border-[#e5c158]/25 flex items-center justify-center gap-1 transition-all shadow"
+                    className="flex-1 py-1 px-1 bg-[#1b3325] hover:bg-[#244532] text-[#f4f0e6] hover:text-[#e5c158] text-[8px] font-bold rounded border border-[#e5c158]/25 flex items-center justify-center gap-0.5 transition-all shadow min-w-0 truncate"
                     title="Center view on active menu link"
                   >
-                    <Target className="w-3 h-3 text-[#e5c158]" />
-                    <span>FOCUS ACTIVE</span>
+                    <Target className="w-2.5 h-2.5 text-[#e5c158] shrink-0" />
+                    <span className="truncate">FOCUS</span>
                   </button>
                   <button
                     onClick={() => setIsAutoScrolling(!isAutoScrolling)}
-                    className={`flex-1 py-1 px-1 text-[8.5px] font-bold rounded border flex items-center justify-center gap-1 transition-all shadow ${
+                    className={`flex-1 py-1 px-1 text-[8px] font-bold rounded border flex items-center justify-center gap-0.5 transition-all shadow min-w-0 truncate ${
                       isAutoScrolling
                         ? 'bg-[#e5c158] text-[#14251c] border-[#e5c158] font-black'
                         : 'bg-[#1b3325] text-[#a3c9b0] border-[#43634e]/30 hover:text-white'
                     }`}
                     title="Toggle automatic smooth sidebar scrolling"
                   >
-                    {isAutoScrolling ? <Pause className="w-3 h-3 text-[#14251c]" /> : <Play className="w-3 h-3 text-[#e5c158]" />}
-                    <span>{isAutoScrolling ? 'PAUSE AUTO' : 'AUTO SCROLL'}</span>
+                    {isAutoScrolling ? <Pause className="w-2.5 h-2.5 text-[#14251c] shrink-0" /> : <Play className="w-2.5 h-2.5 text-[#e5c158] shrink-0" />}
+                    <span className="truncate">{isAutoScrolling ? 'PAUSE' : 'AUTO'}</span>
                   </button>
                 </div>
               </div>
@@ -382,7 +384,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 <nav 
                   ref={navRef}
                   onScroll={handleNavScroll}
-                  className="flex-1 min-h-0 overflow-y-auto custom-sidebar-scroll space-y-1.5 p-2 pr-2.5 relative"
+                  className="flex-1 min-h-0 overflow-y-auto overflow-x-clip custom-sidebar-scroll space-y-1.5 p-2 pr-2.5 relative w-full min-w-0 max-w-full"
                 >
                   {/* Vertical Y-Axis Guide Line with Gold Accents */}
                   <div className="absolute left-2.5 top-3 bottom-3 w-[1.5px] bg-gradient-to-b from-[#e5c158]/50 via-[#43634e]/30 to-transparent pointer-events-none z-0 hidden sm:block" />
