@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -142,13 +142,17 @@ function AppShell({ children }: { children: React.ReactNode }) {
     return <PageLoader />;
   }
 
-  const navItems = ROLE_NAV_ITEMS[user.role] || ['dashboard'];
-  const roleLabel = ROLE_LABELS[user.role];
+  const navItems = useMemo(() => ROLE_NAV_ITEMS[user.role] || ['dashboard'], [user.role]);
+  const roleLabel = useMemo(() => ROLE_LABELS[user.role], [user.role]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     router.replace('/login');
-  };
+  }, [logout, router]);
+
+  const openMobileMenu = useCallback(() => setShowMobileMenu(true), []);
+  const closeMobileMenu = useCallback(() => setShowMobileMenu(false), []);
+  const toggleUserDropdown = useCallback(() => setShowUserDropdown(v => !v), []);
 
   return (
     <div className="min-h-screen w-screen overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
@@ -166,7 +170,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           {showMobileMenu && (
             <div 
               className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
-              onClick={() => setShowMobileMenu(false)}
+              onClick={closeMobileMenu}
             />
           )}
 
@@ -189,8 +193,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 </Link>
 
                 <button 
-                  onClick={() => setShowMobileMenu(false)}
-                  className="lg:hidden absolute top-4 right-4 p-1 rounded-lg text-[#b5ad9b] hover:text-white"
+                  onClick={closeMobileMenu}
+                  className="lg:hidden absolute top-3 right-3 p-2 rounded-lg text-[#b5ad9b] hover:text-white touch-target"
+                  aria-label="Close sidebar"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -259,8 +264,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
             <header className="h-14 flex-none brutal-stone-header px-4 sm:px-6 flex items-center justify-between z-30">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setShowMobileMenu(true)}
-                  className="lg:hidden p-1.5 rounded-lg text-[#e8e2d3] hover:bg-white/10"
+                  onClick={openMobileMenu}
+                  className="lg:hidden p-2 rounded-lg text-[#e8e2d3] hover:bg-white/10 touch-target"
+                  aria-label="Open navigation"
                 >
                   <Menu className="w-5 h-5" />
                 </button>
@@ -291,8 +297,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 {/* User Settings Dropdown matching reference image */}
                 <div className="relative">
                   <button
-                    onClick={() => setShowUserDropdown(!showUserDropdown)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1b3224] border border-[#e5c158]/40 text-xs font-semibold text-[#f4f0e6] hover:border-[#e5c158]/70 transition-colors shadow-sm"
+                  onClick={toggleUserDropdown}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#1b3224] border border-[#e5c158]/40 text-xs font-semibold text-[#f4f0e6] hover:border-[#e5c158]/70 transition-colors shadow-sm touch-target"
                   >
                     <Settings className="w-3.5 h-3.5 text-[#e5c158]" />
                     <span>User Settings</span>

@@ -34,6 +34,16 @@
    GLOBAL BASE STYLING
    ========================================= */
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background-color: var(--bg-forest-base);
   background-image: 
@@ -44,10 +54,10 @@ body {
   color: var(--text-cream);
   font-family: var(--font-inter);
   overflow-x: hidden;
-  transition: background-color 0.15s ease, color 0.15s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  min-height: 100dvh;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -56,14 +66,48 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
+img, video, svg {
+  display: block;
+  max-width: 100%;
+}
+
 /* Light mode override */
 html:not(.dark) body {
   background-color: #14251c;
 }
 
-/* Controlled Fast Micro Transitions */
-* {
-  transition-duration: 0.12s;
+/* =========================================
+   PERFORMANCE — GPU COMPOSITOR LAYER HINTS
+   ========================================= */
+
+/* Promote sidebar + header to own compositor layers */
+.brutal-stone-sidebar,
+.brutal-stone-header {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Promote levitating animations */
+.anti-gravity-1,
+.anti-gravity-2,
+.anti-gravity-3,
+.anti-gravity-4 {
+  will-change: transform;
+}
+
+/* Contain layout/style for card components */
+.glass-emerald-tile,
+.glass-panel-dark {
+  contain: layout style;
+}
+
+/* =========================================
+   MICRO-TRANSITIONS (compositor-only)
+   ========================================= */
+
+a, button {
+  transition: opacity 0.12s ease, color 0.12s ease, background-color 0.12s ease,
+              border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 /* =========================================
@@ -71,35 +115,19 @@ html:not(.dark) body {
    ========================================= */
 
 @keyframes spin3D {
-  0% {
-    transform: perspective(600px) rotateX(0deg) rotateY(0deg);
-  }
-  50% {
-    transform: perspective(600px) rotateX(180deg) rotateY(180deg);
-  }
-  100% {
-    transform: perspective(600px) rotateX(360deg) rotateY(360deg);
-  }
+  0%   { transform: perspective(600px) rotateX(0deg) rotateY(0deg); }
+  50%  { transform: perspective(600px) rotateX(180deg) rotateY(180deg); }
+  100% { transform: perspective(600px) rotateX(360deg) rotateY(360deg); }
 }
 
 @keyframes float3D {
-  0%, 100% {
-    transform: perspective(800px) translateZ(0px) rotateY(0deg);
-  }
-  50% {
-    transform: perspective(800px) translateZ(12px) rotateY(6deg);
-  }
+  0%, 100% { transform: perspective(800px) translateZ(0px) rotateY(0deg); }
+  50%       { transform: perspective(800px) translateZ(12px) rotateY(6deg); }
 }
 
 @keyframes shadowPulse3D {
-  0%, 100% {
-    transform: scale(0.9);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.6;
-  }
+  0%, 100% { transform: scale(0.9); opacity: 0.3; }
+  50%       { transform: scale(1.1); opacity: 0.6; }
 }
 
 @keyframes antiGravityLevitate {
@@ -113,50 +141,44 @@ html:not(.dark) body {
   }
 }
 
-.anti-gravity-1 {
-  animation: antiGravityLevitate 6s ease-in-out infinite;
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.anti-gravity-2 {
-  animation: antiGravityLevitate 6.5s ease-in-out infinite 1.5s;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.anti-gravity-3 {
-  animation: antiGravityLevitate 7s ease-in-out infinite 3s;
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }
 
-.anti-gravity-4 {
-  animation: antiGravityLevitate 6.2s ease-in-out infinite 4.5s;
-}
+.anti-gravity-1 { animation: antiGravityLevitate 6s ease-in-out infinite; }
+.anti-gravity-2 { animation: antiGravityLevitate 6.5s ease-in-out infinite 1.5s; }
+.anti-gravity-3 { animation: antiGravityLevitate 7s ease-in-out infinite 3s; }
+.anti-gravity-4 { animation: antiGravityLevitate 6.2s ease-in-out infinite 4.5s; }
 
-/* Flashlight Cursor Radial Glow Overlay on 3D Emerald Glass Panels */
-.glass-emerald-tile::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    550px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(232, 226, 211, 0.22),
-    transparent 42%
-  );
-  pointer-events: none;
-  z-index: 25;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
+.animate-fade-in-up { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in    { animation: fadeIn 0.35s ease both; }
 
-.glass-emerald-tile:hover::before {
-  opacity: 1;
-}
+/* Staggered entry for children */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
 
 /* 3D Glass Card Depth Class */
 .glass-3d-card {
   perspective: 1000px;
   transform-style: preserve-3d;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+  will-change: transform;
 }
-
 .glass-3d-card:hover {
   transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateZ(6px);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
@@ -167,27 +189,15 @@ html:not(.dark) body {
   transform-style: preserve-3d;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  will-change: transform;
 }
-
-.btn-3d:hover {
-  transform: translateY(-2px) translateZ(4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-}
-
-.btn-3d:active {
-  transform: translateY(1px) translateZ(-2px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
+.btn-3d:hover  { transform: translateY(-2px) translateZ(4px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
+.btn-3d:active { transform: translateY(1px) translateZ(-2px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
 
 /* =========================================
-   CREAM GLASSMORPHISM CARD & CONTAINER SYSTEM
+   NEO-BRUTALISM CONCRETE FRAME & GLASSMORPHISM
    ========================================= */
 
-/* =========================================
-   NEO-BRUTALISM CONCRETE FRAME & GLASSMORPHISM SYSTEM
-   ========================================= */
-
-/* Main Brutalist Concrete Frame Chassis with Gold Beveled Inset Channels */
 .brutal-concrete-chassis {
   border-radius: 28px;
   background: radial-gradient(circle at 50% 0%, #3e4840 0%, #252d27 50%, #1a211c 100%);
@@ -202,6 +212,14 @@ html:not(.dark) body {
   overflow: hidden;
 }
 
+/* Thinner border on mobile for breathing room */
+@media (max-width: 640px) {
+  .brutal-concrete-chassis {
+    border-width: 7px;
+    border-radius: 20px;
+  }
+}
+
 .brutal-stone-header {
   background: linear-gradient(180deg, rgba(46, 55, 48, 0.98) 0%, rgba(32, 39, 34, 0.95) 100%);
   border-bottom: 3.5px solid #161b17;
@@ -214,7 +232,7 @@ html:not(.dark) body {
   box-shadow: inset -4px 0 12px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(229, 193, 88, 0.2);
 }
 
-/* 3D Optical Mirror Glass Tile System (Reference Image High Refraction Slab) */
+/* 3D Optical Mirror Glass Tile System */
 .glass-emerald-tile {
   background: linear-gradient(
     135deg, 
@@ -223,8 +241,8 @@ html:not(.dark) body {
     rgba(14, 34, 24, 0.92) 80%, 
     rgba(255, 255, 255, 0.15) 100%
   );
-  backdrop-filter: blur(32px) saturate(160%);
-  -webkit-backdrop-filter: blur(32px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   border-radius: 20px;
   border: 2px solid rgba(255, 255, 255, 0.38);
   box-shadow: 
@@ -237,9 +255,10 @@ html:not(.dark) body {
   position: relative;
   overflow: hidden;
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+  will-change: transform;
 }
 
-/* Multi-tier 3D Glass Layer Bevel Inner Rim */
+/* Gold inner rim bevel */
 .glass-emerald-tile::before {
   content: "";
   position: absolute;
@@ -250,14 +269,12 @@ html:not(.dark) body {
   z-index: 24;
 }
 
-/* Diagonal Mirror Sheen Beam Light Reflection */
+/* Diagonal Mirror Sheen */
 .glass-emerald-tile::after {
   content: "";
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
   background: linear-gradient(
     45deg,
     transparent 42%,
@@ -283,9 +300,7 @@ html:not(.dark) body {
     0 0 32px rgba(229, 193, 88, 0.28);
 }
 
-.glass-emerald-tile:hover::after {
-  transform: translate(35px, 35px);
-}
+.glass-emerald-tile:hover::after { transform: translate(35px, 35px); }
 
 .glass-emerald-tile h1,
 .glass-emerald-tile h2,
@@ -295,7 +310,7 @@ html:not(.dark) body {
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
-/* Main ERP Glass App Workspace Container */
+/* Main ERP Glass App Workspace */
 .glass-app-workspace {
   border-radius: 28px;
   background: rgba(20, 37, 28, 0.85);
@@ -305,25 +320,28 @@ html:not(.dark) body {
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
 }
 
-/* Reference UI Cream Glass Cards */
+/* Cream Glass Cards */
 .glass-panel {
-  background: var(--color-cream-card-glass);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-radius: 22px;
-  border: 1px solid var(--color-cream-border);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  border: 1px solid rgba(220, 210, 190, 0.7);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
   color: var(--text-forest-dark);
   position: relative;
   overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.glass-panel h1, 
-.glass-panel h2, 
-.glass-panel h3, 
-.glass-panel h4, 
-.glass-panel h5, 
-.glass-panel h6 {
+.glass-panel:hover {
+  border-color: rgba(67, 99, 78, 0.4);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.glass-panel h1, .glass-panel h2,
+.glass-panel h3, .glass-panel h4,
+.glass-panel h5, .glass-panel h6 {
   color: var(--text-forest-dark);
 }
 
@@ -341,27 +359,27 @@ html:not(.dark) body {
 .glass-panel-dark h1,
 .glass-panel-dark h2,
 .glass-panel-dark h3,
-.glass-panel-dark h4 {
-  color: var(--text-[#f4f0e6]);
+.glass-panel-dark h4 { color: #f4f0e6; }
+
+/* Glow variant */
+.glass-panel-glow {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 12px;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
 }
 
 /* Data Tables Inside Emerald Glass Tiles */
-.glass-emerald-tile table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
+.glass-emerald-tile table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .glass-emerald-tile thead th {
   background: transparent !important;
   color: #a3c9b0 !important;
   font-weight: 700;
-  text-transform: none;
   font-size: 12px;
   border-bottom: 1.5px solid rgba(163, 201, 176, 0.25);
   padding: 10px 14px;
 }
-
 .glass-emerald-tile tbody td {
   border-bottom: 1px solid rgba(163, 201, 176, 0.12);
   padding: 12px 14px;
@@ -369,10 +387,7 @@ html:not(.dark) body {
   font-size: 13px;
   font-weight: 500;
 }
-
-.glass-emerald-tile tbody tr:hover {
-  background: rgba(163, 201, 176, 0.1);
-}
+.glass-emerald-tile tbody tr:hover { background: rgba(163, 201, 176, 0.1); }
 
 /* Interactive Card Motion */
 .glass-card-interactive {
@@ -383,15 +398,15 @@ html:not(.dark) body {
   color: var(--text-forest-dark);
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   cursor: pointer;
+  will-change: transform;
 }
-
 .glass-card-interactive:hover {
   transform: translateY(-2px);
   border-color: rgba(67, 99, 78, 0.5);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* Form Controls & Search Pill */
+/* Form Controls */
 .glass-input-header {
   background: rgba(20, 37, 28, 0.6);
   border: 1px solid rgba(244, 240, 230, 0.25);
@@ -400,34 +415,23 @@ html:not(.dark) body {
   backdrop-filter: blur(10px);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
-
 .glass-input-header:focus {
   outline: none;
   border-color: rgba(244, 240, 230, 0.6);
   background: rgba(20, 37, 28, 0.85);
 }
-
-.glass-input-header::placeholder {
-  color: #b5ad9b;
-}
+.glass-input-header::placeholder { color: #b5ad9b; }
 
 /* Data Tables Inside Cream Cards */
-.glass-panel table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
+.glass-panel table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .glass-panel thead th {
   background: transparent !important;
   color: #43634e !important;
   font-weight: 700;
-  text-transform: none;
   font-size: 12px;
   border-bottom: 1.5px solid rgba(67, 99, 78, 0.2);
   padding: 10px 14px;
 }
-
 .glass-panel tbody td {
   border-bottom: 1px solid rgba(67, 99, 78, 0.1);
   padding: 12px 14px;
@@ -435,13 +439,10 @@ html:not(.dark) body {
   font-size: 13px;
   font-weight: 500;
 }
-
-.glass-panel tbody tr:hover {
-  background: rgba(67, 99, 78, 0.08);
-}
+.glass-panel tbody tr:hover { background: rgba(67, 99, 78, 0.08); }
 
 /* =========================================
-   GEOMETRIC CORNER ARCH ORNAMENTS (SVG)
+   GEOMETRIC CORNER ARCH ORNAMENTS
    ========================================= */
 
 .corner-arch-tr {
@@ -466,8 +467,8 @@ html:not(.dark) body {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -519,36 +520,90 @@ html:not(.dark) body {
     background: #ffffff !important;
     color: #000000 !important;
   }
+  .glass-panel, .glass-emerald-tile, .glass-panel-dark {
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
 }
 
-/* Enterprise Clean Card Standards & Backward Compatibility Utilities */
-.text-brand-black {
-  color: #0f172a;
-}
+/* Enterprise Compat Utilities */
+.text-brand-black { color: #0f172a; }
 
-.glass-panel {
-  background: #ffffff;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.glass-panel:hover {
-  border-color: #cbd5e1;
-}
-
-.glass-panel-glow {
-  background: #ffffff;
-  border-radius: 10px;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-}
-
+/* Gradient text utility */
 .gradient-text {
-  color: #1e40af;
-  background: none;
-  -webkit-text-fill-color: initial;
+  background: linear-gradient(135deg, #e5c158, #a3c9b0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+/* Shimmer skeleton loading */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Fade animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in-up { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in    { animation: fadeIn 0.35s ease both; }
+
+/* Staggered children */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+
+/* Safe area insets for notched devices */
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Fluid type scale */
+.text-fluid-sm  { font-size: clamp(0.75rem, 2vw, 0.875rem); }
+.text-fluid-base{ font-size: clamp(0.875rem, 2.5vw, 1rem); }
+.text-fluid-lg  { font-size: clamp(1rem, 3vw, 1.25rem); }
+.text-fluid-2xl { font-size: clamp(1.5rem, 5vw, 2rem); }
+.text-fluid-3xl { font-size: clamp(1.75rem, 6vw, 3rem); }
+.text-fluid-4xl { font-size: clamp(2rem, 8vw, 4rem); }
+
+/* Touch targets min 44x44 for a11y */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =========================================
+   REDUCED MOTION ACCESSIBILITY
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .anti-gravity-1,
+  .anti-gravity-2,
+  .anti-gravity-3,
+  .anti-gravity-4 {
+    animation: none !important;
+  }
+}
