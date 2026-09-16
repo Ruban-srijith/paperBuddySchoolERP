@@ -201,8 +201,11 @@ class GroqService:
                         f"Groq 429 on key #{(attempt % len(keys)) + 1} — rotating to next key"
                     )
                     if attempt >= len(keys) - 1:
-                        # All keys exhausted once — brief wait then retry cycle
-                        await asyncio.sleep(8)
+                        # All keys exhausted — read Retry-After from Groq's header
+                        retry_after = resp.headers.get("retry-after", "10")
+                        wait = float(retry_after) + 2  # +2s safety buffer
+                        logger.warning(f"All keys rate-limited. Groq says wait {retry_after}s — sleeping {wait:.1f}s")
+                        await asyncio.sleep(wait)
                     continue
 
                 logger.warning(f"Groq {resp.status_code}: {resp.text[:200]}")
@@ -350,7 +353,10 @@ class GroqService:
                 if resp.status_code == 429:
                     logger.warning(f"Groq text 429 on key #{(attempt % len(keys)) + 1} — rotating")
                     if attempt >= len(keys) - 1:
-                        await asyncio.sleep(8)
+                        retry_after = resp.headers.get("retry-after", "10")
+                        wait = float(retry_after) + 2
+                        logger.warning(f"All keys rate-limited. Sleeping {wait:.1f}s (Groq Retry-After: {retry_after}s)")
+                        await asyncio.sleep(wait)
                     continue
                 logger.warning(f"Groq text {resp.status_code}: {resp.text[:200]}")
                 return None
