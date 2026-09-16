@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, Monitor, Smartphone, Share2, PlusSquare, CheckCircle2, X, Sparkles, Laptop } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Download, Smartphone, Share2, PlusSquare, CheckCircle2, X, Laptop } from "lucide-react";
 
 interface InstallPWAProps {
   variant?: "navbar" | "landing" | "mobile";
@@ -13,8 +14,11 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
   const [isStandalone, setIsStandalone] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android" | "desktop" | "other">("desktop");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+
     // Detect if already installed in standalone mode
     if (typeof window !== "undefined") {
       const isStandaloneMode = 
@@ -101,25 +105,32 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
         </button>
       )}
 
-      {/* PWA Install Guidance Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-3xl bg-[#14251c] border-2 border-[#e5c158]/40 p-6 shadow-2xl text-[#f4f0e6] space-y-5">
-            
+      {/* PWA Install Guidance Modal mounted via React Portal to document.body */}
+      {showModal && mounted && createPortal(
+        <div 
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowModal(false);
+          }}
+        >
+          <div 
+            className="relative w-full max-w-md rounded-3xl bg-[#14251c] border-2 border-[#e5c158]/40 p-5 sm:p-6 shadow-2xl text-[#f4f0e6] space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[#e5c158]/20 pb-4">
+            <div className="flex items-center justify-between border-b border-[#e5c158]/20 pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[#e5c158] shadow-md">
+                <div className="w-11 h-11 rounded-2xl bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[#e5c158] shadow-[0_4px_12px_rgba(0,0,0,0.5)] shrink-0">
                   <Download className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-syne font-extrabold text-base text-[#f4f0e6]">Install Genesis ERP</h3>
-                  <p className="text-[11px] text-[#a3c9b0]">Fast, offline-ready desktop & mobile app</p>
+                  <h3 className="font-syne font-extrabold text-base text-[#f4f0e6] leading-tight">Install Genesis ERP</h3>
+                  <p className="text-[11px] text-[#a3c9b0]">Fast, offline-ready desktop &amp; mobile app</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-1.5 rounded-lg text-[#a3c9b0] hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-xl text-[#a3c9b0] hover:text-white hover:bg-white/10 transition-colors"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -127,104 +138,106 @@ export default function InstallPWA({ variant = "navbar", className = "" }: Insta
             </div>
 
             {/* Platform-Specific Step Guide */}
-            <div className="space-y-3.5 text-xs text-[#e8e2d3]">
+            <div className="space-y-3 text-xs text-[#e8e2d3]">
               {platform === "ios" ? (
                 <>
                   <div className="flex items-center gap-2 text-xs font-bold text-[#e5c158]">
-                    <Smartphone className="w-4 h-4" />
+                    <Smartphone className="w-4 h-4 text-[#e5c158]" />
                     <span>Install on iPhone / iPad (Safari)</span>
                   </div>
-                  <ol className="space-y-2.5 pl-1">
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">1</span>
-                      <span>Tap the <strong className="text-white">Share</strong> button <Share2 className="w-3.5 h-3.5 inline mx-1 text-[#e5c158]" /> in Safari's bottom toolbar.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">2</span>
-                      <span>Scroll down and tap <strong className="text-white">Add to Home Screen</strong> <PlusSquare className="w-3.5 h-3.5 inline mx-1 text-[#e5c158]" />.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">3</span>
-                      <span>Tap <strong className="text-white">Add</strong> in the top-right corner to finish.</span>
-                    </li>
-                  </ol>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">1</span>
+                      <span className="text-xs leading-snug">Tap the <strong className="text-white">Share</strong> icon <Share2 className="w-3.5 h-3.5 inline mx-1 text-[#e5c158]" /> in Safari's bottom toolbar.</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">2</span>
+                      <span className="text-xs leading-snug">Scroll down and tap <strong className="text-white">Add to Home Screen</strong> <PlusSquare className="w-3.5 h-3.5 inline mx-1 text-[#e5c158]" />.</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">3</span>
+                      <span className="text-xs leading-snug">Tap <strong className="text-white">Add</strong> in the top-right corner to finish.</span>
+                    </div>
+                  </div>
                 </>
               ) : platform === "android" ? (
                 <>
                   <div className="flex items-center gap-2 text-xs font-bold text-[#e5c158]">
-                    <Smartphone className="w-4 h-4" />
+                    <Smartphone className="w-4 h-4 text-[#e5c158]" />
                     <span>Install on Android (Chrome)</span>
                   </div>
-                  <ol className="space-y-2.5 pl-1">
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">1</span>
-                      <span>Tap the <strong className="text-white">three dots menu (⋮)</strong> in Chrome.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">2</span>
-                      <span>Select <strong className="text-white">Install App</strong> or <strong className="text-white">Add to Home screen</strong>.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">3</span>
-                      <span>Confirm by tapping <strong className="text-white">Install</strong>.</span>
-                    </li>
-                  </ol>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">1</span>
+                      <span className="text-xs leading-snug">Tap the <strong className="text-white">three dots menu (⋮)</strong> in Chrome.</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">2</span>
+                      <span className="text-xs leading-snug">Select <strong className="text-white">Install App</strong> or <strong className="text-white">Add to Home screen</strong>.</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">3</span>
+                      <span className="text-xs leading-snug">Confirm by tapping <strong className="text-white">Install</strong>.</span>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <>
                   <div className="flex items-center gap-2 text-xs font-bold text-[#e5c158]">
-                    <Laptop className="w-4 h-4" />
+                    <Laptop className="w-4 h-4 text-[#e5c158]" />
                     <span>Install on Desktop (Chrome, Edge, Brave)</span>
                   </div>
-                  <ol className="space-y-2.5 pl-1">
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">1</span>
-                      <span>Look for the <strong className="text-white">Install App icon</strong> (⊕ or ⬇) on the right side of your browser URL address bar.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">2</span>
-                      <span>Alternatively, click your browser menu <strong className="text-white">(⋮ or ⋯) &gt; Install Genesis ERP</strong>.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="flex-none w-5 h-5 rounded-full bg-[#1b3527] border border-[#e5c158]/40 flex items-center justify-center text-[10px] font-bold text-[#e5c158]">3</span>
-                      <span>Click <strong className="text-white">Install</strong> in the popup prompt.</span>
-                    </li>
-                  </ol>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">1</span>
+                      <span className="text-xs leading-snug">Look for the <strong className="text-white">Install App icon</strong> (⊕ or ⬇) on the right side of your browser URL address bar.</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">2</span>
+                      <span className="text-xs leading-snug">Alternatively, click your browser menu <strong className="text-white">(⋮ or ⋯) &gt; Install Genesis ERP</strong>.</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-black/40 border border-[#e5c158]/20">
+                      <span className="flex-none w-6 h-6 rounded-full bg-[#1b3527] border border-[#e5c158]/50 flex items-center justify-center text-[10px] font-extrabold text-[#e5c158]">3</span>
+                      <span className="text-xs leading-snug">Click <strong className="text-white">Install</strong> in the popup prompt.</span>
+                    </div>
+                  </div>
                 </>
               )}
             </div>
 
             {/* Feature Highlights */}
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#43634e]/30 text-[11px] text-[#a3c9b0]">
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158]" />
-                <span>Instant Launch</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/20 border border-white/5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158] shrink-0" />
+                <span className="truncate">Instant Launch</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158]" />
-                <span>Offline Caching</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/20 border border-white/5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158] shrink-0" />
+                <span className="truncate">Offline Caching</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158]" />
-                <span>Full-Screen Mode</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/20 border border-white/5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158] shrink-0" />
+                <span className="truncate">Full-Screen Mode</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158]" />
-                <span>Zero Installation Size</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-black/20 border border-white/5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#e5c158] shrink-0" />
+                <span className="truncate">Zero Disk Footprint</span>
               </div>
             </div>
 
             {/* Footer Button */}
             <button
               onClick={() => setShowModal(false)}
-              className="w-full py-2.5 rounded-xl bg-[#e5c158] hover:bg-[#e5c158]/90 text-[#14251c] font-syne font-bold text-xs transition-all shadow-lg shadow-[#e5c158]/20 cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#f0d276] via-[#e5c158] to-[#c9a032] hover:brightness-110 text-[#14251c] font-syne font-extrabold text-xs transition-all shadow-lg shadow-[#e5c158]/20 cursor-pointer"
             >
               Got it, thanks!
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
 }
+
 
