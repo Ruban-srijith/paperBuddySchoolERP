@@ -64,7 +64,6 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   departments:          { href: '/departments',          label: 'Departments',               icon: Building2 },
   class_roster:         { href: '/class-roster',         label: 'Class Roster',              icon: UsersRound },
   classes:              { href: '/classes',              label: 'Manage Classes',            icon: Building2 },
-  assign_students:      { href: '/class-allotments',     label: 'Assign Students',           icon: Users },
   class_allotments:     { href: '/class-allotments',     label: 'Class Allotments',          icon: Users },
   timetable:            { href: '/timetable',            label: 'Timetable Grid',            icon: Calendar },
   substitutions:        { href: '/substitutions',        label: 'Teacher Substitutions',     icon: RefreshCw },
@@ -74,11 +73,8 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   emails:               { href: '/emails',               label: 'Communications',            icon: Mail },
   mentorship:           { href: '/mentorship',           label: 'Mentorship System',         icon: UserCheck },
   fees:                 { href: '/fees',                 label: 'Fee Payment Portal',        icon: CreditCard },
-  approvals:            { href: '/pending-approvals',    label: 'Pending Approvals',         icon: CheckCircle2 },
+  approvals:            { href: '/approvals',            label: 'Leave Approvals',           icon: CheckCircle2 },
   parent_portal:        { href: '/parent',               label: 'Parent Portal',             icon: Heart },
-  teacher_leave:        { href: '/leave-apply',          label: 'Apply for Leave',           icon: CalendarPlus },
-  student_settings:     { href: '/profile',              label: 'Account Profile',           icon: Settings },
-  finance_dashboard:    { href: '/finance',              label: 'Finance Dashboard',         icon: LayoutDashboard },
   expenses:             { href: '/finance/expenses',     label: 'Expenses',                  icon: Receipt },
   payroll:              { href: '/finance/payroll',      label: 'Staff Payroll',             icon: Wallet },
   finance_reports:      { href: '/finance/reports',      label: 'Financial Reports',         icon: PieChart },
@@ -87,7 +83,6 @@ const NAV_CONFIG: Record<string, { href: string; label: string; icon: any; badge
   vendors:              { href: '/finance/vendors',      label: 'Vendor Management',         icon: Building2 },
   scholarships:         { href: '/finance/scholarships', label: 'Financial Aid',             icon: GraduationCap },
   'fee-config':         { href: '/finance/fee-config',   label: 'Fee Configurator',          icon: Settings },
-  warden_dashboard:     { href: '/warden',               label: 'Hostel Dashboard',          icon: LayoutDashboard },
   hostel_rooms:         { href: '/warden/rooms',         label: 'Room Allocation',           icon: Home },
   outpasses:            { href: '/warden/outpasses',     label: 'Outpass System',            icon: LogOut },
   hostel_attendance:    { href: '/warden/attendance',    label: 'Hostel Roll Call',          icon: Users },
@@ -151,7 +146,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen w-screen overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
+    <div className="h-[100dvh] w-full overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
       {/* Background Architectural & Line-Art Wallpaper Designs */}
       <BackgroundWallpaper />
 
@@ -159,8 +154,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
 
       {/* Main Brutalist Concrete Frame Chassis */}
-      <div className="relative z-10 flex-1 flex flex-col h-screen max-w-[1720px] w-full mx-auto p-2 sm:p-4">
-        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative">
+      <div className="relative z-10 flex-1 flex flex-col h-full min-h-0 max-w-[1720px] w-full mx-auto p-2 sm:p-4">
+        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative min-h-0">
           
           {/* Mobile Sidebar Overlay */}
           {showMobileMenu && (
@@ -197,7 +192,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               </div>
 
               {/* Navigation Links inside Glass Slab Container with Y-Axis Scrollbar */}
-              <nav className="flex-1 overflow-y-auto custom-sidebar-scroll space-y-1.5 p-1 rounded-2xl bg-black/20 border border-white/10 backdrop-blur-md pr-1">
+              <nav data-lenis-prevent="true" className="flex-1 overflow-y-auto custom-sidebar-scroll space-y-1.5 p-1 rounded-2xl bg-black/20 border border-white/10 backdrop-blur-md pr-1">
                 {navItems.map((key) => {
                   const config = NAV_CONFIG[key];
                   if (!config) return null;
@@ -253,7 +248,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </aside>
 
           {/* MAIN CONTENT WORKSPACE */}
-          <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+          <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 min-h-0">
             
             {/* TOP NAVBAR - CONCRETE STONE HEADER MATCHING REFERENCE IMAGE */}
             <header className="h-14 flex-none brutal-stone-header px-4 sm:px-6 flex items-center justify-between z-30">
@@ -323,7 +318,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </header>
 
             {/* Scrollable Main View Area */}
-            <main className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-5">
+            <main data-lenis-prevent="true" className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-5">
               {children}
             </main>
           </div>
