@@ -82,15 +82,12 @@ html:not(.dark) body {
    PERFORMANCE — GPU COMPOSITOR LAYER HINTS
    ========================================= */
 
-/* Promote sidebar + header to own compositor layers with containment */
+/* Promote sidebar + header to own compositor layers */
 .brutal-stone-sidebar {
-  will-change: transform;
   transform: translateZ(0);
-  contain: content;
 }
 
 .brutal-stone-header {
-  will-change: transform;
   transform: translateZ(0);
 }
 
@@ -100,11 +97,6 @@ html:not(.dark) body {
 .anti-gravity-3,
 .anti-gravity-4 {
   will-change: transform;
-}
-
-/* Contain layout/style for card components - only paint, not layout */
-.glass-panel-dark {
-  contain: paint;
 }
 
 
@@ -224,25 +216,20 @@ select option {
 
 /* 3D Glass Card Depth Class */
 .glass-3d-card {
-  perspective: 1000px;
-  transform-style: preserve-3d;
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
-  will-change: transform;
 }
 .glass-3d-card:hover {
-  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateZ(6px);
+  transform: translateY(-2px);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
 }
 
 /* 3D Button Press Effect */
 .btn-3d {
-  transform-style: preserve-3d;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  will-change: transform;
 }
-.btn-3d:hover  { transform: translateY(-2px) translateZ(4px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
-.btn-3d:active { transform: translateY(1px) translateZ(-2px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
+.btn-3d:hover  { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
+.btn-3d:active { transform: translateY(1px); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
 
 /* =========================================
    NEO-BRUTALISM CONCRETE FRAME & GLASSMORPHISM
@@ -369,7 +356,6 @@ select option {
   position: relative;
   overflow: hidden;
   transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
-  will-change: transform;
 }
 
 /* Gold inner rim bevel */
@@ -783,7 +769,6 @@ select option {
 .custom-sidebar-scroll,
 main {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
 }
 
 /* Safe area insets for notched devices */

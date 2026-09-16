@@ -161,7 +161,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-clip flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
+    <div className="h-screen w-full max-w-full overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
       {/* Background Architectural & Line-Art Wallpaper Designs */}
       <BackgroundWallpaper />
 
@@ -169,7 +169,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
 
       {/* Main Brutalist Concrete Frame Chassis */}
-      <div className="relative z-10 flex-1 flex flex-col h-[100dvh] max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4 overflow-x-clip">
+      <div className="relative z-10 flex-1 flex flex-col min-h-0 h-full max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4 overflow-hidden">
         <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative min-h-0 w-full max-w-full">
           
           {/* Mobile Sidebar Overlay */}
@@ -269,7 +269,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </aside>
 
           {/* MAIN CONTENT WORKSPACE */}
-          <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+          <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden min-w-0">
             
             {/* TOP NAVBAR - CONCRETE STONE HEADER MATCHING REFERENCE IMAGE */}
             <header className="h-14 flex-none brutal-stone-header px-3 sm:px-6 flex items-center justify-between z-30">
@@ -341,7 +341,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </header>
 
             {/* Scrollable Main View Area */}
-            <main className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4 sm:space-y-5">
+            <main className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-5 space-y-4 sm:space-y-5">
               {children}
             </main>
           </div>
