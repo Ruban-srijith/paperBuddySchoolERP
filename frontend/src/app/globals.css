@@ -320,25 +320,23 @@ select option {
   box-shadow: 0 0 8px rgba(229, 193, 88, 0.2);
 }
 
-/* 3D Optical Mirror Glass Tile System (Reference Image High Refraction Slab) */
+/* 3D Optical Mirror Glass Tile System (Reference Image High Refraction Emerald Slab) */
 .glass-emerald-tile {
   background: linear-gradient(
-    135deg, 
-    rgba(255, 255, 255, 0.22) 0%, 
-    rgba(22, 54, 38, 0.82) 20%, 
-    rgba(14, 34, 24, 0.92) 80%, 
-    rgba(255, 255, 255, 0.15) 100%
+    145deg, 
+    rgba(28, 56, 40, 0.95) 0%, 
+    rgba(16, 34, 24, 0.98) 100%
   );
   backdrop-filter: blur(32px) saturate(160%);
   -webkit-backdrop-filter: blur(32px) saturate(160%);
-  border-radius: 20px;
+  border-radius: 26px;
   border: 2px solid rgba(255, 255, 255, 0.38);
   box-shadow: 
     0 24px 60px rgba(0, 0, 0, 0.75),
-    inset 0 3.5px 7px rgba(255, 255, 255, 0.75),
-    inset 3.5px 0 7px rgba(255, 255, 255, 0.4),
-    inset 0 -6px 14px rgba(0, 0, 0, 0.88),
-    0 0 24px rgba(229, 193, 88, 0.12);
+    inset 0 3px 6px rgba(255, 255, 255, 0.75),
+    inset 3px 0 6px rgba(255, 255, 255, 0.4),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.9),
+    0 0 24px rgba(229, 193, 88, 0.15);
   color: #f4f0e6;
   position: relative;
   overflow: hidden;
@@ -349,48 +347,48 @@ select option {
 .glass-emerald-tile::before {
   content: "";
   position: absolute;
-  inset: 5px;
-  border-radius: 15px;
-  border: 1px solid rgba(229, 193, 88, 0.22);
+  inset: 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(229, 193, 88, 0.28);
   pointer-events: none;
-  z-index: 24;
+  z-index: 22;
 }
 
-/* Diagonal Mirror Sheen Beam Light Reflection */
+/* Diagonal Mirror Sheen Beam Light Reflection (Matching Reference Image Sheen) */
 .glass-emerald-tile::after {
   content: "";
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  top: -60%;
+  left: -60%;
+  width: 220%;
+  height: 220%;
   background: linear-gradient(
-    45deg,
-    transparent 42%,
-    rgba(255, 255, 255, 0.18) 48%,
+    135deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.15) 46%,
     rgba(255, 255, 255, 0.38) 50%,
-    rgba(255, 255, 255, 0.18) 52%,
-    transparent 58%
+    rgba(255, 255, 255, 0.15) 54%,
+    transparent 62%
   );
   pointer-events: none;
-  z-index: 26;
-  opacity: 0.75;
+  z-index: 24;
+  opacity: 0.85;
   transition: transform 0.6s ease;
 }
 
 .glass-emerald-tile:hover {
-  transform: translateY(-3px) scale(1.006);
-  border-color: rgba(255, 255, 255, 0.65);
+  transform: translateY(-3px) scale(1.005);
+  border-color: rgba(255, 255, 255, 0.7);
   box-shadow: 
-    0 32px 80px rgba(0, 0, 0, 0.85),
-    inset 0 4px 10px rgba(255, 255, 255, 0.9),
-    inset 4px 0 10px rgba(255, 255, 255, 0.55),
+    0 32px 80px rgba(0, 0, 0, 0.88),
+    inset 0 4px 10px rgba(255, 255, 255, 0.95),
+    inset 4px 0 10px rgba(255, 255, 255, 0.6),
     inset 0 -8px 16px rgba(0, 0, 0, 0.95),
-    0 0 32px rgba(229, 193, 88, 0.28);
+    0 0 35px rgba(229, 193, 88, 0.35);
 }
 
 .glass-emerald-tile:hover::after {
-  transform: translate(35px, 35px);
+  transform: translate(40px, 40px);
 }
 
 .glass-emerald-tile h1,
