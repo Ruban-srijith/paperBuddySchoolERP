@@ -10,6 +10,7 @@ from app.db.database import get_db
 from app.db.models import User, UserRole, Student, StudentDocument, Class
 from app.core.auth import get_current_user
 from app.services.ocr_engine import ocr_engine
+from app.services.cloudinary_service import upload_file_to_cloudinary
 from app.schemas.student_documents import (
     StudentDocumentResponse,
     StudentDocumentStatusResponse,
@@ -122,16 +123,22 @@ async def upload_student_document(
     else:
         verified_aadhaar_payload = None
 
-    # Step 2: Read file bytes & Save File
+    # Step 2: Read file bytes & Save to Cloudinary Storage
     file_bytes = await file.read()
     file_ext = os.path.splitext(file.filename)[1] or ".png"
-    unique_filename = f"{student.id[:8]}_{doc_type_clean}_{uuid.uuid4().hex[:6]}{file_ext}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    unique_filename = f"{student.id[:8]}_{doc_type_clean}_{uuid.uuid4().hex[:6]}"
 
+    # Save local copy as fallback
+    file_path = os.path.join(UPLOAD_DIR, f"{unique_filename}{file_ext}")
     with open(file_path, "wb") as f:
         f.write(file_bytes)
 
-    file_url = f"/static/uploads/documents/{unique_filename}"
+    # Upload directly to Cloudinary Cloud Storage using user's dwvdeqnyu account
+    file_url = await upload_file_to_cloudinary(
+        file_bytes,
+        folder="paperbuddy_student_documents",
+        public_id=unique_filename
+    )
 
     # Step 3: Multi-Model AI Vision Cross-Verification Engine
     ai_result = await ocr_engine.verify_student_document_with_ai(

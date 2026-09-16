@@ -218,16 +218,16 @@ function DashboardContent() {
     <div className="space-y-6 max-w-[1600px] mx-auto pb-8">
       
       {/* 4 MAIN REFERENCE CARDS GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
         
         {/* 1. ATTENDANCE CARD (Top Left - 6 Cols) */}
         <Tilt3D className="lg:col-span-6 rounded-[24px]">
-          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+          <div className="glass-emerald-tile p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] h-full">
             <CornerArchOrnament position="tr" />
             
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Attendance</h2>
-              <div className="flex items-center gap-3 text-xs font-semibold text-[#a3c9b0]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 relative z-10">
+              <h2 className="text-lg sm:text-xl font-bold text-[#f4f0e6] font-syne">Attendance</h2>
+              <div className="flex items-center gap-2.5 sm:gap-3 text-xs font-semibold text-[#a3c9b0]">
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#e8e2d3]" /> 90%</span>
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#4e8260]" /> 70%</span>
                 <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#12281b]" /> 50%</span>
@@ -235,7 +235,7 @@ function DashboardContent() {
             </div>
 
             <div className="pt-2 pb-1 relative z-10">
-              <div className="h-56 flex items-end justify-between gap-3 px-4">
+              <div className="h-56 flex items-end justify-between gap-2 sm:gap-3 px-1 sm:px-4">
                 {/* Y-Axis Labels */}
                 <div className="flex flex-col justify-between h-full text-[11px] font-bold text-[#a3c9b0] pr-2 border-r border-[#a3c9b0]/25">
                   <span>100%</span>
@@ -267,11 +267,11 @@ function DashboardContent() {
 
         {/* 2. GRADES CARD (Top Right - 6 Cols) */}
         <Tilt3D className="lg:col-span-6 rounded-[24px]">
-          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+          <div className="glass-emerald-tile p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] h-full">
             <CornerArchOrnament position="bl" />
             
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Grades</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-[#f4f0e6] font-syne">Grades</h2>
               <span className="text-xs font-bold text-[#a3c9b0]">Class Average Score</span>
             </div>
 
@@ -307,7 +307,7 @@ function DashboardContent() {
 
                 {/* Data Nodes & Axis */}
                 <div className="h-44 flex items-end justify-between relative z-10 text-[11px] font-bold text-[#a3c9b0]">
-                  {gradesMonths.map((m, idx) => (
+                  {gradesMonths.map((m) => (
                     <div key={m} className="flex flex-col items-center justify-end h-full">
                       <div className="w-2.5 h-2.5 rounded-full bg-[#e8e2d3] border-2 border-[#12281b] mb-auto" />
                       <span>{m}</span>
@@ -321,11 +321,11 @@ function DashboardContent() {
 
         {/* 3. ASSIGNMENTS CARD (Bottom Left - 6 Cols) */}
         <Tilt3D className="lg:col-span-6 rounded-[24px]">
-          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+          <div className="glass-emerald-tile p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] h-full">
             <CornerArchOrnament position="tr" />
 
             <div className="flex items-center justify-between mb-4 relative z-10">
-              <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Assignments</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-[#f4f0e6] font-syne">Assignments</h2>
               <Link href="/assignments" className="text-xs font-bold text-[#a3c9b0] hover:text-[#f4f0e6] flex items-center gap-1">
                 <span>View All</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -357,13 +357,13 @@ function DashboardContent() {
 
         {/* 4. NOTIFICATIONS CARD (Bottom Right - 6 Cols) */}
         <Tilt3D className="lg:col-span-6 rounded-[24px]">
-          <div className="glass-emerald-tile p-6 rounded-[24px] h-full">
+          <div className="glass-emerald-tile p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] h-full">
             <div className="flex items-center justify-between mb-4 relative z-10">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#182e22] text-[#e8e2d3] border border-[#e8e2d3]/20 flex items-center justify-center shrink-0 shadow-md">
                   <Bell className="w-5 h-5 text-[#e8e2d3]" />
                 </div>
-                <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">Notifications</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-[#f4f0e6] font-syne">Notifications</h2>
               </div>
             </div>
 
@@ -518,7 +518,7 @@ function DashboardContent() {
           {isStudent ? 'Student Operations' : isTeacher ? 'Teaching Portals' : `${roleLabel} Operational Portals`}
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {isSuperAdmin && (
             <>
               <Link href="/salary-approvals" className="glass-emerald-tile p-4.5 rounded-2xl block hover:border-[#e5c158] transition-all">

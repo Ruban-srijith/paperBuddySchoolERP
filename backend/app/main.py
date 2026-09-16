@@ -34,12 +34,13 @@ async def lifespan(app: FastAPI):
         from app.db.models import User, PlatformUser, UserRole
         from sqlalchemy import select, func
         async with AsyncSessionLocal() as session:
-            user_count = (await session.execute(select(func.count(User.id)))).scalar()
-            if user_count == 0:
-                logger.info("Database contains 0 users. Executing initial school auto-seed...")
+            teacher_count = (await session.execute(select(func.count(User.id)).where(User.role == UserRole.TEACHER))).scalar() or 0
+            student_count = (await session.execute(select(func.count(User.id)).where(User.role == UserRole.STUDENT))).scalar() or 0
+            if teacher_count < 65 or student_count < 400:
+                logger.info(f"Database contains only {teacher_count} teachers and {student_count} students. Executing full school auto-seed (65 teachers, 500 students)...")
                 try:
                     from seed_school import seed as school_seed
-                    await school_seed()
+                    await school_seed(drop=False)
                     logger.info("School auto-seed completed successfully!")
                 except Exception as s_err:
                     logger.warning(f"seed_school error ({s_err}), falling back to seed_data...")

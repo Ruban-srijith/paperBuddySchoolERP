@@ -26,6 +26,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import Tilt3D from "@/components/Tilt3D";
 
 interface VehicleItem {
   id: string;
@@ -172,22 +173,22 @@ export default function TransportDashboardPage() {
 
   return (
     <ProtectedRoute allowedRoles={['transport', 'super_admin', 'principal', 'correspondent']}>
-      <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-indigo-600 animate-pulse" /> Live Telematics & Fleet Command
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/40 flex items-center gap-1.5">
+                <Radio className="w-3.5 h-3.5 text-[#e5c158] animate-pulse" /> Live Telematics & Fleet Command
               </span>
-              <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Morning Transit Active
+              <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Morning Transit Active
               </span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne tracking-tight mt-1">
               Transport Fleet Overview
             </h1>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-sm text-[#a3c9b0] mt-1 font-medium">
               Real-time vehicle telematics, route schedules, driver duty roster, and emergency transit dispatch.
             </p>
           </div>
@@ -195,14 +196,14 @@ export default function TransportDashboardPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsAlertModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-sm shadow-amber-500/20 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#e5c158] hover:bg-[#d4b047] text-black text-xs font-extrabold shadow-lg shadow-[#e5c158]/20 transition-all hover:scale-105"
             >
               <Megaphone className="w-4 h-4" />
               <span>Broadcast Delay Alert</span>
             </button>
             <button
               onClick={fetchDashboardData}
-              className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm transition-all"
+              className="p-2.5 rounded-xl glass-box text-[#f4f0e6] hover:bg-emerald-950/40 border border-[#a3c9b0]/30 transition-all"
               title="Refresh Fleet Telematics"
             >
               <RefreshCw className="w-4 h-4" />
@@ -211,69 +212,73 @@ export default function TransportDashboardPage() {
         </div>
 
         {/* Quick Nav Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Link
-            href="/transport/fleet"
-            className="p-3 bg-white hover:bg-indigo-50/50 rounded-xl border border-gray-200 hover:border-indigo-200 transition-all flex items-center justify-between group shadow-sm"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:scale-105 transition-transform">
-                <Bus className="w-4 h-4" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Link href="/transport/fleet" className="block">
+            <Tilt3D>
+              <div className="glass-emerald-tile p-4 rounded-[20px] group flex items-center justify-between">
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="p-2.5 bg-[#e5c158]/15 border border-[#e5c158]/30 text-[#e5c158] rounded-xl group-hover:scale-110 transition-transform">
+                    <Bus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#f4f0e6] font-syne block">Fleet Registry</span>
+                    <span className="text-[10px] text-[#a3c9b0]">Manage Vehicles</span>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#a3c9b0] group-hover:text-[#e5c158] group-hover:translate-x-1 transition-all relative z-10" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-gray-900 block">Fleet Registry</span>
-                <span className="text-[10px] text-gray-400">Manage Vehicles</span>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" />
+            </Tilt3D>
           </Link>
 
-          <Link
-            href="/transport/routes"
-            className="p-3 bg-white hover:bg-amber-50/50 rounded-xl border border-gray-200 hover:border-amber-200 transition-all flex items-center justify-between group shadow-sm"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-amber-50 text-amber-600 rounded-lg group-hover:scale-105 transition-transform">
-                <MapPin className="w-4 h-4" />
+          <Link href="/transport/routes" className="block">
+            <Tilt3D>
+              <div className="glass-emerald-tile p-4 rounded-[20px] group flex items-center justify-between">
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="p-2.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#f4f0e6] font-syne block">Routes & Stops</span>
+                    <span className="text-[10px] text-[#a3c9b0]">Timing & Fare Config</span>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#a3c9b0] group-hover:text-emerald-400 group-hover:translate-x-1 transition-all relative z-10" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-gray-900 block">Routes & Stops</span>
-                <span className="text-[10px] text-gray-400">Timing & Fare Config</span>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
+            </Tilt3D>
           </Link>
 
-          <Link
-            href="/transport/staff"
-            className="p-3 bg-white hover:bg-emerald-50/50 rounded-xl border border-gray-200 hover:border-emerald-200 transition-all flex items-center justify-between group shadow-sm"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:scale-105 transition-transform">
-                <Users className="w-4 h-4" />
+          <Link href="/transport/staff" className="block">
+            <Tilt3D>
+              <div className="glass-emerald-tile p-4 rounded-[20px] group flex items-center justify-between">
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="p-2.5 bg-amber-500/15 border border-amber-500/30 text-amber-300 rounded-xl group-hover:scale-110 transition-transform">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#f4f0e6] font-syne block">Drivers & Staff</span>
+                    <span className="text-[10px] text-[#a3c9b0]">Licenses & Contacts</span>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#a3c9b0] group-hover:text-amber-300 group-hover:translate-x-1 transition-all relative z-10" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-gray-900 block">Drivers & Staff</span>
-                <span className="text-[10px] text-gray-400">Licenses & Contacts</span>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+            </Tilt3D>
           </Link>
 
-          <Link
-            href="/transport/allocations"
-            className="p-3 bg-white hover:bg-purple-50/50 rounded-xl border border-gray-200 hover:border-purple-200 transition-all flex items-center justify-between group shadow-sm"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:scale-105 transition-transform">
-                <CreditCard className="w-4 h-4" />
+          <Link href="/transport/allocations" className="block">
+            <Tilt3D>
+              <div className="glass-emerald-tile p-4 rounded-[20px] group flex items-center justify-between">
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="p-2.5 bg-purple-500/15 border border-purple-500/30 text-purple-300 rounded-xl group-hover:scale-110 transition-transform">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-[#f4f0e6] font-syne block">Student Bus Passes</span>
+                    <span className="text-[10px] text-[#a3c9b0]">Pass Generator & Print</span>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#a3c9b0] group-hover:text-purple-300 group-hover:translate-x-1 transition-all relative z-10" />
               </div>
-              <div>
-                <span className="text-xs font-bold text-gray-900 block">Student Bus Passes</span>
-                <span className="text-[10px] text-gray-400">Pass Generator & Print</span>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all" />
+            </Tilt3D>
           </Link>
         </div>
 

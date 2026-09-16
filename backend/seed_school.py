@@ -39,7 +39,7 @@ except ImportError:
 from app.db.database import AsyncSessionLocal, engine, Base
 from app.db.models import (
     School, User, Student, Class, Subject, Department,
-    UserRole, PositionAttribute,
+    UserRole, PositionAttribute, LeaveRequest, DailyWorkLog,
 )
 from app.core.auth import hash_password
 
@@ -48,6 +48,19 @@ SCHOOL_ID = "fcc6aea0-b378-4a72-808f-2cdbd361ed24"
 DEFAULT_PWD = hash_password("school@123")
 
 DROP_FIRST = "--drop" in sys.argv
+
+ADMIN_USERS = [
+    {"email": "superadmin@school.edu", "name": "System Super Admin", "role": UserRole.SUPER_ADMIN},
+    {"email": "correspondent@school.edu", "name": "Mr. K. R. Sundaram", "role": UserRole.CORRESPONDENT},
+    {"email": "principal@school.edu", "name": "Dr. Raghavan Nair", "role": UserRole.PRINCIPAL},
+    {"email": "vp@school.edu", "name": "Mrs. Gayatri Varma", "role": UserRole.VICE_PRINCIPAL},
+    {"email": "finance@school.edu", "name": "Mr. Rajesh Khanna (Finance)", "role": UserRole.FINANCE},
+    {"email": "warden@school.edu", "name": "Col. R. S. Bhardwaj (Warden)", "role": UserRole.WARDEN},
+    {"email": "librarian@school.edu", "name": "Mrs. Shanti Swaminathan", "role": UserRole.LIBRARIAN},
+    {"email": "transport@school.edu", "name": "Mr. Selvaraj (Transport)", "role": UserRole.TRANSPORT},
+    {"email": "mentor.10a@school.edu", "name": "Mrs. Priya Menon", "role": UserRole.MENTOR, "grade": "10"},
+    {"email": "mentor.10b@school.edu", "name": "Mr. Arjun Reddy", "role": UserRole.MENTOR, "grade": "10"},
+]
 
 # ─── Tamil Names Pool ──────────────────────────────────────────────────
 TAMIL_BOYS_FIRST = [
@@ -304,8 +317,10 @@ def make_teacher_name(idx: int) -> str:
     return TEACHER_FIRST[idx % len(TEACHER_FIRST)]
 
 # ─── Main Seed (phase-isolated sessions to avoid Neon timeout) ─────────
-async def seed():
-    from sqlalchemy import text, select
+async def seed(drop: bool = False):
+    from sqlalchemy import text, select, func
+
+    drop_mode = drop or DROP_FIRST
 
     print("=" * 60)
     print("PaperBuddy School Seeder — 65 Teachers / 500 Students")
@@ -314,11 +329,11 @@ async def seed():
     # ── Phase 0: Drop / Create Tables ─────────────────────────────
     print("\n[0/7] Preparing schema...")
     async with engine.begin() as conn:
-        if DROP_FIRST and "postgresql" in str(engine.url):
+        if drop_mode and "postgresql" in str(engine.url):
             tables = (
                 "position_attributes, students, attendance, "
                 "timetables, homeworks, assignments, lab_assignments, syllabus_nodes, "
-                "subjects, classes, departments, users"
+                "subjects, classes, departments, users, leave_requests, daily_work_logs"
             )
             try:
                 await conn.execute(text(f"TRUNCATE TABLE {tables} RESTART IDENTITY CASCADE;"))
@@ -329,7 +344,7 @@ async def seed():
                 await conn.execute(text("ALTER TABLE users ALTER COLUMN assigned_grade TYPE VARCHAR(100);"))
             except Exception:
                 pass
-        elif DROP_FIRST:
+        elif drop_mode:
             await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     print("  Schema ready.")
@@ -349,6 +364,33 @@ async def seed():
             print("  Created school.")
         else:
             print("  School already exists.")
+
+    # ── Phase 1b: Administrative Accounts ─────────────────────────
+    print("\n[1b/7] Ensuring administrative accounts...")
+    async with AsyncSessionLocal() as s:
+        for adm in ADMIN_USERS:
+            res = await s.execute(select(User).where(User.email == adm["email"]))
+            existing = res.scalars().first()
+            if not existing:
+                u = User(
+                    id=uid(),
+                    school_id=SCHOOL_ID,
+                    email=adm["email"],
+                    full_name=adm["name"],
+                    role=adm["role"],
+                    password_hash=DEFAULT_PWD,
+                    assigned_grade=adm.get("grade"),
+                    phone=f"9{random.randint(100000000, 999999999)}",
+                    is_active=True,
+                )
+                s.add(u)
+            else:
+                existing.password_hash = DEFAULT_PWD
+                existing.is_active = True
+                if adm.get("grade"):
+                    existing.assigned_grade = adm.get("grade")
+        await s.commit()
+    print("  Admin accounts ready.")
 
     # ── Phase 2: Departments ───────────────────────────────────────
     print("\n[2/7] Departments...")
@@ -425,18 +467,27 @@ async def seed():
             name = make_teacher_name(idx)
             emp_no = next_teacher_emp()
             email = f"teacher.{slug(name)}.{emp_no.lower()}@bharathischool.edu"
-            t = User(
-                id=uid(), school_id=SCHOOL_ID,
-                email=email, full_name=name,
-                role=UserRole.TEACHER, password_hash=DEFAULT_PWD,
-                department_id=dept_id_map[dept_code],
-                assigned_grade=f"Grades {teaches_grades}",
-                phone=f"9{random.randint(100000000, 999999999)}",
-                is_active=True,
-            )
-            s.add(t)
-            await s.flush()
-            teacher_ids.append(t.id)
+            res = await s.execute(select(User).where(User.email == email))
+            existing = res.scalars().first()
+            if existing:
+                existing.department_id = dept_id_map.get(dept_code)
+                existing.assigned_grade = f"Grades {teaches_grades}"
+                existing.password_hash = DEFAULT_PWD
+                existing.is_active = True
+                teacher_ids.append(existing.id)
+            else:
+                t = User(
+                    id=uid(), school_id=SCHOOL_ID,
+                    email=email, full_name=name,
+                    role=UserRole.TEACHER, password_hash=DEFAULT_PWD,
+                    department_id=dept_id_map.get(dept_code),
+                    assigned_grade=f"Grades {teaches_grades}",
+                    phone=f"9{random.randint(100000000, 999999999)}",
+                    is_active=True,
+                )
+                s.add(t)
+                await s.flush()
+                teacher_ids.append(t.id)
         await s.commit()
     print(f"  {len(teacher_ids)} teachers created.")
 
@@ -496,11 +547,17 @@ async def seed():
 
         # Fresh session per class to avoid Neon timeout
         async with AsyncSessionLocal() as s:
-            for i in range(count):
+            existing_count = (await s.execute(select(func.count(Student.id)).where(Student.class_id == class_id))).scalar_one() or 0
+            if existing_count >= count:
+                total_students += existing_count
+                continue
+
+            needed = count - existing_count
+            for i in range(needed):
                 gender = random.choice(GENDERS)
                 full_name = make_student_name(gender)
                 adm = next_student_admission()
-                roll = f"{grade_val}{section_val}{(i+1):02d}"
+                roll = f"{grade_val}{section_val}{(existing_count + i + 1):02d}"
                 min_age, max_age = student_age_for_grade(grade_val)
                 dob = rand_dob(min_age, max_age)
                 email = f"student.{adm.lower()}@bharathischool.edu"
@@ -539,6 +596,54 @@ async def seed():
 
         print(f"  ✓  {class_key:<18}  {count:>2} students  (total: {total_students})")
 
+    # ── Phase 7: Sample Duty Leave & Daily Work Logs ───────────────
+    print("\n[7/7] Seeding sample teacher attendance & work logs...")
+    async with AsyncSessionLocal() as s:
+        today_val = date.today()
+        # 3 teachers on approved leave
+        if len(teacher_ids) >= 3:
+            leave_teachers = [teacher_ids[14 % len(teacher_ids)], teacher_ids[38 % len(teacher_ids)], teacher_ids[52 % len(teacher_ids)]]
+            for t_id in leave_teachers:
+                existing_leave = (await s.execute(select(LeaveRequest).where(
+                    LeaveRequest.applicant_id == t_id,
+                    LeaveRequest.start_date <= today_val,
+                    LeaveRequest.end_date >= today_val
+                ))).scalars().first()
+                if not existing_leave:
+                    s.add(LeaveRequest(
+                        id=uid(),
+                        school_id=SCHOOL_ID,
+                        applicant_id=t_id,
+                        leave_type="Duty Leave",
+                        start_date=today_val,
+                        end_date=today_val,
+                        reason="Inter-school athletic meet supervision & valuation duty",
+                        status="approved"
+                    ))
+        # 12 daily work logs
+        all_classes = list(class_map.values())
+        all_subjects = list(subj_id_map.values())
+        for idx in range(min(12, len(teacher_ids))):
+            t_id = teacher_ids[idx]
+            c_id = all_classes[idx % len(all_classes)]
+            sub_id = all_subjects[idx % len(all_subjects)]
+            existing_log = (await s.execute(select(DailyWorkLog).where(
+                DailyWorkLog.teacher_id == t_id,
+                DailyWorkLog.date == today_val
+            ))).scalars().first()
+            if not existing_log:
+                s.add(DailyWorkLog(
+                    id=uid(),
+                    school_id=SCHOOL_ID,
+                    teacher_id=t_id,
+                    class_id=c_id,
+                    subject_id=sub_id,
+                    date=today_val,
+                    summary=f"Completed standard syllabus unit {idx+1} lesson review and interactive student quiz."
+                ))
+        await s.commit()
+    print("  Teacher leave records & daily work logs ready.")
+
     print("\n" + "=" * 60)
     print(f"✅  Seeding complete!")
     print(f"    Students : {total_students} (across ALL 30 classes)")
@@ -550,6 +655,14 @@ async def seed():
     print(f"    LKG–10th : 13-14 each × 24 classes = 320")
     print(f"\n    Default password: school@123")
     print("=" * 60)
+
+    return {
+        "students": total_students,
+        "teachers": len(teacher_ids),
+        "classes": len(class_map),
+        "depts": len(dept_id_map),
+        "subjects": len(subj_id_map)
+    }
 
 
 if __name__ == "__main__":

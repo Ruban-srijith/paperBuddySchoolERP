@@ -18,6 +18,28 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import Tilt3D from "@/components/Tilt3D";
+
+function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
+  if (position === "tr") {
+    return (
+      <svg className="corner-arch-tr" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+        <path d="M 100 0 A 100 100 0 0 0 0 100" />
+        <path d="M 100 20 A 80 80 0 0 0 20 100" />
+        <path d="M 100 40 A 60 60 0 0 0 40 100" />
+        <path d="M 100 60 A 40 40 0 0 0 60 100" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="corner-arch-bl" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+      <path d="M 0 100 A 100 100 0 0 1 100 0" />
+      <path d="M 0 80 A 80 80 0 0 1 80 0" />
+      <path d="M 0 60 A 60 60 0 0 1 60 0" />
+      <path d="M 0 40 A 40 40 0 0 1 40 0" />
+    </svg>
+  );
+}
 
 interface ApprovalItem {
   id: string;
@@ -216,20 +238,20 @@ export default function PendingApprovalsPage() {
 
   return (
     <ProtectedRoute allowedRoles={["principal", "super_admin", "correspondent"]}>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-6 max-w-[1600px] mx-auto pb-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/40">
                 Principal Operations Hub
               </span>
-              <span className="text-xs text-gray-600">• Real-Time Decision Queue</span>
+              <span className="text-xs text-[#a3c9b0]">• Real-Time Decision Queue</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne tracking-tight mt-1">
               Consolidated Pending Approvals Hub
             </h1>
-            <p className="text-xs text-gray-600">
+            <p className="text-sm text-[#a3c9b0] mt-1 font-medium">
               One-stop operational clearance for faculty leave requests, classroom events, period substitutions, and student requisitions.
             </p>
           </div>
@@ -238,7 +260,7 @@ export default function PendingApprovalsPage() {
             {pendingItems.length > 0 && (
               <button
                 onClick={handleApproveAll}
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-brand-black font-semibold text-xs shadow-lg shadow-emerald-600/25 hover:opacity-95 transition-all"
+                className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-black font-extrabold text-xs shadow-lg shadow-emerald-600/30 hover:scale-105 transition-all"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Approve All ({pendingItems.length})</span>
@@ -248,127 +270,125 @@ export default function PendingApprovalsPage() {
         </div>
 
         {/* Filter Pills */}
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-4 rounded-2xl border border-gray-200 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilterType("all")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                filterType === "all"
-                  ? "bg-amber-500 text-gray-950 font-bold shadow-md shadow-amber-500/20"
-                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              All Requests ({items.length})
-            </button>
-            <button
-              onClick={() => setFilterType("leave")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                filterType === "leave"
-                  ? "bg-brand-blue text-brand-black font-bold"
-                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              Faculty Leaves
-            </button>
-            <button
-              onClick={() => setFilterType("event")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                filterType === "event"
-                  ? "bg-purple-600 text-brand-black font-bold"
-                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              School Events
-            </button>
-            <button
-              onClick={() => setFilterType("substitution")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                filterType === "substitution"
-                  ? "bg-cyan-600 text-brand-black font-bold"
-                  : "bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              Substitutions & Swaps
-            </button>
-          </div>
+        <Tilt3D>
+          <div className="glass-emerald-tile p-4 rounded-[24px] flex flex-wrap items-center justify-between gap-3">
+            <CornerArchOrnament position="tr" />
+            <div className="flex flex-wrap gap-2 relative z-10">
+              <button
+                onClick={() => setFilterType("all")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  filterType === "all"
+                    ? "bg-[#e5c158] text-black font-extrabold shadow-md shadow-[#e5c158]/20"
+                    : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                All Requests ({items.length})
+              </button>
+              <button
+                onClick={() => setFilterType("leave")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  filterType === "leave"
+                    ? "bg-emerald-500 text-black font-extrabold"
+                    : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                Faculty Leaves
+              </button>
+              <button
+                onClick={() => setFilterType("event")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  filterType === "event"
+                    ? "bg-purple-500 text-black font-extrabold"
+                    : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                School Events
+              </button>
+              <button
+                onClick={() => setFilterType("substitution")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  filterType === "substitution"
+                    ? "bg-cyan-500 text-black font-extrabold"
+                    : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                Substitutions & Swaps
+              </button>
+            </div>
 
-          <span className="text-xs text-amber-400 font-mono font-semibold">
-            {pendingItems.length} Awaiting Principal Signature
-          </span>
-        </div>
+            <span className="text-xs text-[#e5c158] font-mono font-bold relative z-10">
+              {pendingItems.length} Awaiting Principal Signature
+            </span>
+          </div>
+        </Tilt3D>
 
         {/* Approvals Cards Feed */}
         <div className="space-y-4">
           {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className={`bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border transition-all space-y-3 ${
-                item.status === 'pending'
-                  ? 'border-amber-500/40 bg-gray-50/50 hover:border-amber-500/60'
-                  : item.status === 'approved'
-                  ? 'border-emerald-500/30 bg-emerald-950/10'
-                  : 'border-rose-500/30 bg-rose-950/10'
-              }`}
-            >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                    item.type === 'leave' ? 'bg-indigo-500/20 text-indigo-300'
-                    : item.type === 'event' ? 'bg-purple-500/20 text-purple-300'
-                    : 'bg-cyan-500/20 text-cyan-300'
-                  }`}>
-                    {item.type === 'leave' ? '🏖️' : item.type === 'event' ? '🎪' : '🔄'}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-gray-100 text-gray-700">
-                        {item.type}
-                      </span>
-                      <span className="text-xs text-gray-600 font-mono">{item.date_or_period}</span>
+            <Tilt3D key={item.id}>
+              <div className="glass-emerald-tile p-6 rounded-[24px] space-y-4">
+                <CornerArchOrnament position="bl" />
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 relative z-10">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base ${
+                      item.type === 'leave' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : item.type === 'event' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                    }`}>
+                      {item.type === 'leave' ? '🏖️' : item.type === 'event' ? '🎪' : '🔄'}
                     </div>
-                    <h3 className="text-base font-bold text-brand-black mt-0.5">{item.title}</h3>
-                    <p className="text-xs text-gray-600">
-                      Requested by <span className="text-gray-800 font-semibold">{item.requester_name}</span> ({item.requester_role})
-                    </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/30">
+                          {item.type}
+                        </span>
+                        <span className="text-xs text-[#a3c9b0] font-mono">{item.date_or_period}</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-[#f4f0e6] font-syne mt-1">{item.title}</h3>
+                      <p className="text-xs text-[#a3c9b0] mt-0.5">
+                        Requested by <span className="text-[#f4f0e6] font-semibold">{item.requester_name}</span> ({item.requester_role})
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Actions */}
+                  {item.status === 'pending' ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleApprove(item)}
+                        className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-extrabold transition-all shadow-md shadow-emerald-500/30 flex items-center gap-1.5"
+                      >
+                        <Check className="w-4 h-4" />
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReject(item)}
+                        className="px-4 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 text-xs font-bold transition-all flex items-center gap-1.5"
+                      >
+                        <X className="w-4 h-4" />
+                        Decline
+                      </button>
+                    </div>
+                  ) : (
+                    <span className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider ${
+                      item.status === 'approved'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                    }`}>
+                      {item.status.toUpperCase()}
+                    </span>
+                  )}
                 </div>
 
-                {/* Actions */}
-                {item.status === 'pending' ? (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleApprove(item)}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-brand-black text-xs font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleReject(item)}
-                      className="px-4 py-2 rounded-xl bg-rose-600/20 border border-rose-500/40 text-rose-300 hover:bg-rose-600/30 text-xs font-bold transition-all flex items-center gap-1.5"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                      Decline
-                    </button>
-                  </div>
-                ) : (
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    item.status === 'approved'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                  }`}>
-                    {item.status.toUpperCase()}
-                  </span>
-                )}
+                <div className="glass-box p-3.5 rounded-xl border border-[#a3c9b0]/20 text-xs text-[#f4f0e6] leading-relaxed relative z-10">
+                  {item.details}
+                </div>
               </div>
-
-              <div className="p-3 rounded-xl bg-gray-950/40 border border-gray-200 text-xs text-gray-700 leading-relaxed">
-                {item.details}
-              </div>
-            </div>
+            </Tilt3D>
           ))}
         </div>
       </div>
     </ProtectedRoute>
   );
 }
+

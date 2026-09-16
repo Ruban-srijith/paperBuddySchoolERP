@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_ID: str = os.getenv("RAZORPAY_KEY_ID", "")
     RAZORPAY_KEY_SECRET: str = os.getenv("RAZORPAY_KEY_SECRET", "")
 
+    # Cloudinary Image Cloud Storage Credentials
+    CLOUDINARY_CLOUD_NAME: str = os.getenv("CLOUDINARY_CLOUD_NAME", "dwvdeqnyu")
+    CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY", "898551657453688")
+    CLOUDINARY_API_SECRET: str = os.getenv("CLOUDINARY_API_SECRET", "chjf-B2He5ceMCxFWgnwTQGy3n4")
+
     # OpenRouter / OCR API Integration
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     OCR_API_KEY: str = os.getenv("OCR_API_KEY", "")
