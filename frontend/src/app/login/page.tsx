@@ -120,15 +120,15 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 relative overflow-hidden bg-[#14251c] text-[#f4f0e6]">
+    <div className="min-h-screen w-full flex items-center justify-center p-2.5 sm:p-6 relative overflow-hidden bg-[#14251c] text-[#f4f0e6]">
       {/* Background Architectural & Line-Art Wallpaper Designs */}
       <BackgroundWallpaper />
 
       {/* Main Brutalist Concrete Chassis Outer Frame */}
-      <div className="w-full max-w-[560px] relative z-10 brutal-concrete-chassis p-4 sm:p-6">
+      <div className="w-full max-w-[560px] relative z-10 brutal-concrete-chassis p-2 sm:p-4 md:p-6">
         
         {/* Inner 3D Emerald Glass Card */}
-        <div className="glass-emerald-tile p-6 sm:p-8 flex flex-col rounded-[28px] relative">
+        <div className="glass-emerald-tile p-4 sm:p-8 flex flex-col rounded-[22px] sm:rounded-[28px] relative">
           <CornerArchOrnament position="tr" />
 
           {/* Top Back Link */}

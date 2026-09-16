@@ -106,9 +106,8 @@ html:not(.dark) body {
    MICRO-TRANSITIONS (compositor-only)
    ========================================= */
 
-a, button {
-  transition: opacity 0.12s ease, color 0.12s ease, background-color 0.12s ease,
-              border-color 0.12s ease, box-shadow 0.12s ease;
+button, .btn-action {
+  transition: opacity 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
 }
 
 /* =========================================
@@ -133,12 +132,10 @@ a, button {
 
 @keyframes antiGravityLevitate {
   0%, 100% {
-    transform: perspective(1000px) translateY(0px) rotateX(0deg);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    transform: translateY(0px);
   }
   50% {
-    transform: perspective(1000px) translateY(-14px) rotateX(1.5deg);
-    box-shadow: 0 30px 65px rgba(0, 0, 0, 0.35);
+    transform: translateY(-8px);
   }
 }
 
@@ -213,11 +210,18 @@ a, button {
   overflow: hidden;
 }
 
-/* Thinner border on mobile for breathing room */
+/* Responsive border for mobile & tablet breathing room */
+@media (max-width: 1024px) {
+  .brutal-concrete-chassis {
+    border-width: 8px;
+    border-radius: 22px;
+  }
+}
+
 @media (max-width: 640px) {
   .brutal-concrete-chassis {
-    border-width: 7px;
-    border-radius: 20px;
+    border-width: 4px;
+    border-radius: 16px;
   }
 }
 
@@ -550,25 +554,12 @@ a, button {
   animation: shimmer 1.5s infinite;
 }
 
-/* Fade animations */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Touch momentum scrolling for all scroll containers */
+.custom-sidebar-scroll,
+main {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.animate-fade-in-up { animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.animate-fade-in    { animation: fadeIn 0.35s ease both; }
-
-/* Staggered children */
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
 
 /* Safe area insets for notched devices */
 .safe-top    { padding-top: env(safe-area-inset-top); }

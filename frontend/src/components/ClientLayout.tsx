@@ -115,7 +115,12 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated, logout, checkAuth } = useAuthStore();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [hasChecked, setHasChecked] = useState(false);
+  const [hasChecked, setHasChecked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem('pb_token');
+    }
+    return false;
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
@@ -164,7 +169,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
 
       {/* Main Brutalist Concrete Frame Chassis */}
-      <div className="relative z-10 flex-1 flex flex-col h-screen max-w-[1720px] w-full mx-auto p-2 sm:p-4">
+      <div className="relative z-10 flex-1 flex flex-col h-[100dvh] max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4">
         <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative">
           
           {/* Mobile Sidebar Overlay */}
@@ -176,7 +181,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           )}
 
           {/* SIDEBAR - BRUTALIST CONCRETE RIM & GLASS CREST MOUNT */}
-          <aside className={`fixed lg:relative z-50 lg:z-10 w-[240px] h-full brutal-stone-sidebar p-3.5 flex flex-col justify-between overflow-hidden transform transition-transform duration-200 ease-out lg:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
+          <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] lg:static lg:w-[240px] h-full brutal-stone-sidebar p-3.5 flex flex-col justify-between overflow-hidden transform transition-transform duration-200 ease-out lg:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
             <div className="flex-1 flex flex-col space-y-4 overflow-hidden min-h-0">
               
               {/* Shield & Torch Crest Emblem inside Carved Concrete Mount (Reference Top Left Badge) */}
@@ -262,19 +267,19 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
             
             {/* TOP NAVBAR - CONCRETE STONE HEADER MATCHING REFERENCE IMAGE */}
-            <header className="h-14 flex-none brutal-stone-header px-4 sm:px-6 flex items-center justify-between z-30">
-              <div className="flex items-center gap-3">
+            <header className="h-14 flex-none brutal-stone-header px-3 sm:px-6 flex items-center justify-between z-30">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 <button
                   onClick={openMobileMenu}
-                  className="lg:hidden p-2 rounded-lg text-[#e8e2d3] hover:bg-white/10 touch-target"
+                  className="lg:hidden p-2 rounded-lg text-[#e8e2d3] hover:bg-white/10 touch-target shrink-0"
                   aria-label="Open navigation"
                 >
                   <Menu className="w-5 h-5" />
                 </button>
                 {/* Role and Name Display (Reference Image: Teacher: Mrs. Sarah Jensen) */}
-                <div className="text-xs sm:text-sm font-bold text-[#f4f0e6] tracking-tight font-syne flex items-center gap-2">
-                  <span className="text-[#e5c158] font-bold">{roleLabel}:</span>
-                  <span className="text-[#f4f0e6] font-medium">{user.full_name}</span>
+                <div className="text-xs sm:text-sm font-bold text-[#f4f0e6] tracking-tight font-syne flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <span className="text-[#e5c158] font-bold shrink-0">{roleLabel}:</span>
+                  <span className="text-[#f4f0e6] font-medium truncate max-w-[110px] sm:max-w-[240px]">{user.full_name}</span>
                 </div>
               </div>
 
@@ -299,10 +304,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="relative">
                   <button
                   onClick={toggleUserDropdown}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#1b3224] border border-[#e5c158]/40 text-xs font-semibold text-[#f4f0e6] hover:border-[#e5c158]/70 transition-colors shadow-sm touch-target"
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-[#1b3224] border border-[#e5c158]/40 text-xs font-semibold text-[#f4f0e6] hover:border-[#e5c158]/70 transition-colors shadow-sm touch-target"
                   >
                     <Settings className="w-3.5 h-3.5 text-[#e5c158]" />
-                    <span>User Settings</span>
+                    <span className="hidden sm:inline">User Settings</span>
+                    <span className="sm:hidden text-[11px]">Settings</span>
                     <ChevronDown className="w-3.5 h-3.5 text-[#e5c158]" />
                   </button>
 
@@ -330,7 +336,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </header>
 
             {/* Scrollable Main View Area */}
-            <main className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-5">
+            <main className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4 sm:space-y-5">
               {children}
             </main>
           </div>
@@ -342,20 +348,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#14251c]">
-        <div className="w-8 h-8 rounded-full border-2 border-[#f4f0e6]/20 border-t-[#f4f0e6] animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <ToastProvider>
       <AppShell>{children}</AppShell>

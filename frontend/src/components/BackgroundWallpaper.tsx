@@ -5,12 +5,12 @@ import { Shield, Flame, Sparkles, GraduationCap, Award, Activity, Lock, BookOpen
 
 export default function BackgroundWallpaper() {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 select-none">
-      {/* ─── 1. ATMOSPHERIC VOLUMETRIC GLOW ORBS ─────────────────────────── */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#2d503a]/30 blur-[140px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-[#1b3527]/50 blur-[150px]" />
-      <div className="absolute top-[35%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-[#43634e]/20 blur-[120px]" />
-      <div className="absolute bottom-[25%] left-[5%] w-[35vw] h-[35vw] rounded-full bg-[#e8e2d3]/5 blur-[100px]" />
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 select-none" style={{ contain: 'strict' }}>
+      {/* ─── 1. ATMOSPHERIC VOLUMETRIC GLOW (Hardware-friendly radial gradients) ─────────────────────────── */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle_at_center,rgba(45,80,58,0.25)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-[radial-gradient(circle_at_center,rgba(27,53,39,0.35)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-[35%] right-[5%] w-[35vw] h-[35vw] rounded-full bg-[radial-gradient(circle_at_center,rgba(67,99,78,0.15)_0%,transparent_70%)] pointer-events-none hidden md:block" />
+      <div className="absolute bottom-[25%] left-[5%] w-[30vw] h-[30vw] rounded-full bg-[radial-gradient(circle_at_center,rgba(232,226,211,0.05)_0%,transparent_70%)] pointer-events-none hidden md:block" />
 
       {/* ─── 2. ARCHITECTURAL DOT MATRIX GRID MASK ─────────────────────── */}
       <div 
@@ -85,7 +85,7 @@ export default function BackgroundWallpaper() {
       </svg>
 
       {/* ─── 5. CENTRAL RADIAL COMPASS WATERMARK (BEHIND MAIN CONTENT) ────── */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] opacity-15 text-[#e8e2d3]">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] opacity-15 text-[#e8e2d3] hidden lg:block pointer-events-none">
         <svg className="w-full h-full animate-spin-slow" viewBox="0 0 600 600" fill="none" stroke="currentColor" strokeWidth="1">
           <circle cx="300" cy="300" r="290" strokeDasharray="8 8" />
           <circle cx="300" cy="300" r="250" />
