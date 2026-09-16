@@ -6,20 +6,21 @@ import { Shield, Flame, Sparkles, GraduationCap, Award, Activity, Lock, BookOpen
 export default function BackgroundWallpaper() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 select-none">
-      {/* ─── 1. ATMOSPHERIC VOLUMETRIC GLOW ORBS ─────────────────────────── */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#2d503a]/30 blur-[140px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-[#1b3527]/50 blur-[150px]" />
-      <div className="absolute top-[35%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-[#43634e]/20 blur-[120px]" />
-      <div className="absolute bottom-[25%] left-[5%] w-[35vw] h-[35vw] rounded-full bg-[#e8e2d3]/5 blur-[100px]" />
+      {/* ─── 1. ATMOSPHERIC VOLUMETRIC ROYAL GLOW ORBS ─────────────────────────── */}
+      <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#2d503a]/40 blur-[140px]" />
+      <div className="absolute top-[10%] left-[30%] w-[45vw] h-[45vw] rounded-full bg-[#e5c158]/12 blur-[160px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-[#1b3527]/60 blur-[150px]" />
+      <div className="absolute top-[35%] right-[5%] w-[40vw] h-[40vw] rounded-full bg-[#e5c158]/10 blur-[140px]" />
+      <div className="absolute bottom-[25%] left-[5%] w-[35vw] h-[35vw] rounded-full bg-[#43634e]/25 blur-[110px]" />
 
       {/* ─── 2. ARCHITECTURAL DOT MATRIX GRID MASK ─────────────────────── */}
       <div 
-        className="absolute inset-0 opacity-25"
+        className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: `radial-gradient(#e8e2d3 1.2px, transparent 1.2px)`,
-          backgroundSize: '28px 28px',
-          maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.3) 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 30%, rgba(0,0,0,0.3) 100%)',
+          backgroundImage: `radial-gradient(#e5c158 1.2px, transparent 1.2px)`,
+          backgroundSize: '32px 32px',
+          maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.2) 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0.2) 100%)',
         }}
       />
 
