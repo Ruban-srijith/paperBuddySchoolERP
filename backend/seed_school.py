@@ -97,6 +97,10 @@ TEACHER_FIRST = [
     "Vasanthalakshmi", "Senthilkumar", "Kamalakannan", "Rathinavelu",
     "Sakunthala", "Madhivanan", "Thamizharasi", "Periyanayagam",
     "Karpagam", "Ezhilarasi", "Sundareswaran", "Mahalingam",
+    # Group 5 — Senior Faculty & Lab Specialists
+    "Gowrishankar", "Jagannathan", "Vidyasagar", "Thangam", "Sornam",
+    "Nagalakshmi", "Premkumar", "Anuradha", "Suryanarayanan", "Muralidharan",
+    "Padmavathi", "Kalyanasundaram", "Bhuvaneswari", "Vaidyanathan", "Chidambaram",
 ]
 
 # ─── Class Structure ───────────────────────────────────────────────────
@@ -166,64 +170,82 @@ SUBJECTS_DEF = [
     ("MUSIC",  "Music & Fine Arts",             "PE",   "6,7,8,9,10"),
 ]
 
-# ─── Teacher definitions — 47 teachers across 13 departments ──────────
+# ─── Teacher definitions — 65 teachers across 13 departments ──────────
 # Format: (dept_code, major/specialty, teaches_grades)
 TEACHER_DEFS = [
-    # ── Tamil (6 teachers) ──────────────────────────────────────────────
+    # ── Tamil (7 teachers) ──────────────────────────────────────────────
     ("TAM", "Tamil Language & Early Literacy (KG)",         "LKG,UKG"),
     ("TAM", "Tamil Language & Literature (Primary)",        "1,2,3,4,5"),
     ("TAM", "Tamil Grammar & Prose (Middle)",               "6,7,8"),
+    ("TAM", "Tamil Creative Writing & Folk Arts",           "6,7,8"),
     ("TAM", "Tamil Poetry & Comprehension (Secondary)",     "9,10"),
     ("TAM", "Tamil Literature & Essay (Higher Sec)",        "11,12"),
     ("TAM", "Tamil Oratory & Classical Literature",         "9,10,11,12"),
-    # ── English (6 teachers) ────────────────────────────────────────────
+    # ── English (7 teachers) ────────────────────────────────────────────
     ("ENG", "English Communication & Phonics (KG)",         "LKG,UKG"),
     ("ENG", "English Language & Reading (Primary)",         "1,2,3,4,5"),
     ("ENG", "English Grammar & Comprehension (Middle)",     "6,7,8"),
+    ("ENG", "English Remedial & Creative Composition",      "6,7,8"),
     ("ENG", "English Literature & Writing (Secondary)",     "9,10"),
     ("ENG", "English Literature (Higher Sec)",              "11,12"),
     ("ENG", "Communicative English & Spoken Skills",        "8,9,10,11,12"),
-    # ── Mathematics (6 teachers) ────────────────────────────────────────
+    # ── Mathematics (8 teachers) ────────────────────────────────────────
     ("MATH", "Number Concepts & Arithmetic (Primary 1-3)",  "1,2,3"),
     ("MATH", "Fractions, Geometry & Algebra (Primary 4-5)", "4,5"),
+    ("MATH", "Foundation & Remedial Mathematics",           "6,7"),
     ("MATH", "Middle School Mathematics",                   "6,7,8"),
     ("MATH", "Secondary Mathematics & Statistics",          "9,10"),
+    ("MATH", "Discrete Math & Analytical Reasoning",        "9,10"),
     ("MATH", "Higher Secondary Mathematics (Calculus)",     "11,12"),
     ("MATH", "Higher Secondary Mathematics (Statistics)",   "11,12"),
-    # ── Science (4 teachers) ────────────────────────────────────────────
+    # ── Science (6 teachers) ────────────────────────────────────────────
     ("SCI",  "Environmental Science (Primary 1-3)",         "1,2,3"),
     ("SCI",  "Environmental Science (Primary 4-5)",         "4,5"),
     ("SCI",  "General Science (Middle)",                    "6,7,8"),
+    ("SCI",  "Integrated Science & Tinkering Lab",          "6,7,8"),
     ("SCI",  "Secondary Science & Lab Skills",              "9,10"),
-    # ── Physics (3 teachers) ────────────────────────────────────────────
+    ("SCI",  "Experiential Science & Field Projects",       "9,10"),
+    # ── Physics (4 teachers) ────────────────────────────────────────────
     ("PHY",  "Physics — Mechanics, Heat & Optics",          "11,12"),
     ("PHY",  "Physics — Electricity, Magnetism & Modern",   "11,12"),
+    ("PHY",  "Applied Physics & Electronics Lab",           "11,12"),
     ("PHY",  "Physics Lab & Practical Coordinator",         "11,12"),
-    # ── Chemistry (3 teachers) ──────────────────────────────────────────
+    # ── Chemistry (4 teachers) ──────────────────────────────────────────
     ("CHEM", "Inorganic & Organic Chemistry",               "11,12"),
     ("CHEM", "Physical Chemistry & Electrochemistry",       "11,12"),
+    ("CHEM", "Organic Synthesis & Applied Chemistry",       "11,12"),
     ("CHEM", "Chemistry Lab & Practical Coordinator",       "11,12"),
-    # ── Biology (2 teachers) ────────────────────────────────────────────
+    # ── Biology (4 teachers) ────────────────────────────────────────────
     ("BIO",  "Botany & Plant Physiology",                   "11,12"),
     ("BIO",  "Zoology, Human Physiology & Genetics",        "11,12"),
-    # ── Social Science (4 teachers) ─────────────────────────────────────
+    ("BIO",  "Microbiology & Biotechnology",                "11,12"),
+    ("BIO",  "Bio-Sciences & Ecology Lab Coordinator",      "11,12"),
+    # ── Social Science (5 teachers) ─────────────────────────────────────
     ("SOC",  "History & Civics (Primary)",                  "1,2,3,4,5"),
     ("SOC",  "History & Geography (Middle)",                "6,7,8"),
     ("SOC",  "Civics & Indian Economy (Secondary)",         "9,10"),
     ("SOC",  "Political Science & History (Secondary)",     "9,10"),
-    # ── Computer Science (3 teachers) ───────────────────────────────────
+    ("SOC",  "Economics & Environmental Geography",         "9,10"),
+    # ── Computer Science (5 teachers) ───────────────────────────────────
     ("CS",   "Computer Basics & MS Office (Middle)",        "6,7,8"),
+    ("CS",   "AI, Robotics & STEM Lab",                     "6,7,8,9,10"),
     ("CS",   "Python Programming & Data Structures (HS)",   "9,10,11,12"),
     ("CS",   "Database Systems, Networks & Web Dev (HS)",   "11,12"),
-    # ── Commerce (2 teachers) ───────────────────────────────────────────
+    ("CS",   "Full Stack Web & Cloud Technologies",         "11,12"),
+    # ── Commerce (4 teachers) ───────────────────────────────────────────
     ("COM",  "Business Studies & Entrepreneurship",         "11,12"),
     ("COM",  "Marketing, Management & Business Law",        "11,12"),
-    # ── Accountancy (2 teachers) ────────────────────────────────────────
+    ("COM",  "Banking, Financial Markets & Insurance",      "11,12"),
+    ("COM",  "Corporate Management & Business Ethics",      "11,12"),
+    # ── Accountancy (4 teachers) ────────────────────────────────────────
     ("ACC",  "Financial Accounting & Bookkeeping",          "11,12"),
     ("ACC",  "Cost Accounting & Management Accounting",     "11,12"),
-    # ── Economics (2 teachers — NEW) ────────────────────────────────────
+    ("ACC",  "Computerized Accounting & Tally/GST",         "11,12"),
+    ("ACC",  "Auditing & Corporate Finance",                "11,12"),
+    # ── Economics (3 teachers) ──────────────────────────────────────────
     ("ECO",  "Micro Economics & Consumer Theory",           "11,12"),
     ("ECO",  "Macro Economics, National Income & Banking",  "11,12"),
+    ("ECO",  "Indian Economic Development & Public Finance","11,12"),
     # ── Physical Education (4 teachers) ─────────────────────────────────
     ("PE",   "Sports Science, Yoga & Drawing (Primary)",    "LKG,UKG,1,2,3,4,5"),
     ("PE",   "Athletics, Team Sports & Fitness (Middle)",   "6,7,8"),
@@ -286,7 +308,7 @@ async def seed():
     from sqlalchemy import text, select
 
     print("=" * 60)
-    print("PaperBuddy School Seeder — 47 Teachers / 500 Students")
+    print("PaperBuddy School Seeder — 65 Teachers / 500 Students")
     print("=" * 60)
 
     # ── Phase 0: Drop / Create Tables ─────────────────────────────
@@ -303,6 +325,10 @@ async def seed():
                 print("  Truncated tables.")
             except Exception as e:
                 print(f"  Truncate notice: {e}")
+            try:
+                await conn.execute(text("ALTER TABLE users ALTER COLUMN assigned_grade TYPE VARCHAR(100);"))
+            except Exception:
+                pass
         elif DROP_FIRST:
             await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
@@ -404,6 +430,7 @@ async def seed():
                 email=email, full_name=name,
                 role=UserRole.TEACHER, password_hash=DEFAULT_PWD,
                 department_id=dept_id_map[dept_code],
+                assigned_grade=f"Grades {teaches_grades}",
                 phone=f"9{random.randint(100000000, 999999999)}",
                 is_active=True,
             )
@@ -432,6 +459,9 @@ async def seed():
                 attribute_value=class_id,
             )
             s.add(pa)
+            t_user = await s.get(User, teacher_id)
+            if t_user:
+                t_user.assigned_grade = f"Class Teacher ({key})"
         await s.commit()
     print("  Class teachers assigned.")
 
