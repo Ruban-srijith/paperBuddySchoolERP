@@ -34,6 +34,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Genesis ERP" />
         <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="application-name" content="Genesis ERP" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -48,6 +50,12 @@ export default function RootLayout({
                   }
                 } catch (e) {}
               })();
+
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+              }
 
               // Auto-recover from ChunkLoadErrors (new Vercel deploy while user has old HTML)
               window.addEventListener('error', function(e) {
