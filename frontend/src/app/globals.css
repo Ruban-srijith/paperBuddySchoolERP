@@ -52,7 +52,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-syne);
-  color: var(--text-forest-dark);
+  color: #f4f0e6;
   letter-spacing: -0.01em;
 }
 
@@ -65,6 +65,52 @@ html:not(.dark) body {
 * {
   transition-duration: 0.12s;
 }
+
+/* =========================================
+   EMERALD GLASS AUTOMATIC THEME OVERRIDES
+   ========================================= */
+
+.bg-white {
+  background-color: rgba(22, 54, 38, 0.82) !important;
+  color: #f4f0e6 !important;
+  border-color: rgba(163, 201, 176, 0.25) !important;
+}
+
+.bg-slate-50, .bg-gray-50, .bg-slate-100, .bg-gray-100, .bg-slate-50\/50, .bg-gray-50\/50 {
+  background-color: rgba(14, 34, 24, 0.88) !important;
+  color: #f4f0e6 !important;
+  border-color: rgba(163, 201, 176, 0.2) !important;
+}
+
+.bg-[#fcfbf7], .bg-amber-50, .bg-emerald-50, .bg-indigo-50, .bg-blue-50, .bg-purple-50, .bg-rose-50 {
+  background-color: rgba(28, 60, 44, 0.75) !important;
+  color: #f4f0e6 !important;
+}
+
+.text-slate-900, .text-gray-900, .text-slate-800, .text-gray-800, .text-slate-700, .text-gray-700, .text-[#16281e], .text-brand-black {
+  color: #f4f0e6 !important;
+}
+
+.text-slate-500, .text-gray-500, .text-slate-600, .text-gray-600, .text-slate-400, .text-gray-400 {
+  color: #a3c9b0 !important;
+}
+
+.border-gray-200, .border-slate-200, .border-gray-100, .border-slate-100, .border-gray-300, .border-slate-300 {
+  border-color: rgba(163, 201, 176, 0.25) !important;
+}
+
+/* Ensure inputs, selects, and textareas inside dark glass panels are dark & legible */
+input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent), select, textarea {
+  background-color: rgba(12, 24, 17, 0.85) !important;
+  color: #f4f0e6 !important;
+  border-color: rgba(229, 193, 88, 0.35) !important;
+}
+
+select option {
+  background-color: #14251c !important;
+  color: #f4f0e6 !important;
+}
+
 
 /* =========================================
    INTERACTIVE 3D ANIMATIONS & DEPTH UTILITIES
@@ -209,9 +255,69 @@ html:not(.dark) body {
 }
 
 .brutal-stone-sidebar {
-  background: linear-gradient(90deg, rgba(38, 46, 40, 0.98) 0%, rgba(28, 34, 29, 0.96) 100%);
-  border-right: 3.5px solid #161b17;
-  box-shadow: inset -4px 0 12px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(229, 193, 88, 0.2);
+  background: linear-gradient(180deg, rgba(20, 37, 28, 0.98) 0%, rgba(12, 24, 18, 0.99) 100%);
+  border-right: 3px solid rgba(229, 193, 88, 0.25);
+  box-shadow: 
+    6px 0 25px rgba(0, 0, 0, 0.8),
+    inset -2px 0 10px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Glassmorphism Sidebar Nav Container */
+.sidebar-glass-nav {
+  background: rgba(10, 22, 16, 0.65);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid rgba(67, 99, 78, 0.35);
+  box-shadow: 
+    inset 0 3px 12px rgba(0, 0, 0, 0.85),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+/* Brutalist Glass Active Pill Capsule (Matching Reference Image 1) */
+.sidebar-item-active {
+  background: linear-gradient(135deg, rgba(30, 64, 44, 0.95) 0%, rgba(16, 36, 24, 0.98) 100%) !important;
+  border: 1.5px solid #e5c158 !important;
+  box-shadow: 
+    0 0 18px rgba(229, 193, 88, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
+  color: #f4f0e6 !important;
+  font-weight: 700 !important;
+}
+
+.sidebar-item-active svg {
+  color: #e5c158 !important;
+}
+
+/* Brutalist Glass Inactive Hover State */
+.sidebar-item-hover {
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+}
+
+.sidebar-item-hover:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(229, 193, 88, 0.3) !important;
+  color: #f4f0e6 !important;
+  transform: translateX(3px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-item-hover:hover svg {
+  color: #e5c158 !important;
+}
+
+/* AI Gold Badge Capsule */
+.sidebar-badge-ai {
+  background: rgba(229, 193, 88, 0.18);
+  color: #e5c158;
+  font-weight: 800;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(229, 193, 88, 0.45);
+  box-shadow: 0 0 8px rgba(229, 193, 88, 0.2);
 }
 
 /* 3D Optical Mirror Glass Tile System (Reference Image High Refraction Slab) */
@@ -441,6 +547,100 @@ html:not(.dark) body {
 }
 
 /* =========================================
+   UNIVERSAL GLASSMORPHISM DASHBOARD SYSTEM
+   ========================================= */
+
+.glass-box {
+  background: rgba(20, 38, 28, 0.75);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(244, 240, 230, 0.16);
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  color: #f4f0e6;
+}
+
+.glass-box-gold {
+  background: linear-gradient(135deg, rgba(28, 48, 36, 0.85) 0%, rgba(18, 34, 25, 0.9) 100%);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1.5px solid rgba(229, 193, 88, 0.35);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1.5px 3px rgba(255, 255, 255, 0.3), 0 0 20px rgba(229, 193, 88, 0.1);
+  color: #f4f0e6;
+}
+
+.glass-box table,
+.glass-box-gold table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.glass-box thead th,
+.glass-box-gold thead th {
+  background: rgba(10, 22, 15, 0.6) !important;
+  color: #a3c9b0 !important;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(244, 240, 230, 0.15);
+  padding: 12px 16px;
+}
+
+.glass-box tbody td,
+.glass-box-gold tbody td {
+  border-bottom: 1px solid rgba(244, 240, 230, 0.08);
+  padding: 14px 16px;
+  color: #f4f0e6;
+  font-size: 13px;
+}
+
+.glass-box tbody tr:hover,
+.glass-box-gold tbody tr:hover {
+  background: rgba(229, 193, 88, 0.06);
+}
+
+.glass-input-dark {
+  background: rgba(12, 24, 17, 0.75) !important;
+  border: 1px solid rgba(229, 193, 88, 0.3) !important;
+  color: #f4f0e6 !important;
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.15s ease;
+}
+
+.glass-input-dark:focus {
+  outline: none;
+  border-color: rgba(229, 193, 88, 0.8) !important;
+  box-shadow: 0 0 14px rgba(229, 193, 88, 0.25);
+  background: rgba(16, 32, 23, 0.9) !important;
+}
+
+.glass-input-dark::placeholder {
+  color: #a3c9b0;
+  opacity: 0.7;
+}
+
+.glass-badge-gold {
+  background: rgba(229, 193, 88, 0.15);
+  border: 1px solid rgba(229, 193, 88, 0.4);
+  color: #e5c158;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.glass-badge-emerald {
+  background: rgba(45, 160, 95, 0.18);
+  border: 1px solid rgba(45, 160, 95, 0.4);
+  color: #6ee7b7;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+/* =========================================
    GEOMETRIC CORNER ARCH ORNAMENTS (SVG)
    ========================================= */
 
@@ -483,32 +683,42 @@ html:not(.dark) body {
   background: rgba(244, 240, 230, 0.4);
 }
 
-/* Custom Sidebar Y-Axis Scrollbar System */
+/* Custom Sidebar Y-Axis Scrollbar System - Always Visible Gold & Emerald Track */
 .custom-sidebar-scroll {
-  overflow-y: auto !important;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(229, 193, 88, 0.45) rgba(15, 28, 21, 0.6);
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  overscroll-behavior-y: contain !important;
+  overscroll-behavior-x: none !important;
+  touch-action: pan-y !important;
+  scrollbar-width: auto !important;
+  scrollbar-color: #e5c158 #0d1e15 !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 .custom-sidebar-scroll::-webkit-scrollbar {
-  width: 5px;
+  width: 8px !important;
+  display: block !important;
 }
 
 .custom-sidebar-scroll::-webkit-scrollbar-track {
-  background: rgba(15, 28, 21, 0.5);
-  border-radius: 9999px;
-  margin: 4px 0;
+  background: rgba(10, 22, 16, 0.95) !important;
+  border-radius: 9999px !important;
+  margin: 6px 0 !important;
+  border: 1px solid rgba(229, 193, 88, 0.3) !important;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.9) !important;
 }
 
 .custom-sidebar-scroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #e5c158 0%, #355e45 100%);
-  border-radius: 9999px;
-  box-shadow: 0 0 8px rgba(229, 193, 88, 0.3);
+  background: linear-gradient(180deg, #fff0a8 0%, #e5c158 45%, #2d5a3f 100%) !important;
+  border-radius: 9999px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 0 12px rgba(229, 193, 88, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+  min-height: 45px !important;
 }
 
 .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ffffff 0%, #e5c158 100%);
-  box-shadow: 0 0 12px rgba(229, 193, 88, 0.6);
+  background: linear-gradient(180deg, #ffffff 0%, #e5c158 100%) !important;
+  box-shadow: 0 0 18px rgba(229, 193, 88, 1) !important;
 }
 
 @media print {

@@ -20,6 +20,28 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import Tilt3D from "@/components/Tilt3D";
+
+function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
+  if (position === "tr") {
+    return (
+      <svg className="corner-arch-tr" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+        <path d="M 100 0 A 100 100 0 0 0 0 100" />
+        <path d="M 100 20 A 80 80 0 0 0 20 100" />
+        <path d="M 100 40 A 60 60 0 0 0 40 100" />
+        <path d="M 100 60 A 40 40 0 0 0 60 100" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="corner-arch-bl" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+      <path d="M 0 100 A 100 100 0 0 1 100 0" />
+      <path d="M 0 80 A 80 80 0 0 1 80 0" />
+      <path d="M 0 60 A 60 60 0 0 1 60 0" />
+      <path d="M 0 40 A 40 40 0 0 1 40 0" />
+    </svg>
+  );
+}
 
 interface SchoolEventProposal {
   id: string;
@@ -155,47 +177,42 @@ export default function EventApprovalsPage() {
 
   const handleReject = async (id: string, title: string) => {
     try {
-      await api.post(`/approvals-ext/events/${id}/decision`, { status: "rejected", feedback: "Budget revision required" });
+      await api.post(`/approvals-ext/events/${id}/decision`, { status: "rejected" });
       await fetchEvents();
-      toast.warning(`Proposal rejected for budget revision: ${title}`, "Event Rejected");
+      toast.warning(`Declined proposal: ${title}`, "Event Proposal Rejected");
     } catch (err) {
       console.error("Failed to reject event via API:", err);
       setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "rejected" } : e));
-      toast.warning(`Proposal rejected: ${title}`, "Event Rejected");
+      toast.warning(`Declined proposal: ${title}`, "Event Proposal Rejected");
     }
   };
 
   const handleReopen = async (id: string, title: string) => {
-    try {
-      await api.post(`/approvals-ext/events/${id}/decision`, { status: "pending" });
-      await fetchEvents();
-      toast.info(`Event proposal reset to pending review: ${title}`, "Decision Reopened");
-    } catch (err) {
-      console.error("Failed to reopen event via API:", err);
-      setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "pending" } : e));
-      toast.info(`Event proposal reset to pending review: ${title}`, "Decision Reopened");
-    }
+    setEvents(prev => prev.map(e => e.id === id ? { ...e, status: "pending", approved_at: undefined } : e));
+    toast.info(`Re-opened ${title} for correspondent evaluation`, "Proposal Reset");
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProposal.title.trim()) {
-      toast.error("Please enter an event title");
+    if (!newProposal.title || !newProposal.description) {
+      toast.error("Please fill in all required fields!");
       return;
     }
-    const eventCategory = newProposal.category || "Academic / Competition";
-    const startDate = newProposal.start_date || new Date().toISOString().split("T")[0];
-    const endDate = newProposal.end_date || startDate;
+
     const parsedBudget = parseFloat(newProposal.budget) || 0;
+    const startDate = newProposal.start_date || new Date().toISOString();
+    const endDate = newProposal.end_date || startDate;
+    const eventCategory = newProposal.category || "Academic / Competition";
 
     try {
       await api.post("/approvals-ext/events", {
         title: newProposal.title,
+        category: eventCategory,
         description: newProposal.description,
-        target_grades: newProposal.target_grades || "all",
+        budget: parsedBudget,
+        target_grades: [newProposal.target_grades],
         start_date: startDate,
-        end_date: endDate,
-        budget: parsedBudget
+        end_date: endDate
       });
       toast.success("Event proposal submitted for correspondent clearance!", "Proposal Submitted");
       setShowCreateModal(false);
@@ -228,286 +245,284 @@ export default function EventApprovalsPage() {
 
   return (
     <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal", "vice_principal"]}>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/40">
                 Correspondent Clearance
               </span>
-              <span className="text-xs text-gray-600">• High-Budget Events & Inter-School Galas</span>
+              <span className="text-xs text-[#a3c9b0]">• High-Budget Events & Inter-School Galas</span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
+            <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne tracking-tight mt-1">
               Major School Event Sanctions
             </h1>
-            <p className="text-xs text-gray-600">
+            <p className="text-sm text-[#a3c9b0] font-medium">
               Review proposed inter-school competitions, sports meets, cultural fests, budget requests, and campus clearances.
             </p>
           </div>
 
           <button
             onClick={handleOpenCreateModal}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-500 text-brand-black font-semibold text-xs shadow-lg shadow-amber-600/30 hover:opacity-95 transition-all self-start md:self-auto cursor-pointer"
+            className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-[#e5c158] hover:bg-[#d4b047] text-black font-extrabold text-xs shadow-lg shadow-[#e5c158]/20 hover:scale-105 transition-all self-start md:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Propose New Event</span>
           </button>
         </div>
 
-        {/* Filter Tabs (Fixes #3: ensure pending and approved items are always accessible) */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-2 flex flex-wrap gap-2 items-center justify-between shadow-sm">
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setActiveFilter("all")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeFilter === "all" ? "bg-amber-600 text-white shadow-sm" : "text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              All Proposals ({events.length})
-            </button>
-            <button
-              onClick={() => setActiveFilter("pending")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-                activeFilter === "pending" ? "bg-amber-600 text-white shadow-sm" : "text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              <span>Pending Clearance</span>
-              {pendingCount > 0 && (
-                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeFilter === 'pending' ? 'bg-white text-amber-700' : 'bg-amber-100 text-amber-800'}`}>
-                  {pendingCount}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveFilter("approved")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeFilter === "approved" ? "bg-amber-600 text-white shadow-sm" : "text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              Sanctioned ({events.filter(e => e.status === "approved").length})
-            </button>
-            <button
-              onClick={() => setActiveFilter("rejected")}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-                activeFilter === "rejected" ? "bg-amber-600 text-white shadow-sm" : "text-gray-600 hover:text-brand-black"
-              }`}
-            >
-              Declined ({events.filter(e => e.status === "rejected").length})
-            </button>
+        {/* Filter Tabs */}
+        <Tilt3D>
+          <div className="glass-emerald-tile p-4 rounded-[24px] flex flex-wrap gap-2 items-center justify-between">
+            <CornerArchOrnament position="tr" />
+            <div className="flex flex-wrap gap-2 relative z-10">
+              <button
+                onClick={() => setActiveFilter("all")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeFilter === "all" ? "bg-[#e5c158] text-black font-extrabold shadow-md" : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                All Proposals ({events.length})
+              </button>
+              <button
+                onClick={() => setActiveFilter("pending")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  activeFilter === "pending" ? "bg-[#e5c158] text-black font-extrabold shadow-md" : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                <span>Pending Clearance</span>
+                {pendingCount > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${activeFilter === 'pending' ? 'bg-black text-[#e5c158]' : 'bg-[#e5c158]/20 text-[#e5c158]'}`}>
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveFilter("approved")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeFilter === "approved" ? "bg-emerald-500 text-black font-extrabold shadow-md" : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                Sanctioned ({events.filter(e => e.status === "approved").length})
+              </button>
+              <button
+                onClick={() => setActiveFilter("rejected")}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  activeFilter === "rejected" ? "bg-rose-500 text-black font-extrabold shadow-md" : "glass-box text-[#a3c9b0] hover:text-[#f4f0e6]"
+                }`}
+              >
+                Declined ({events.filter(e => e.status === "rejected").length})
+              </button>
+            </div>
           </div>
-        </div>
+        </Tilt3D>
 
         {/* Events Grid */}
         <div className="space-y-5">
           {filteredEvents.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500">
-              <Award className="w-12 h-12 mx-auto mb-3 opacity-25" />
+            <div className="glass-emerald-tile p-12 rounded-[24px] text-center text-[#a3c9b0]">
+              <Award className="w-12 h-12 mx-auto mb-3 opacity-30 text-[#e5c158]" />
               <p className="text-sm font-semibold">No event proposals matching this filter.</p>
             </div>
           ) : (
             filteredEvents.map((ev) => (
-              <div
-                key={ev.id}
-                className={`rounded-2xl border p-6 transition-all space-y-4 shadow-sm ${
-                  ev.status === 'pending'
-                    ? 'bg-white border-amber-300 hover:border-amber-400'
-                    : ev.status === 'approved'
-                    ? 'bg-emerald-50/40 border-emerald-300'
-                    : 'bg-rose-50/40 border-rose-300'
-                }`}
-              >
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                        {ev.category}
-                      </span>
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        ev.status === 'approved'
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : ev.status === 'rejected'
-                          ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                          : 'bg-amber-100 text-amber-800 border border-amber-300'
-                      }`}>
-                        {ev.status.toUpperCase()}
-                      </span>
+              <Tilt3D key={ev.id}>
+                <div className="glass-emerald-tile p-6 rounded-[24px] space-y-4">
+                  <CornerArchOrnament position="bl" />
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 relative z-10">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/30">
+                          {ev.category}
+                        </span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider ${
+                          ev.status === 'approved'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                            : ev.status === 'rejected'
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                            : 'bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/40'
+                        }`}>
+                          {ev.status.toUpperCase()}
+                        </span>
+                      </div>
+                      <h2 className="text-xl font-bold text-[#f4f0e6] font-syne">{ev.title}</h2>
+                      <p className="text-xs text-[#a3c9b0]">Proposed by: <span className="text-[#f4f0e6] font-semibold">{ev.proposed_by_name}</span></p>
                     </div>
-                    <h2 className="text-lg font-bold text-gray-900">{ev.title}</h2>
-                    <p className="text-xs text-gray-600">Proposed by: <span className="text-gray-900 font-semibold">{ev.proposed_by_name}</span></p>
+
+                    {/* Actions */}
+                    {ev.status === 'pending' ? (
+                      <div className="flex items-center gap-2 self-start">
+                        <button
+                          onClick={() => handleApprove(ev.id, ev.title)}
+                          className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs shadow-md shadow-emerald-500/30 transition-all flex items-center gap-1.5"
+                        >
+                          <Check className="w-4 h-4" />
+                          Sanction & Approve
+                        </button>
+                        <button
+                          onClick={() => handleReject(ev.id, ev.title)}
+                          className="px-4 py-2.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:bg-rose-500/30 font-bold text-xs transition-all flex items-center gap-1.5"
+                        >
+                          <X className="w-4 h-4" />
+                          Decline
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 self-start">
+                        <span className="text-xs text-[#a3c9b0] font-mono">
+                          {ev.approved_at ? `Approved on ${new Date(ev.approved_at).toLocaleDateString()}` : "Declined"}
+                        </span>
+                        <button
+                          onClick={() => handleReopen(ev.id, ev.title)}
+                          title="Reopen for re-evaluation"
+                          className="px-3 py-1.5 rounded-lg border border-[#a3c9b0]/30 hover:bg-emerald-950/40 text-[#f4f0e6] transition-all inline-flex items-center gap-1.5 text-xs font-semibold"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-[#e5c158]" />
+                          <span>Re-evaluate</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Status / Actions (Fixes #3: allows approving pending items, and reopening already decided items) */}
-                  {ev.status === 'pending' ? (
-                    <div className="flex items-center gap-2 self-start">
-                      <button
-                        onClick={() => handleApprove(ev.id, ev.title)}
-                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white font-semibold text-xs shadow-md shadow-emerald-600/30 hover:opacity-95 transition-all flex items-center gap-1.5"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        Sanction & Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(ev.id, ev.title)}
-                        className="px-4 py-2 rounded-xl bg-rose-50 border border-rose-300 text-rose-700 hover:bg-rose-100 font-semibold text-xs transition-all flex items-center gap-1.5"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                        Decline
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 self-start">
-                      <span className="text-xs text-gray-600 font-mono">
-                        {ev.approved_at ? `Approved on ${new Date(ev.approved_at).toLocaleDateString()}` : "Declined"}
-                      </span>
-                      <button
-                        onClick={() => handleReopen(ev.id, ev.title)}
-                        title="Reopen for re-evaluation"
-                        className="p-1.5 rounded-lg border border-gray-300 hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors inline-flex items-center gap-1 text-[11px]"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        <span>Re-evaluate</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  <p className="text-xs text-[#f4f0e6] leading-relaxed glass-box p-4 rounded-xl border border-[#a3c9b0]/20 relative z-10">
+                    {ev.description}
+                  </p>
 
-                <p className="text-xs text-gray-700 leading-relaxed bg-gray-50/80 p-3.5 rounded-xl border border-gray-200">
-                  {ev.description}
-                </p>
-
-                {/* Event Metadata Bar */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-gray-500">Event Date</div>
-                      <div className="font-semibold text-gray-800 mt-0.5">{new Date(ev.event_date).toLocaleDateString()}</div>
+                  {/* Event Metadata Bar */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs relative z-10">
+                    <div className="p-3 rounded-xl glass-box border border-[#a3c9b0]/20 flex items-center gap-2.5">
+                      <Calendar className="w-4 h-4 text-[#e5c158] flex-shrink-0" />
+                      <div>
+                        <div className="text-[10px] text-[#a3c9b0]">Event Date</div>
+                        <div className="font-bold text-[#f4f0e6] mt-0.5">{new Date(ev.event_date).toLocaleDateString()}</div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-gray-500">Budget Requested</div>
-                      <div className="font-semibold text-emerald-700 mt-0.5 font-mono">₹{(ev.budget_estimate || 0).toLocaleString()}</div>
+                    <div className="p-3 rounded-xl glass-box border border-[#a3c9b0]/20 flex items-center gap-2.5">
+                      <DollarSign className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <div>
+                        <div className="text-[10px] text-[#a3c9b0]">Budget Requested</div>
+                        <div className="font-extrabold text-emerald-400 mt-0.5 font-mono">₹{(ev.budget_estimate || 0).toLocaleString()}</div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-cyan-600 flex-shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-gray-500">Capacity / Headcount</div>
-                      <div className="font-semibold text-gray-800 mt-0.5">{ev.expected_participants} attendees</div>
+                    <div className="p-3 rounded-xl glass-box border border-[#a3c9b0]/20 flex items-center gap-2.5">
+                      <Users className="w-4 h-4 text-sky-300 flex-shrink-0" />
+                      <div>
+                        <div className="text-[10px] text-[#a3c9b0]">Capacity / Headcount</div>
+                        <div className="font-bold text-[#f4f0e6] mt-0.5">{ev.expected_participants} attendees</div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-200 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <div>
-                      <div className="text-[10px] text-gray-500">Campus Venue</div>
-                      <div className="font-semibold text-gray-800 mt-0.5 truncate max-w-[120px]">{ev.venue}</div>
+                    <div className="p-3 rounded-xl glass-box border border-[#a3c9b0]/20 flex items-center gap-2.5">
+                      <MapPin className="w-4 h-4 text-amber-300 flex-shrink-0" />
+                      <div>
+                        <div className="text-[10px] text-[#a3c9b0]">Campus Venue</div>
+                        <div className="font-bold text-[#f4f0e6] mt-0.5 truncate max-w-[120px]">{ev.venue}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </Tilt3D>
             ))
           )}
         </div>
 
         {/* Propose New Event Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl border border-gray-200 space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 className="text-lg font-bold text-gray-900">Propose Major School Event</h3>
-                <button onClick={handleCloseCreateModal} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+            <div className="glass-emerald-tile p-6 rounded-[28px] w-full max-w-lg space-y-4 border border-[#e5c158]/40 shadow-2xl">
+              <CornerArchOrnament position="tr" />
+              <div className="flex items-center justify-between border-b border-[#a3c9b0]/20 pb-3 relative z-10">
+                <h3 className="text-xl font-bold text-[#f4f0e6] font-syne">Propose Major School Event</h3>
+                <button onClick={handleCloseCreateModal} className="text-[#a3c9b0] hover:text-[#f4f0e6] cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleCreateSubmit} className="space-y-3 text-xs">
+              <form onSubmit={handleCreateSubmit} className="space-y-3.5 text-xs relative z-10">
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-1">Event Title</label>
+                  <label className="block text-[#a3c9b0] font-semibold mb-1">Event Title</label>
                   <input
                     type="text"
                     required
                     value={newProposal.title}
                     onChange={e => setNewProposal({ ...newProposal, title: e.target.value })}
                     placeholder="e.g. Annual Tech Symposium & Hackathon 2026"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3.5 py-2.5 glass-input-dark text-[#f4f0e6] rounded-xl text-xs"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-1">Category</label>
+                    <label className="block text-[#a3c9b0] font-semibold mb-1">Category</label>
                     <select
                       value={newProposal.category}
                       onChange={e => setNewProposal({ ...newProposal, category: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-3.5 py-2.5 glass-input-dark text-[#f4f0e6] rounded-xl text-xs"
                     >
-                      <option value="">Select Category</option>
-                      <option value="Academic / Competition">Academic / Competition</option>
-                      <option value="Sports & Athletics">Sports & Athletics</option>
-                      <option value="Arts & Culture">Arts & Culture</option>
-                      <option value="Social & Community">Social & Community</option>
+                      <option value="" className="bg-[#14251c]">Select Category</option>
+                      <option value="Academic / Competition" className="bg-[#14251c]">Academic / Competition</option>
+                      <option value="Sports & Athletics" className="bg-[#14251c]">Sports & Athletics</option>
+                      <option value="Arts & Culture" className="bg-[#14251c]">Arts & Culture</option>
+                      <option value="Social & Community" className="bg-[#14251c]">Social & Community</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-1">Estimated Budget (₹)</label>
+                    <label className="block text-[#a3c9b0] font-semibold mb-1">Estimated Budget (₹)</label>
                     <input
                       type="number"
                       required
                       value={newProposal.budget}
                       onChange={e => setNewProposal({ ...newProposal, budget: e.target.value })}
                       placeholder="e.g. 150000"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-3.5 py-2.5 glass-input-dark text-[#f4f0e6] rounded-xl text-xs"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-1">Start Date</label>
+                    <label className="block text-[#a3c9b0] font-semibold mb-1">Start Date</label>
                     <input
                       type="date"
                       required
                       value={newProposal.start_date}
                       onChange={e => setNewProposal({ ...newProposal, start_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-3.5 py-2.5 glass-input-dark text-[#f4f0e6] rounded-xl text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-1">End Date</label>
+                    <label className="block text-[#a3c9b0] font-semibold mb-1">End Date</label>
                     <input
                       type="date"
                       required
                       value={newProposal.end_date}
                       onChange={e => setNewProposal({ ...newProposal, end_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-3.5 py-2.5 glass-input-dark text-[#f4f0e6] rounded-xl text-xs"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-1">Scope & Description</label>
+                  <label className="block text-[#a3c9b0] font-semibold mb-1">Scope & Description</label>
                   <textarea
                     rows={3}
                     required
                     value={newProposal.description}
                     onChange={e => setNewProposal({ ...newProposal, description: e.target.value })}
                     placeholder="Provide justification, target student headcount, venue, and procurement needs..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    className="w-full px-3.5 py-2.5 glass-input-dark text-[#f4f0e6] rounded-xl text-xs"
                   />
                 </div>
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                <div className="flex justify-end gap-2 pt-3 border-t border-[#a3c9b0]/20">
                   <button
                     type="button"
                     onClick={handleCloseCreateModal}
-                    className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl glass-box text-[#a3c9b0] hover:text-[#f4f0e6] font-semibold cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold shadow-md shadow-amber-600/20 cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-[#e5c158] hover:bg-[#d4b047] text-black font-extrabold shadow-md cursor-pointer"
                   >
                     Submit Proposal
                   </button>

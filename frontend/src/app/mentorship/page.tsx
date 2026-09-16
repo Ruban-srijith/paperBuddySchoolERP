@@ -21,6 +21,28 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
+import Tilt3D from "@/components/Tilt3D";
+
+function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
+  if (position === "tr") {
+    return (
+      <svg className="corner-arch-tr" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+        <path d="M 100 0 A 100 100 0 0 0 0 100" />
+        <path d="M 100 20 A 80 80 0 0 0 20 100" />
+        <path d="M 100 40 A 60 60 0 0 0 40 100" />
+        <path d="M 100 60 A 40 40 0 0 0 60 100" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="corner-arch-bl" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+      <path d="M 0 100 A 100 100 0 0 1 100 0" />
+      <path d="M 0 80 A 80 80 0 0 1 80 0" />
+      <path d="M 0 60 A 60 60 0 0 1 60 0" />
+      <path d="M 0 40 A 40 40 0 0 1 40 0" />
+    </svg>
+  );
+}
 
 interface MenteeInsight {
   student_id: string;
@@ -131,30 +153,36 @@ function MentorshipContent() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-brand-black flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/30 flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-violet-400" />
+          <div className="flex items-center space-x-2">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/40">
+              Mentor & Faculty Guidance Hub
+            </span>
+            <span className="text-xs text-[#a3c9b0]">• Student Welfare & Performance Tracking</span>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne flex items-center gap-3 tracking-tight mt-1">
+            <div className="w-10 h-10 rounded-xl bg-[#e5c158]/20 border border-[#e5c158]/40 flex items-center justify-center">
+              <UserCheck className="w-5 h-5 text-[#e5c158]" />
             </div>
             Mentorship Activity & Faculty Oversight
           </h1>
-          <p className="text-sm text-gray-600">
-            Monitor mentee attendance & holistic progress, and review teacher workload & syllabus completion.
+          <p className="text-sm text-[#a3c9b0] font-medium">
+            Monitor mentee attendance & holistic progress, and review teacher workload & syllabus velocity.
           </p>
         </div>
 
         {/* Management Tab Switcher */}
         {isManagement && (
-          <div className="inline-flex rounded-xl bg-gray-100 p-1 border border-gray-200 self-start">
+          <div className="inline-flex rounded-xl glass-box p-1 border border-[#e5c158]/30 self-start">
             <button
               onClick={() => setActiveTab("mentees")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === "mentees"
-                  ? "bg-violet-600 text-brand-black shadow-md shadow-violet-600/30"
-                  : "text-gray-600 hover:text-gray-800"
+                  ? "bg-[#e5c158] text-black shadow-md"
+                  : "text-[#a3c9b0] hover:text-[#f4f0e6]"
               }`}
             >
               <UserCheck className="w-3.5 h-3.5" />
@@ -162,10 +190,10 @@ function MentorshipContent() {
             </button>
             <button
               onClick={() => setActiveTab("teachers")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeTab === "teachers"
-                  ? "bg-violet-600 text-brand-black shadow-md shadow-violet-600/30"
-                  : "text-gray-600 hover:text-gray-800"
+                  ? "bg-[#e5c158] text-black shadow-md"
+                  : "text-[#a3c9b0] hover:text-[#f4f0e6]"
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -175,187 +203,189 @@ function MentorshipContent() {
         )}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════
-          TAB 1: MENTEES HOLISTIC INSIGHTS (MENTOR / ADMIN)
-      ═══════════════════════════════════════════════════════ */}
+      {/* TAB 1: MENTEES HOLISTIC INSIGHTS */}
       {activeTab === "mentees" && (
         <>
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-2 border-[#e5c158]/30 border-t-[#e5c158] rounded-full animate-spin"></div>
             </div>
           ) : mentees.length === 0 ? (
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8 text-center text-gray-500 text-sm rounded-2xl">
+            <div className="glass-emerald-tile p-8 text-center text-[#a3c9b0] text-sm rounded-[24px]">
               No mentees assigned to your group currently.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {mentees.map((m) => (
-                <div key={m.student_id} className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl space-y-5 border border-gray-200/60 hover:border-violet-500/40 transition-all">
-                  {/* Student Header */}
-                  <div className="flex items-center justify-between gap-2 border-b border-gray-200/60 pb-3">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-400 flex items-center justify-center text-brand-black font-bold text-sm shadow-md flex-shrink-0">
-                        {m.student_name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                <Tilt3D key={m.student_id}>
+                  <div className="glass-emerald-tile p-6 rounded-[24px] space-y-5">
+                    <CornerArchOrnament position="tr" />
+                    {/* Student Header */}
+                    <div className="flex items-center justify-between gap-2 border-b border-[#a3c9b0]/20 pb-3 relative z-10">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-10 h-10 rounded-full bg-[#e5c158] text-black font-extrabold text-sm shadow-md flex items-center justify-center flex-shrink-0 font-syne">
+                          {m.student_name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                        </div>
+                        <div className="overflow-hidden">
+                          <h3 className="text-base font-extrabold text-[#f4f0e6] font-syne truncate">{m.student_name}</h3>
+                          <p className="text-xs text-[#a3c9b0] truncate">{m.email}</p>
+                        </div>
                       </div>
-                      <div className="overflow-hidden">
-                        <h3 className="text-base font-bold text-brand-black truncate">{m.student_name}</h3>
-                        <p className="text-xs text-gray-600 truncate">{m.email}</p>
+                      <div className="text-right flex-shrink-0">
+                        <span className="text-xs px-2.5 py-1 rounded-full bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/30 font-bold whitespace-nowrap">
+                          {m.grade}-{m.section}
+                        </span>
                       </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className="text-xs px-2.5 py-1 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30 font-medium whitespace-nowrap">
-                        {m.grade}-{m.section}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Holistic Metrics Progress Bars */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-3 rounded-xl space-y-1 text-center">
-                      <div className="text-[10px] text-gray-600 font-semibold uppercase flex items-center justify-center gap-1">
-                        <CheckSquare className="w-3 h-3 text-emerald-600" /> Attendance
-                      </div>
-                      <div className="text-lg font-bold text-emerald-600">{m.attendance_rate}%</div>
                     </div>
 
-                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-3 rounded-xl space-y-1 text-center">
-                      <div className="text-[10px] text-gray-600 font-semibold uppercase flex items-center justify-center gap-1">
-                        <BookOpen className="w-3 h-3 text-amber-400" /> Portion
+                    {/* Holistic Metrics Progress Bars */}
+                    <div className="grid grid-cols-3 gap-3 relative z-10">
+                      <div className="glass-box p-3 rounded-xl space-y-1 text-center border border-[#a3c9b0]/20">
+                        <div className="text-[10px] text-[#a3c9b0] font-bold uppercase flex items-center justify-center gap-1">
+                          <CheckSquare className="w-3 h-3 text-emerald-400" /> Attendance
+                        </div>
+                        <div className="text-lg font-extrabold text-emerald-400 font-syne">{m.attendance_rate}%</div>
                       </div>
-                      <div className="text-lg font-bold text-amber-400">{m.portion_progress}%</div>
-                    </div>
 
-                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-3 rounded-xl space-y-1 text-center">
-                      <div className="text-[10px] text-gray-600 font-semibold uppercase flex items-center justify-center gap-1">
-                        <FlaskConical className="w-3 h-3 text-purple-400" /> Labs Done
+                      <div className="glass-box p-3 rounded-xl space-y-1 text-center border border-[#a3c9b0]/20">
+                        <div className="text-[10px] text-[#a3c9b0] font-bold uppercase flex items-center justify-center gap-1">
+                          <BookOpen className="w-3 h-3 text-amber-300" /> Portion
+                        </div>
+                        <div className="text-lg font-extrabold text-amber-300 font-syne">{m.portion_progress}%</div>
                       </div>
-                      <div className="text-lg font-bold text-purple-400">{m.submitted_labs_count}</div>
-                    </div>
-                  </div>
 
-                  {/* Recent Mentorship Notes */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs font-semibold text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="w-3.5 h-3.5 text-violet-400" /> Mentorship Notes
-                      </span>
-                      <button
-                        onClick={() => handleAddLog(m)}
-                        className="text-violet-300 hover:text-brand-black flex items-center gap-1 text-[11px] font-medium"
-                      >
-                        <Plus className="w-3 h-3" /> Log Note
-                      </button>
+                      <div className="glass-box p-3 rounded-xl space-y-1 text-center border border-[#a3c9b0]/20">
+                        <div className="text-[10px] text-[#a3c9b0] font-bold uppercase flex items-center justify-center gap-1">
+                          <FlaskConical className="w-3 h-3 text-sky-300" /> Labs Done
+                        </div>
+                        <div className="text-lg font-extrabold text-sky-300 font-syne">{m.submitted_labs_count}</div>
+                      </div>
                     </div>
 
-                    {m.latest_mentor_notes.length === 0 ? (
-                      <p className="text-xs text-gray-500 italic">No notes logged yet.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {m.latest_mentor_notes.map((n) => (
-                          <div key={n.id} className="p-2.5 rounded-xl bg-white border border-gray-200/60 text-xs space-y-1">
-                            <div className="flex items-center justify-between text-[10px] text-gray-600">
-                              <span className="uppercase px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 font-medium">{n.category}</span>
-                              <span>{new Date(n.created_at).toLocaleDateString()}</span>
+                    {/* Recent Mentorship Notes */}
+                    <div className="space-y-2 relative z-10">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#a3c9b0]">
+                        <span className="flex items-center gap-1">
+                          <MessageSquare className="w-3.5 h-3.5 text-[#e5c158]" /> Mentorship Notes
+                        </span>
+                        <button
+                          onClick={() => handleAddLog(m)}
+                          className="text-[#e5c158] hover:underline flex items-center gap-1 text-[11px] font-extrabold cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" /> Log Note
+                        </button>
+                      </div>
+
+                      {m.latest_mentor_notes.length === 0 ? (
+                        <p className="text-xs text-[#a3c9b0] italic">No notes logged yet.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {m.latest_mentor_notes.map((n) => (
+                            <div key={n.id} className="p-3 rounded-xl glass-box text-xs space-y-1 border border-[#a3c9b0]/20">
+                              <div className="flex items-center justify-between text-[10px] text-[#a3c9b0]">
+                                <span className="uppercase px-1.5 py-0.5 rounded bg-[#e5c158]/20 text-[#e5c158] font-bold">{n.category}</span>
+                                <span>{new Date(n.created_at).toLocaleDateString()}</span>
+                              </div>
+                              <p className="text-[#f4f0e6] leading-relaxed">{n.notes}</p>
                             </div>
-                            <p className="text-gray-700 leading-relaxed">{n.notes}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </Tilt3D>
               ))}
             </div>
           )}
         </>
       )}
 
-      {/* ═══════════════════════════════════════════════════════
-          TAB 2: FACULTY & TEACHERS OVERSIGHT (ADMIN / SUB-ADMIN)
-      ═══════════════════════════════════════════════════════ */}
+      {/* TAB 2: FACULTY & TEACHERS OVERSIGHT */}
       {activeTab === "teachers" && isManagement && (
         <div className="space-y-6">
           {teachers.length === 0 ? (
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8 text-center text-gray-500 text-sm rounded-2xl">
+            <div className="glass-emerald-tile p-8 text-center text-[#a3c9b0] text-sm rounded-[24px]">
               No faculty workload data available.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {teachers.map((t) => (
-              <div
-                key={t.teacher_id}
-                onClick={() => setSelectedTeacher(t)}
-                className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl space-y-4 border border-gray-200 hover:border-violet-500/50 hover:bg-gray-50/40 transition-all cursor-pointer group"
-              >
-                <div className="flex items-center justify-between border-b border-gray-200 pb-3">
-                  <div>
-                    <h3 className="text-base font-bold text-brand-black group-hover:text-violet-400 transition-colors">
-                      {t.teacher_name}
-                    </h3>
-                    <p className="text-xs text-gray-600">{t.department} • {t.subjects.join(", ")}</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-brand-black transition-colors" />
-                </div>
+                <Tilt3D key={t.teacher_id}>
+                  <div
+                    onClick={() => setSelectedTeacher(t)}
+                    className="glass-emerald-tile p-6 rounded-[24px] space-y-4 cursor-pointer group"
+                  >
+                    <CornerArchOrnament position="bl" />
+                    <div className="flex items-center justify-between border-b border-[#a3c9b0]/20 pb-3 relative z-10">
+                      <div>
+                        <h3 className="text-base font-extrabold text-[#f4f0e6] font-syne group-hover:text-[#e5c158] transition-colors">
+                          {t.teacher_name}
+                        </h3>
+                        <p className="text-xs text-[#a3c9b0]">{t.department} • {t.subjects.join(", ")}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-[#a3c9b0] group-hover:text-[#e5c158] transition-colors" />
+                    </div>
 
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="p-2.5 rounded-xl bg-gray-100 border border-gray-200">
-                    <div className="text-[10px] text-gray-600 uppercase font-semibold">Weekly Load</div>
-                    <div className="text-base font-bold text-brand-black mt-0.5">{t.weekly_periods} / {t.max_periods_cap}</div>
+                    <div className="grid grid-cols-3 gap-3 text-center relative z-10">
+                      <div className="p-2.5 rounded-xl glass-box border border-[#a3c9b0]/20">
+                        <div className="text-[10px] text-[#a3c9b0] uppercase font-bold">Weekly Load</div>
+                        <div className="text-base font-bold text-[#f4f0e6] font-syne mt-0.5">{t.weekly_periods} / {t.max_periods_cap}</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl glass-box border border-[#a3c9b0]/20">
+                        <div className="text-[10px] text-[#a3c9b0] uppercase font-bold">Syllabus %</div>
+                        <div className="text-base font-bold text-emerald-400 font-syne mt-0.5">{t.syllabus_completed_pct}%</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl glass-box border border-[#a3c9b0]/20">
+                        <div className="text-[10px] text-[#a3c9b0] uppercase font-bold">Classes</div>
+                        <div className="text-xs font-bold text-[#e5c158] mt-1">{t.assigned_classes.join(", ")}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-gray-100 border border-gray-200">
-                    <div className="text-[10px] text-gray-600 uppercase font-semibold">Syllabus %</div>
-                    <div className="text-base font-bold text-emerald-600 mt-0.5">{t.syllabus_completed_pct}%</div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-gray-100 border border-gray-200">
-                    <div className="text-[10px] text-gray-600 uppercase font-semibold">Assigned Classes</div>
-                    <div className="text-xs font-bold text-cyan-600 mt-1">{t.assigned_classes.join(", ")}</div>
-                  </div>
-                </div>
-              </div>
+                </Tilt3D>
               ))}
             </div>
           )}
 
           {/* Teacher Drill-down Modal */}
           {selectedTeacher && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-              <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm border border-gray-200 max-w-lg w-full rounded-2xl p-6 space-y-4 shadow-2xl">
-                <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+              <div className="glass-emerald-tile border-2 border-[#e5c158]/40 max-w-lg w-full rounded-[28px] p-6 space-y-4 shadow-2xl">
+                <CornerArchOrnament position="tr" />
+                <div className="flex items-center justify-between border-b border-[#a3c9b0]/20 pb-3 relative z-10">
                   <div>
-                    <h3 className="text-lg font-bold text-brand-black">{selectedTeacher.teacher_name}</h3>
-                    <p className="text-xs text-gray-600">{selectedTeacher.department}</p>
+                    <h3 className="text-lg font-extrabold text-[#f4f0e6] font-syne">{selectedTeacher.teacher_name}</h3>
+                    <p className="text-xs text-[#a3c9b0]">{selectedTeacher.department}</p>
                   </div>
-                  <button onClick={() => setSelectedTeacher(null)} className="text-gray-600 hover:text-brand-black">
+                  <button onClick={() => setSelectedTeacher(null)} className="text-[#a3c9b0] hover:text-[#f4f0e6] cursor-pointer">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="space-y-3 text-xs">
-                  <div className="p-3 rounded-xl bg-gray-100 border border-gray-200 space-y-2">
-                    <div className="flex justify-between text-gray-700">
+                <div className="space-y-3 text-xs relative z-10">
+                  <div className="p-3.5 rounded-xl glass-box border border-[#a3c9b0]/20 space-y-2">
+                    <div className="flex justify-between text-[#a3c9b0]">
                       <span>Syllabus Target: {selectedTeacher.target_pct}%</span>
-                      <span className="font-bold text-emerald-600">Actual: {selectedTeacher.syllabus_completed_pct}%</span>
+                      <span className="font-bold text-emerald-400">Actual: {selectedTeacher.syllabus_completed_pct}%</span>
                     </div>
-                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${selectedTeacher.syllabus_completed_pct}%` }}></div>
+                    <div className="w-full bg-[#14251c] h-2 rounded-full overflow-hidden border border-[#a3c9b0]/20">
+                      <div className="bg-emerald-400 h-full rounded-full" style={{ width: `${selectedTeacher.syllabus_completed_pct}%` }}></div>
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-gray-100 border border-gray-200 space-y-1">
-                    <div className="font-semibold text-brand-black">Assigned Classes & Subjects</div>
-                    <div className="text-gray-700">Classes: {selectedTeacher.assigned_classes.join(", ")}</div>
-                    <div className="text-gray-700">Subjects: {selectedTeacher.subjects.join(", ")}</div>
-                    <div className="text-cyan-300 mt-1">Lab Component: {selectedTeacher.has_lab_component ? "Included (Practical Lab)" : "Theory Only"}</div>
+                  <div className="p-3.5 rounded-xl glass-box border border-[#a3c9b0]/20 space-y-1">
+                    <div className="font-bold text-[#f4f0e6]">Assigned Classes & Subjects</div>
+                    <div className="text-[#a3c9b0]">Classes: {selectedTeacher.assigned_classes.join(", ")}</div>
+                    <div className="text-[#a3c9b0]">Subjects: {selectedTeacher.subjects.join(", ")}</div>
+                    <div className="text-[#e5c158] mt-1 font-semibold">Lab Component: {selectedTeacher.has_lab_component ? "Included (Practical Lab)" : "Theory Only"}</div>
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-2 relative z-10">
                   <button
                     onClick={() => setSelectedTeacher(null)}
-                    className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs hover:bg-gray-700"
+                    className="px-5 py-2.5 rounded-xl bg-[#e5c158] hover:bg-[#d4b047] text-black font-extrabold text-xs shadow-md cursor-pointer"
                   >
-                    Close
+                    Close Overview
                   </button>
                 </div>
               </div>
@@ -366,39 +396,39 @@ function MentorshipContent() {
 
       {/* Add Log Modal */}
       {showLogModal && selectedMentee && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowLogModal(false)}></div>
-          <div className="relative bg-white rounded-[24px] border border-gray-100 shadow-sm-glow rounded-2xl p-6 w-full max-w-md space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-200/60 pb-3">
-              <h3 className="text-base font-bold text-brand-black">Log Activity for {selectedMentee.student_name}</h3>
-              <button onClick={() => setShowLogModal(false)} className="text-gray-600 hover:text-brand-black">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="glass-emerald-tile border-2 border-[#e5c158]/40 rounded-[28px] p-6 w-full max-w-md space-y-4 shadow-2xl relative">
+            <CornerArchOrnament position="tr" />
+            <div className="flex items-center justify-between border-b border-[#a3c9b0]/20 pb-3 relative z-10">
+              <h3 className="text-base font-bold text-[#f4f0e6] font-syne">Log Activity for {selectedMentee.student_name}</h3>
+              <button onClick={() => setShowLogModal(false)} className="text-[#a3c9b0] hover:text-[#f4f0e6] cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleLogSubmit} className="space-y-4">
+            <form onSubmit={handleLogSubmit} className="space-y-4 relative z-10">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Category</label>
+                <label className="text-xs font-semibold text-[#a3c9b0]">Category</label>
                 <select
                   value={logForm.category}
                   onChange={(e) => setLogForm({ ...logForm, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl glass-input-dark text-[#f4f0e6] text-xs"
                 >
-                  <option value="academic">Academic Progress</option>
-                  <option value="behavioral">Behavioral Observation</option>
-                  <option value="general">General Mentorship Note</option>
+                  <option value="academic" className="bg-[#14251c]">Academic Progress</option>
+                  <option value="behavioral" className="bg-[#14251c]">Behavioral Observation</option>
+                  <option value="general" className="bg-[#14251c]">General Mentorship Note</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Notes & Feedback</label>
+                <label className="text-xs font-semibold text-[#a3c9b0]">Notes & Feedback</label>
                 <textarea
                   rows={4}
                   value={logForm.notes}
                   onChange={(e) => setLogForm({ ...logForm, notes: e.target.value })}
                   placeholder="Enter detailed mentorship feedback..."
                   required
-                  className="w-full px-3 py-2.5 rounded-xl bg-gray-50/70 border border-gray-200/60 text-sm text-brand-black placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl glass-input-dark text-[#f4f0e6] text-xs"
                 ></textarea>
               </div>
 
@@ -406,14 +436,14 @@ function MentorshipContent() {
                 <button
                   type="button"
                   onClick={() => setShowLogModal(false)}
-                  className="flex-1 py-2 rounded-xl bg-white rounded-[24px] border border-gray-100 shadow-sm text-gray-700 text-xs font-medium hover:text-brand-black"
+                  className="flex-1 py-2.5 rounded-xl glass-box text-[#a3c9b0] hover:text-[#f4f0e6] text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 text-brand-black text-xs font-medium shadow-lg hover:opacity-90 flex items-center justify-center gap-1 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-[#e5c158] hover:bg-[#d4b047] text-black text-xs font-extrabold shadow-md flex items-center justify-center gap-1 cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : "Save Log"}
                 </button>
@@ -433,3 +463,4 @@ export default function MentorshipPage() {
     </ProtectedRoute>
   );
 }
+

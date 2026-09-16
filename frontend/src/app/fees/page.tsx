@@ -21,6 +21,28 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { useToast } from "@/components/Toast";
+import Tilt3D from "@/components/Tilt3D";
+
+function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
+  if (position === "tr") {
+    return (
+      <svg className="corner-arch-tr" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+        <path d="M 100 0 A 100 100 0 0 0 0 100" />
+        <path d="M 100 20 A 80 80 0 0 0 20 100" />
+        <path d="M 100 40 A 60 60 0 0 0 40 100" />
+        <path d="M 100 60 A 40 40 0 0 0 60 100" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="corner-arch-bl" viewBox="0 0 100 100" fill="none" stroke="#43634e" strokeWidth="1.5">
+      <path d="M 0 100 A 100 100 0 0 1 100 0" />
+      <path d="M 0 80 A 80 80 0 0 1 80 0" />
+      <path d="M 0 60 A 60 60 0 0 1 60 0" />
+      <path d="M 0 40 A 40 40 0 0 1 40 0" />
+    </svg>
+  );
+}
 
 const loadRazorpay = () => {
   return new Promise((resolve) => {
@@ -862,19 +884,19 @@ const generateReceiptHtml = (receipt: ReceiptItem): string => {
 
   return (
     <ProtectedRoute>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
         {/* Header */}
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#e5c158]/20 text-[#e5c158] font-bold border border-[#e5c158]/40">
               {isManagement ? "Institutional Fee Collection Ledger" : "Fee Payment Gateway"}
             </span>
-            <span className="text-xs text-gray-600">• Digital Receipts & GST Invoices</span>
+            <span className="text-xs text-[#a3c9b0]">• Digital Receipts & GST Invoices</span>
           </div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-brand-black tracking-tight mt-1">
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#f4f0e6] font-syne tracking-tight mt-1">
             Fee Management & Digital Receipts
           </h1>
-          <p className="text-xs text-gray-600">
+          <p className="text-sm text-[#a3c9b0] font-medium">
             {isManagement
               ? "View-only institutional collection oversight with tuition, bus, hostel, and lab kit fee records."
               : "Review your fee schedule, make secure online payments, and download certified tax receipts."}
@@ -884,290 +906,305 @@ const generateReceiptHtml = (receipt: ReceiptItem): string => {
         {/* Financial Metrics Summary */}
         {isManagement && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
-              <div className="text-xs text-gray-600">Total Fees Collected (FY 2026)</div>
-              <div className="text-2xl font-bold text-emerald-600">₹4,43,50,000</div>
-              <div className="text-[11px] text-emerald-600 flex items-center gap-1 font-medium">
-                <CheckCircle2 className="w-3.5 h-3.5" /> 94.6% collection target achieved
+            <Tilt3D>
+              <div className="glass-emerald-tile p-5 rounded-[22px] space-y-1">
+                <CornerArchOrnament position="tr" />
+                <div className="text-xs text-[#a3c9b0] font-semibold relative z-10">Total Fees Collected (FY 2026)</div>
+                <div className="text-2xl font-extrabold text-emerald-400 font-syne relative z-10">₹4,43,50,000</div>
+                <div className="text-[11px] text-emerald-400 flex items-center gap-1 font-bold relative z-10">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 94.6% collection target achieved
+                </div>
               </div>
-            </div>
+            </Tilt3D>
 
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
-              <div className="text-xs text-gray-600">Tuition & Term Dues</div>
-              <div className="text-2xl font-bold text-brand-blue">₹2,85,00,000</div>
-              <div className="text-[11px] text-gray-600">All 14 grades LKG–12th</div>
-            </div>
+            <Tilt3D>
+              <div className="glass-emerald-tile p-5 rounded-[22px] space-y-1">
+                <CornerArchOrnament position="bl" />
+                <div className="text-xs text-[#a3c9b0] font-semibold relative z-10">Tuition & Term Dues</div>
+                <div className="text-2xl font-extrabold text-sky-300 font-syne relative z-10">₹2,85,00,000</div>
+                <div className="text-[11px] text-[#a3c9b0] relative z-10">All 14 grades LKG–12th</div>
+              </div>
+            </Tilt3D>
 
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
-              <div className="text-xs text-gray-600">Transport & Hostel</div>
-              <div className="text-2xl font-bold text-cyan-600">₹1,16,00,000</div>
-              <div className="text-[11px] text-gray-600">Bus fleets & Boarding campus</div>
-            </div>
+            <Tilt3D>
+              <div className="glass-emerald-tile p-5 rounded-[22px] space-y-1">
+                <CornerArchOrnament position="tr" />
+                <div className="text-xs text-[#a3c9b0] font-semibold relative z-10">Transport & Hostel</div>
+                <div className="text-2xl font-extrabold text-[#e5c158] font-syne relative z-10">₹1,16,00,000</div>
+                <div className="text-[11px] text-[#a3c9b0] relative z-10">Bus fleets & Boarding campus</div>
+              </div>
+            </Tilt3D>
 
-            <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5 space-y-1">
-              <div className="text-xs text-gray-600">Pending Remittances</div>
-              <div className="text-2xl font-bold text-amber-400">₹25,00,000</div>
-              <div className="text-[11px] text-gray-600">Automated SMS/Email reminders sent</div>
-            </div>
+            <Tilt3D>
+              <div className="glass-emerald-tile p-5 rounded-[22px] space-y-1">
+                <CornerArchOrnament position="bl" />
+                <div className="text-xs text-[#a3c9b0] font-semibold relative z-10">Pending Remittances</div>
+                <div className="text-2xl font-extrabold text-amber-300 font-syne relative z-10">₹25,00,000</div>
+                <div className="text-[11px] text-[#a3c9b0] relative z-10">Automated SMS/Email reminders sent</div>
+              </div>
+            </Tilt3D>
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════════════════
-            STUDENT / PARENT ONLINE PAYMENT PORTAL
-        ═══════════════════════════════════════════════════════ */}
+        {/* STUDENT / PARENT ONLINE PAYMENT PORTAL */}
         {isStudentOrParent && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 p-6 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base font-bold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <span>Official Fee Payment Gateway (Read-Only Fixed Ledger)</span>
-              </h2>
-              <span className="text-xs px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold rounded-full border border-emerald-200 dark:border-emerald-800">
-                Verified School Dues
-              </span>
-            </div>
+          <Tilt3D>
+            <div className="glass-emerald-tile p-6 rounded-[24px] space-y-5">
+              <CornerArchOrnament position="tr" />
+              <div className="flex items-center justify-between border-b border-[#a3c9b0]/20 pb-3 relative z-10">
+                <h2 className="text-base font-extrabold text-[#f4f0e6] font-syne flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-[#e5c158]" />
+                  <span>Official Fee Payment Gateway (Read-Only Fixed Ledger)</span>
+                </h2>
+                <span className="text-xs px-3 py-1 bg-[#e5c158]/20 text-[#e5c158] font-bold rounded-full border border-[#e5c158]/40">
+                  Verified School Dues
+                </span>
+              </div>
 
-            {/* Read-Only Itemized Dues Selection */}
-            {dues.length > 0 ? (
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-gray-700 dark:text-slate-300 block uppercase tracking-wider">
-                  Your Fee Schedule
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {dues.map((d: any) => {
-                    const isPaid = d.balance <= 0;
-                    const isSelected = selectedDue?.fee_structure_id === d.fee_structure_id;
-                    return (
-                      <button
-                        key={d.fee_structure_id}
-                        type="button"
-                        disabled={isPaid}
-                        onClick={() => {
-                          if (isPaid) return;
-                          setSelectedDue(d);
-                          setForm(prev => ({
-                            ...prev,
-                            title: d.title || `Grade Fee (${d.fee_type.toUpperCase()})`,
-                            amount: d.balance,
-                            fee_structure_id: d.fee_structure_id
-                          }));
-                        }}
-                        className={`p-4 rounded-2xl border text-left transition-all flex justify-between items-center ${
-                          isPaid
-                            ? "bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-300/40 dark:border-emerald-700/30 opacity-70 cursor-not-allowed"
-                            : isSelected
-                            ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/20 cursor-pointer"
-                            : "bg-gray-50/60 dark:bg-slate-800/40 border-gray-200 dark:border-slate-700 hover:border-emerald-400 cursor-pointer"
-                        }`}
-                      >
-                        <div>
-                          <div className="font-bold text-sm text-gray-900 dark:text-slate-100">{d.title || d.fee_type.toUpperCase()}</div>
-                          <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                            Total: ₹{(d.total_amount || 0).toLocaleString()}
-                            {d.discount_applied > 0 && ` (Scholarship: -₹${d.discount_applied})`}
-                            {d.total_paid > 0 && ` • Paid: ₹${(d.total_paid || 0).toLocaleString()}`}
+              {/* Read-Only Itemized Dues Selection */}
+              {dues.length > 0 ? (
+                <div className="space-y-3 relative z-10">
+                  <label className="text-xs font-extrabold text-[#a3c9b0] block uppercase tracking-wider">
+                    Your Fee Schedule
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {dues.map((d: any) => {
+                      const isPaid = d.balance <= 0;
+                      const isSelected = selectedDue?.fee_structure_id === d.fee_structure_id;
+                      return (
+                        <button
+                          key={d.fee_structure_id}
+                          type="button"
+                          disabled={isPaid}
+                          onClick={() => {
+                            if (isPaid) return;
+                            setSelectedDue(d);
+                            setForm(prev => ({
+                              ...prev,
+                              title: d.title || `Grade Fee (${d.fee_type.toUpperCase()})`,
+                              amount: d.balance,
+                              fee_structure_id: d.fee_structure_id
+                            }));
+                          }}
+                          className={`p-4 rounded-2xl border text-left transition-all flex justify-between items-center ${
+                            isPaid
+                              ? "glass-box opacity-70 cursor-not-allowed border-emerald-500/30"
+                              : isSelected
+                              ? "bg-[#e5c158]/20 border-[#e5c158] ring-2 ring-[#e5c158]/30 cursor-pointer"
+                              : "glass-box hover:border-[#e5c158]/50 cursor-pointer"
+                          }`}
+                        >
+                          <div>
+                            <div className="font-extrabold text-sm text-[#f4f0e6] font-syne">{d.title || d.fee_type.toUpperCase()}</div>
+                            <div className="text-xs text-[#a3c9b0] mt-0.5">
+                              Total: ₹{(d.total_amount || 0).toLocaleString()}
+                              {d.discount_applied > 0 && ` (Scholarship: -₹${d.discount_applied})`}
+                              {d.total_paid > 0 && ` • Paid: ₹${(d.total_paid || 0).toLocaleString()}`}
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-right flex-shrink-0 ml-3">
-                          {isPaid ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-400/30">
-                              <Check className="w-3 h-3" /> PAID
-                            </span>
-                          ) : (
-                            <>
-                              <div className="font-bold text-base text-rose-600 dark:text-rose-400">₹{(d.balance || 0).toLocaleString()}</div>
-                              <div className="text-[10px] font-semibold uppercase text-rose-500 dark:text-rose-400">Due</div>
-                            </>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                {dues.every((d: any) => d.balance <= 0) && (
-                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl text-center text-emerald-800 dark:text-emerald-200 text-sm font-medium">
-                    🎉 All fee dues for this term have been fully cleared! No outstanding balance.
+                          <div className="text-right flex-shrink-0 ml-3">
+                            {isPaid ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/20 text-emerald-300 rounded-full text-[10px] font-extrabold border border-emerald-500/40">
+                                <Check className="w-3 h-3" /> PAID
+                              </span>
+                            ) : (
+                              <>
+                                <div className="font-extrabold text-base text-rose-300 font-mono">₹{(d.balance || 0).toLocaleString()}</div>
+                                <div className="text-[10px] font-extrabold uppercase text-rose-300">Due</div>
+                              </>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-6 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl text-center text-emerald-800 dark:text-emerald-200 text-sm font-medium">
-                ✅ No fee schedule found or all dues have been cleared.
-              </div>
-            )}
+                  {dues.every((d: any) => d.balance <= 0) && (
+                    <div className="p-4 glass-box border border-emerald-500/40 rounded-2xl text-center text-emerald-300 text-sm font-bold">
+                      🎉 All fee dues for this term have been fully cleared! No outstanding balance.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-6 glass-box border border-emerald-500/40 rounded-2xl text-center text-emerald-300 text-sm font-bold relative z-10">
+                  ✅ No fee schedule found or all dues have been cleared.
+                </div>
+              )}
 
-            <form onSubmit={handlePay} className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-2">
+              <form onSubmit={handlePay} className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-2 relative z-10">
+                <div>
+                  <label className="text-[#a3c9b0] font-semibold block mb-1">Fee Item Title</label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    readOnly={true}
+                    className="w-full px-3.5 py-3 glass-input-dark text-[#f4f0e6] font-semibold cursor-not-allowed opacity-80"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[#a3c9b0] font-semibold block mb-1">Fixed Due Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={form.amount}
+                    readOnly={true}
+                    className="w-full px-3.5 py-3 glass-input-dark text-emerald-400 font-extrabold text-sm cursor-not-allowed opacity-80 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[#a3c9b0] font-semibold block mb-1">Payment Method</label>
+                  <select
+                    value={form.payment_method}
+                    onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
+                    className="w-full px-3.5 py-3 glass-input-dark text-[#f4f0e6] font-bold"
+                  >
+                    <option value="Razorpay UPI" className="bg-[#14251c]">Razorpay UPI / QR Code</option>
+                    <option value="Credit/Debit Card" className="bg-[#14251c]">Credit / Debit Card</option>
+                    <option value="Net Banking" className="bg-[#14251c]">Net Banking (All Indian Banks)</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-3 pt-2">
+                  {dues.length > 0 && dues.every((d: any) => d.balance <= 0) ? (
+                    <div className="w-full py-3.5 glass-box border border-emerald-500/40 text-emerald-300 font-extrabold rounded-xl text-sm flex items-center justify-center gap-2">
+                      <CheckCircle2 className="w-5 h-5" /> All Fees Paid — No Outstanding Balance
+                    </div>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={paying || form.amount <= 0 || !selectedDue || selectedDue.balance <= 0}
+                      className="w-full py-3.5 bg-[#e5c158] hover:bg-[#d4b047] disabled:opacity-50 disabled:cursor-not-allowed text-black font-extrabold rounded-xl text-sm transition-all shadow-lg shadow-[#e5c158]/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      {paying ? (
+                        <><span className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent" /> Connecting to Razorpay...</>
+                      ) : (
+                        `Pay ₹${(form.amount || 0).toLocaleString()} via Razorpay`
+                      )}
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+          </Tilt3D>
+        )}
+
+        {/* TRANSACTIONS & RECEIPTS REPOSITORY */}
+        <Tilt3D>
+          <div className="glass-emerald-tile p-6 rounded-[24px] space-y-4">
+            <CornerArchOrnament position="bl" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 relative z-10">
               <div>
-                <label className="text-gray-700 dark:text-slate-300 font-semibold block mb-1">Fee Item Title</label>
-                <input
-                  type="text"
-                  value={form.title}
-                  readOnly={true}
-                  className="w-full px-3.5 py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100 font-medium cursor-not-allowed border border-gray-200 dark:border-slate-700"
-                />
+                <h2 className="text-base font-extrabold text-[#f4f0e6] font-syne flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[#e5c158]" />
+                  <span>{isManagement ? "Master Student Fee Ledger" : "Your Payment Receipts"}</span>
+                </h2>
+                <p className="text-xs text-[#a3c9b0]">Certified digital receipts with transaction verification hashes</p>
               </div>
 
-              <div>
-                <label className="text-gray-700 dark:text-slate-300 font-semibold block mb-1">Fixed Due Amount (₹)</label>
-                <input
-                  type="number"
-                  value={form.amount}
-                  readOnly={true}
-                  className="w-full px-3.5 py-3 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100 font-bold text-sm cursor-not-allowed border border-gray-200 dark:border-slate-700"
-                />
-              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#e5c158]" />
+                  <input
+                    type="text"
+                    placeholder="Search receipt or student..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 pr-3 py-2 rounded-xl glass-input-dark text-[#f4f0e6] text-xs w-full sm:w-48"
+                  />
+                </div>
 
-              <div>
-                <label className="text-gray-700 dark:text-slate-300 font-semibold block mb-1">Payment Method</label>
                 <select
-                  value={form.payment_method}
-                  onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
-                  className="w-full px-3.5 py-3 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 font-semibold border border-gray-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500"
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl glass-input-dark text-[#f4f0e6] text-xs w-full sm:w-auto font-semibold"
                 >
-                  <option value="Razorpay UPI">Razorpay UPI / QR Code</option>
-                  <option value="Credit/Debit Card">Credit / Debit Card</option>
-                  <option value="Net Banking">Net Banking (All Indian Banks)</option>
+                  <option value="all" className="bg-[#14251c]">All Categories</option>
+                  <option value="Tuition" className="bg-[#14251c]">Tuition</option>
+                  <option value="Transport" className="bg-[#14251c]">Transport</option>
+                  <option value="Hostel" className="bg-[#14251c]">Hostel</option>
+                  <option value="Lab Kit" className="bg-[#14251c]">Lab Kit</option>
                 </select>
               </div>
-
-              <div className="sm:col-span-3 pt-2">
-                {dues.length > 0 && dues.every((d: any) => d.balance <= 0) ? (
-                  <div className="w-full py-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 font-bold rounded-xl text-sm flex items-center justify-center gap-2">
-                    <CheckCircle2 className="w-5 h-5" /> All Fees Paid — No Outstanding Balance
-                  </div>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={paying || form.amount <= 0 || !selectedDue || selectedDue.balance <= 0}
-                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm transition-colors shadow-md flex items-center justify-center gap-2"
-                  >
-                    {paying ? (
-                      <><span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> Connecting to Razorpay...</>
-                    ) : (
-                      `Pay ₹${(form.amount || 0).toLocaleString()} via Razorpay`
-                    )}
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════════
-            TRANSACTIONS & RECEIPTS REPOSITORY (ALL ROLES)
-        ═══════════════════════════════════════════════════════ */}
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6 rounded-2xl border border-gray-200 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2 className="text-base font-bold text-brand-black flex items-center gap-2">
-                <FileText className="w-5 h-5 text-brand-blue" />
-                <span>{isManagement ? "Master Student Fee Ledger" : "Your Payment Receipts"}</span>
-              </h2>
-              <p className="text-xs text-gray-600">Certified digital receipts with transaction verification hashes</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-none">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Search receipt or student..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs w-full sm:w-48"
-                />
-              </div>
-
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-brand-black text-xs w-full sm:w-auto"
-              >
-                <option value="all">All Categories</option>
-                <option value="Tuition">Tuition</option>
-                <option value="Transport">Transport</option>
-                <option value="Hostel">Hostel</option>
-                <option value="Lab Kit">Lab Kit</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/90 text-gray-600 uppercase text-[10px] font-semibold border-b border-gray-200">
-                <tr>
-                  <th className="p-3.5">Receipt #</th>
-                  <th className="p-3.5">Student Name</th>
-                  <th className="p-3.5">Grade</th>
-                  <th className="p-3.5">Fee Category</th>
-                  <th className="p-3.5">Payment Mode</th>
-                  <th className="p-3.5 text-right">Amount (₹)</th>
-                  <th className="p-3.5 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredReceipts.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-gray-50/40 transition-colors">
-                    <td className="p-3.5 font-mono text-cyan-300 font-bold">{rec.receipt_number}</td>
-                    <td className="p-3.5 font-semibold text-brand-black">{rec.student_name}</td>
-                    <td className="p-3.5 text-gray-700">{rec.grade}</td>
-                    <td className="p-3.5">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                        {rec.category}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-gray-600 font-mono text-[11px]">{rec.payment_method}</td>
-                    <td className="p-3.5 text-right font-mono font-bold text-emerald-600 text-sm">
-                      ₹{rec.amount.toLocaleString()}
-                    </td>
-                    <td className="p-3.5 text-center">
-                      <button
-                        onClick={() => handleDownload(rec)}
-                        className="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-700 text-gray-800 text-[11px] font-medium transition-colors inline-flex items-center gap-1"
-                      >
-                        <Download className="w-3 h-3 text-brand-blue" />
-                        <span>Receipt</span>
-                      </button>
-                    </td>
+            <div className="overflow-x-auto relative z-10">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Receipt #</th>
+                    <th>Student Name</th>
+                    <th>Grade</th>
+                    <th>Fee Category</th>
+                    <th>Payment Mode</th>
+                    <th className="text-right font-extrabold text-[#e5c158]">Amount (₹)</th>
+                    <th className="text-center">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredReceipts.map((rec) => (
+                    <tr key={rec.id}>
+                      <td className="font-mono text-[#e5c158] font-bold">{rec.receipt_number}</td>
+                      <td className="font-extrabold text-[#f4f0e6]">{rec.student_name}</td>
+                      <td className="text-[#a3c9b0]">{rec.grade}</td>
+                      <td>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#e5c158]/20 text-[#e5c158] border border-[#e5c158]/30">
+                          {rec.category}
+                        </span>
+                      </td>
+                      <td className="text-[#a3c9b0] font-mono text-[11px]">{rec.payment_method}</td>
+                      <td className="text-right font-mono font-extrabold text-emerald-400 text-sm">
+                        ₹{rec.amount.toLocaleString()}
+                      </td>
+                      <td className="text-center">
+                        <button
+                          onClick={() => handleDownload(rec)}
+                          className="px-3.5 py-1.5 rounded-xl glass-box hover:border-[#e5c158] text-[#f4f0e6] text-[11px] font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5 text-[#e5c158]" />
+                          <span>Receipt</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </Tilt3D>
 
         {/* Printable Receipt Modal */}
         {selectedReceipt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white max-w-xl w-full rounded-2xl p-6 space-y-5 shadow-2xl border border-gray-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="glass-emerald-tile border-2 border-[#e5c158]/40 max-w-xl w-full rounded-[28px] p-6 space-y-5 shadow-2xl relative">
+              <CornerArchOrnament position="tr" />
               {/* Modal Top Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+              <div className="flex items-center justify-between border-b border-[#a3c9b0]/20 pb-3 relative z-10">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center border border-emerald-500/30">
+                  <div className="w-9 h-9 rounded-xl bg-[#e5c158]/20 text-[#e5c158] flex items-center justify-center border border-[#e5c158]/40">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-brand-black">PaperBuddy School ERP — Official Fee Receipt</h3>
-                    <p className="text-[11px] text-gray-600">GST Registration: 33AAAAA0000A1Z5 • Affiliation: CBSE-1930842</p>
+                    <h3 className="text-base font-extrabold text-[#f4f0e6] font-syne">Official Fee Receipt</h3>
+                    <p className="text-[11px] text-[#a3c9b0]">GST: 33AAAAA0000A1Z5 • CBSE-1930842</p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedReceipt(null)} className="text-gray-600 hover:text-brand-black p-1">
+                <button onClick={() => setSelectedReceipt(null)} className="text-[#a3c9b0] hover:text-[#f4f0e6] p-1 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Receipt Preview Body Card */}
-              <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4 text-xs">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="p-5 rounded-2xl glass-box space-y-4 text-xs border border-[#a3c9b0]/20 relative z-10">
+                <div className="flex items-center justify-between pb-3 border-b border-[#a3c9b0]/20">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-gray-600 tracking-wider block">Receipt Number</span>
-                    <span className="font-mono text-cyan-600 font-bold text-sm">{selectedReceipt.receipt_number}</span>
+                    <span className="text-[10px] uppercase font-bold text-[#a3c9b0] tracking-wider block">Receipt Number</span>
+                    <span className="font-mono text-[#e5c158] font-extrabold text-sm">{selectedReceipt.receipt_number}</span>
                   </div>
                   <div className="text-right">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-300">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                       <CheckCircle2 className="w-3 h-3" /> Paid & Verified
                     </span>
-                    <div className="text-[10px] text-gray-500 mt-0.5">
+                    <div className="text-[10px] text-[#a3c9b0] mt-0.5">
                       {selectedReceipt.created_at ? new Date(selectedReceipt.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </div>
                   </div>
@@ -1175,74 +1212,74 @@ const generateReceiptHtml = (receipt: ReceiptItem): string => {
 
                 <div className="grid grid-cols-2 gap-3 py-1 text-xs">
                   <div>
-                    <span className="text-[10px] font-semibold text-gray-600 block">Student Name</span>
-                    <span className="text-brand-black font-bold text-sm">{selectedReceipt.student_name}</span>
+                    <span className="text-[10px] font-semibold text-[#a3c9b0] block">Student Name</span>
+                    <span className="text-[#f4f0e6] font-extrabold text-sm font-syne">{selectedReceipt.student_name}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-gray-600 block">Grade / Section</span>
-                    <span className="text-brand-black font-semibold">{selectedReceipt.grade}</span>
+                    <span className="text-[10px] font-semibold text-[#a3c9b0] block">Grade / Section</span>
+                    <span className="text-[#f4f0e6] font-semibold">{selectedReceipt.grade}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-gray-600 block">Payment Mode</span>
-                    <span className="text-brand-black">{selectedReceipt.payment_method}</span>
+                    <span className="text-[10px] font-semibold text-[#a3c9b0] block">Payment Mode</span>
+                    <span className="text-[#f4f0e6] font-semibold">{selectedReceipt.payment_method}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-gray-600 block">Transaction Reference</span>
-                    <span className="font-mono text-gray-700 text-[11px]">{selectedReceipt.transaction_id || 'TXN_PB_' + selectedReceipt.receipt_number.replace(/[^0-9]/g, '')}</span>
+                    <span className="text-[10px] font-semibold text-[#a3c9b0] block">Transaction Reference</span>
+                    <span className="font-mono text-sky-300 text-[11px] font-bold">{selectedReceipt.transaction_id || 'TXN_PB_' + selectedReceipt.receipt_number.replace(/[^0-9]/g, '')}</span>
                   </div>
                 </div>
 
                 {/* Table of items */}
-                <div className="rounded-lg border border-slate-200 overflow-hidden bg-white">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-100 text-gray-600 text-[10px] uppercase font-bold border-b border-slate-200">
+                <div className="rounded-xl border border-[#a3c9b0]/20 overflow-hidden glass-box">
+                  <table>
+                    <thead>
                       <tr>
-                        <th className="p-2.5">Particulars</th>
-                        <th className="p-2.5">Category</th>
-                        <th className="p-2.5 text-right">Amount</th>
+                        <th>Particulars</th>
+                        <th>Category</th>
+                        <th className="text-right font-extrabold text-[#e5c158]">Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="p-2.5 font-medium text-brand-black">{selectedReceipt.title}</td>
-                        <td className="p-2.5 text-gray-600">{selectedReceipt.category}</td>
-                        <td className="p-2.5 text-right font-mono font-bold text-brand-black">₹{selectedReceipt.amount.toLocaleString()}</td>
+                        <td className="font-bold text-[#f4f0e6]">{selectedReceipt.title}</td>
+                        <td className="text-[#a3c9b0]">{selectedReceipt.category}</td>
+                        <td className="text-right font-mono font-extrabold text-emerald-400">₹{selectedReceipt.amount.toLocaleString()}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
                 {/* Amount in words and Total */}
-                <div className="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="text-[11px] text-gray-600 italic">
-                    <span className="font-semibold not-italic">In Words: </span>
+                <div className="pt-2 border-t border-[#a3c9b0]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="text-[11px] text-[#a3c9b0] italic">
+                    <span className="font-bold not-italic text-[#f4f0e6]">In Words: </span>
                     {numberToWords(selectedReceipt.amount)}
                   </div>
                   <div className="flex items-center gap-2 text-sm justify-end">
-                    <span className="font-bold text-brand-black">Total Paid:</span>
-                    <span className="text-emerald-600 font-mono font-bold text-base">₹{selectedReceipt.amount.toLocaleString()}</span>
+                    <span className="font-bold text-[#f4f0e6]">Total Paid:</span>
+                    <span className="text-emerald-400 font-mono font-extrabold text-base">₹{selectedReceipt.amount.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-gray-200">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-[#a3c9b0]/20 relative z-10">
                 <button
                   onClick={() => setSelectedReceipt(null)}
-                  className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2.5 rounded-xl glass-box text-[#a3c9b0] hover:text-[#f4f0e6] text-xs font-semibold cursor-pointer"
                 >
                   Close
                 </button>
                 <button
                   onClick={() => handleDownloadReceiptDoc(selectedReceipt)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold hover:bg-slate-700 flex items-center gap-1.5 transition-colors shadow-sm"
+                  className="px-4 py-2.5 rounded-xl glass-box border border-[#e5c158]/40 text-[#f4f0e6] text-xs font-extrabold hover:bg-emerald-950/40 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-3.5 h-3.5 text-[#e5c158]" />
                   Download HTML Voucher
                 </button>
                 <button
                   onClick={() => handlePrintReceipt(selectedReceipt)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500 flex items-center gap-1.5 shadow-md shadow-emerald-600/30 transition-all"
+                  className="px-5 py-2.5 rounded-xl bg-[#e5c158] hover:bg-[#d4b047] text-black text-xs font-extrabold flex items-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   Print / Save PDF
