@@ -34,7 +34,7 @@ import {
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ROLE_LABELS, ROLE_COLORS, UserRole } from '@/store/authStore';
 import { useToast } from '@/components/Toast';
-import api from '@/lib/api';
+import api, { formatApiError } from '@/lib/api';
 import { exportToCsv } from '@/lib/exportUtils';
 
 interface UserItem {
@@ -318,7 +318,7 @@ function UsersPageContent() {
       await fetchUsers();
     } catch (err: any) {
       console.error('Create user error:', err);
-      const errMsg = err.response?.data?.detail || 'Failed to create user. Please check form inputs.';
+      const errMsg = formatApiError(err, 'Failed to create user. Please check form inputs.');
       setCreateError(errMsg);
       toast.error(errMsg, 'Creation Failed');
     } finally {
@@ -373,7 +373,7 @@ function UsersPageContent() {
       setEditingUser(null);
     } catch (err: any) {
       console.error('Update user error:', err);
-      const errMsg = err.response?.data?.detail || 'Failed to update user profile.';
+      const errMsg = formatApiError(err, 'Failed to update user profile.');
       setEditError(errMsg);
       toast.error(errMsg, 'Update Failed');
     } finally {
@@ -392,7 +392,7 @@ function UsersPageContent() {
       setDeletingUser(null);
     } catch (err: any) {
       console.error('Delete error:', err);
-      const errMsg = err.response?.data?.detail || 'Failed to delete user.';
+      const errMsg = formatApiError(err, 'Failed to delete user.');
       toast.error(errMsg, 'Delete Failed');
     } finally {
       setDeleting(false);

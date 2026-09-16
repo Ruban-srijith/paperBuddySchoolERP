@@ -32,13 +32,29 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const showToast = useCallback((type: ToastType, message: string, title?: string, duration = 3500) => {
+  const showToast = useCallback((type: ToastType, message: any, title?: string, duration = 3500) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     
-    let safeMessage = message;
-    if (typeof message === 'string' && message.length > 150) {
-      safeMessage = message.substring(0, 150) + "... (See console for full details)";
-      console.error("Full toast error:", message);
+    let safeMessage = '';
+    if (typeof message === 'string') {
+      safeMessage = message;
+    } else if (Array.isArray(message)) {
+      // Pydantic v2 validation errors: [{type, loc, msg, input}]
+      safeMessage = message.map((item: any) => {
+        if (typeof item === 'string') return item;
+        const loc = Array.isArray(item?.loc) ? item.loc.filter((l: any) => l !== 'body').join(' → ') : '';
+        const msg = item?.msg || JSON.stringify(item);
+        return loc ? `${loc}: ${msg}` : msg;
+      }).join(' | ');
+    } else if (message && typeof message === 'object') {
+      safeMessage = message.msg || message.detail || JSON.stringify(message);
+    } else {
+      safeMessage = String(message || 'An unexpected error occurred');
+    }
+
+    if (safeMessage.length > 200) {
+      console.error("Full toast message:", safeMessage);
+      safeMessage = safeMessage.substring(0, 200) + "...";
     }
     
     const newToast: ToastMessage = { id, type, title, message: safeMessage, duration };

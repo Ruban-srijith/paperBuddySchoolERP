@@ -188,6 +188,7 @@ class GroqService:
                         headers={
                             "Authorization": f"Bearer {api_key}",
                             "Content-Type": "application/json",
+                            "User-Agent": "PaperBuddy-ERP/1.0",
                         },
                         json=payload,
                     )

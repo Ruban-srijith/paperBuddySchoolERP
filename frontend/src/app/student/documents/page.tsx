@@ -2,13 +2,18 @@
 
 import { useEffect, useState } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import api from "@/lib/api";
+import api, { formatApiError } from "@/lib/api";
 import {
   FileCheck2, ShieldCheck, Lock, UploadCloud, Eye, AlertTriangle,
   CheckCircle2, Sparkles, User, FileText, DollarSign, Award, RefreshCw, Key,
   FileSearch, Check, Info, GraduationCap, HeartPulse, Trophy, CreditCard,
   Layers, Terminal, HelpCircle
 } from "lucide-react";
+
+/** Safely convert any FastAPI error (string | Pydantic array | object) to a string */
+function parseApiError(err: any, fallback: string): string {
+  return formatApiError(err, fallback);
+}
 
 interface StudentDocument {
   id: string;
@@ -141,7 +146,7 @@ export default function StudentDocumentsPage() {
       setSuccessMessage(`✅ Successfully uploaded and verified ${detected}! Profile database synchronized.`);
       setTimeout(() => setSuccessMessage(null), 6000);
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || "Upload or OCR verification failed. Please try again.");
+      setErrorMessage(parseApiError(err, "Upload or OCR verification failed. Please try again."));
     } finally {
       setUploadingType(null);
     }
@@ -163,7 +168,7 @@ export default function StudentDocumentsPage() {
       setSuccessMessage(`🎯 AI Detected & Verified: ${detected}! Database records updated automatically.`);
       setTimeout(() => setSuccessMessage(null), 6000);
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || "AI Auto-Classification failed. Please try selecting the category directly.");
+      setErrorMessage(parseApiError(err, "AI Auto-Classification failed. Please try selecting the category directly."));
     } finally {
       setIsAutoDetecting(false);
       setAutoDetectFile(null);
@@ -182,7 +187,7 @@ export default function StudentDocumentsPage() {
         setUnmaskedResult(res.data.unmasked_document_number);
       }
     } catch (err: any) {
-      setUnmaskError(err.response?.data?.detail || "Invalid administrative secret key.");
+      setUnmaskError(parseApiError(err, "Invalid administrative secret key."));
     } finally {
       setUnmasking(false);
     }

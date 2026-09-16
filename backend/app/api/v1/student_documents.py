@@ -148,7 +148,8 @@ async def upload_student_document(
         father_name=student.father_name,
         mother_name=student.mother_name,
         phone=student.guardian_phone,
-        verified_aadhaar_data=verified_aadhaar_payload
+        verified_aadhaar_data=verified_aadhaar_payload,
+        filename=file.filename or "",
     )
 
     clean_title = document_title or doc_type_clean.replace('_', ' ').title()
