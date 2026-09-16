@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   FileSearch, Calendar, CheckSquare, BookOpen, FlaskConical, 
   Mail, LayoutDashboard, GraduationCap, Sparkles, Users,
-  Building2, LogOut, Shield, ChevronDown, ChevronUp, ChevronsUp, ChevronsDown, UserCheck, CreditCard, History,
+  Building2, LogOut, Shield, ChevronDown, UserCheck, CreditCard, History,
   CheckCircle2, RefreshCw, Heart, DollarSign, Award, TrendingUp,
   Clock, Activity, FileSpreadsheet, LayoutGrid, FileCheck,
   CalendarDays, ClipboardList, FileText, HelpCircle, CalendarPlus,
   Megaphone, Trophy, DoorOpen, UsersRound, Menu, X,
   Receipt, Wallet, PieChart, Home, Utensils, Settings, AlertTriangle,
   BookCopy, Library, MonitorSmartphone, ShieldCheck, Bus, MapPin, Download,
-  Search, Bell, Flame, User, Sliders, Target, Play, Pause, ArrowDownUp
+  Search, Bell, Flame, User
 } from 'lucide-react';
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
@@ -125,62 +125,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
-  const navRef = useRef<HTMLDivElement>(null);
-  const [scrollPercent, setScrollPercent] = useState(0);
-  const [scrollStep, setScrollStep] = useState<number>(180);
-  const [isAutoScrolling, setIsAutoScrolling] = useState<boolean>(false);
-
-  const scrollRaf = useRef<number | null>(null);
-  const handleNavScroll = useCallback(() => {
-    if (scrollRaf.current) return;
-    scrollRaf.current = requestAnimationFrame(() => {
-      scrollRaf.current = null;
-      if (navRef.current) {
-        const { scrollTop, scrollHeight, clientHeight } = navRef.current;
-        const maxScroll = scrollHeight - clientHeight;
-        const newPct = maxScroll > 0 ? Math.round((scrollTop / maxScroll) * 100) : 0;
-        setScrollPercent(prev => (Math.abs(prev - newPct) >= 2 ? newPct : prev));
-      }
-    });
-  }, []);
-
-  const handleScrollToTop = () => {
-    navRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleScrollToBottom = () => {
-    if (navRef.current) {
-      navRef.current.scrollTo({ top: navRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  };
-
-  const handleJumpToActive = () => {
-    if (navRef.current) {
-      const activeEl = navRef.current.querySelector('.sidebar-item-active');
-      if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  };
-
-  useEffect(() => {
-    let interval: any = null;
-    if (isAutoScrolling && navRef.current) {
-      interval = setInterval(() => {
-        if (!navRef.current) return;
-        const { scrollTop, scrollHeight, clientHeight } = navRef.current;
-        if (scrollTop + clientHeight >= scrollHeight - 5) {
-          navRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          navRef.current.scrollBy({ top: 35, behavior: 'smooth' });
-        }
-      }, 700);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isAutoScrolling]);
-
   useEffect(() => {
     setShowMobileMenu(false);
   }, [pathname]);
@@ -218,7 +162,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
+    <div className="h-[100dvh] w-full max-w-full overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">
       {/* Background Architectural & Line-Art Wallpaper Designs */}
       <BackgroundWallpaper />
 
@@ -226,8 +170,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
 
       {/* Main Brutalist Concrete Frame Chassis */}
-      <div className="relative z-10 flex-1 flex flex-col h-full min-h-0 max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4">
-        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative min-h-0">
+      <div className="relative z-10 flex-1 flex flex-col min-h-0 h-full max-w-[1720px] w-full mx-auto p-1 sm:p-2.5 md:p-4 overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row brutal-concrete-chassis overflow-hidden relative min-h-0 w-full max-w-full">
           
           {/* Mobile Sidebar Overlay */}
           {showMobileMenu && (
@@ -238,8 +182,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
           )}
 
           {/* SIDEBAR - BRUTALIST CONCRETE RIM & GLASS CREST MOUNT */}
-          <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] lg:static lg:w-[245px] h-full brutal-stone-sidebar p-3.5 flex flex-col justify-between overflow-hidden transform transition-transform duration-200 ease-out lg:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
-            <div className="flex-1 flex flex-col space-y-2.5 overflow-hidden min-h-0">
+          <aside className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] lg:static lg:w-[245px] h-full brutal-stone-sidebar p-2.5 sm:p-3 flex flex-col justify-between overflow-x-clip overflow-y-hidden transform transition-transform duration-200 ease-out lg:translate-x-0 ${showMobileMenu ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="flex-1 flex flex-col space-y-2 overflow-x-clip overflow-y-hidden min-h-0 w-full max-w-full">
               
               {/* Shield & Torch Crest Emblem inside Carved Concrete Mount (Reference Top Left Badge) */}
               <div className="flex-none flex flex-col items-center justify-center pt-1 pb-2 border-b border-[#e5c158]/20 relative">
@@ -264,127 +208,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
 
-              {/* Interactive Y-Axis Navigation Controls & Options */}
-              <div className="flex-none flex flex-col space-y-1.5 px-1.5 py-2 bg-black/45 rounded-xl border border-[#e5c158]/35 shadow-inner">
-                <div className="flex items-center justify-between px-0.5">
-                  <span className="text-[9px] font-mono tracking-widest text-[#e5c158] uppercase flex items-center gap-1 font-extrabold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#e5c158] inline-block animate-pulse" />
-                    SIDEBAR Y-SCROLL OPTIONS
-                  </span>
-                  <span className="text-[9px] font-mono text-[#a3c9b0] font-bold">
-                    Y: {scrollPercent}%
-                  </span>
-                </div>
-
-                {/* Y-Axis Scroll Distance / Step Mode Selector */}
-                <div className="flex items-center justify-between gap-1 text-[8.5px] font-mono font-bold text-[#a3c9b0]">
-                  <span className="text-[#e5c158]/80 uppercase font-bold">STEP:</span>
-                  {[100, 200, 350].map((step) => (
-                    <button
-                      key={step}
-                      onClick={() => setScrollStep(step)}
-                      className={`px-1.5 py-0.5 rounded border transition-all ${
-                        scrollStep === step 
-                          ? 'bg-[#e5c158] text-[#14251c] font-black border-[#e5c158] shadow-[0_0_8px_rgba(229,193,88,0.5)]' 
-                          : 'bg-[#122218] text-[#a3c9b0] border-[#43634e]/40 hover:text-white'
-                      }`}
-                    >
-                      {step}px
-                    </button>
-                  ))}
-                </div>
-
-                {/* Main Action Scroll Buttons */}
-                <div className="grid grid-cols-4 gap-1 p-1 bg-[#122218] rounded-lg border border-[#43634e]/40">
-                  <button 
-                    onClick={handleScrollToTop}
-                    title="Scroll to Top (Y: 0%)"
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#e5c158] hover:text-white text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#e5c158]/30 transition-all shadow active:scale-95"
-                  >
-                    <ChevronsUp className="w-3 h-3" />
-                    <span>TOP</span>
-                  </button>
-                  <button 
-                    onClick={() => navRef.current?.scrollBy({ top: -scrollStep, behavior: 'smooth' })}
-                    title={`Scroll Up ${scrollStep}px`}
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#f4f0e6] hover:text-[#e5c158] text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#43634e]/50 transition-all shadow active:scale-95"
-                  >
-                    <ChevronUp className="w-3 h-3 text-[#e5c158]" />
-                    <span>UP</span>
-                  </button>
-                  <button 
-                    onClick={() => navRef.current?.scrollBy({ top: scrollStep, behavior: 'smooth' })}
-                    title={`Scroll Down ${scrollStep}px`}
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#f4f0e6] hover:text-[#e5c158] text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#43634e]/50 transition-all shadow active:scale-95"
-                  >
-                    <ChevronDown className="w-3 h-3 text-[#e5c158]" />
-                    <span>DOWN</span>
-                  </button>
-                  <button 
-                    onClick={handleScrollToBottom}
-                    title="Scroll to Bottom (Y: 100%)"
-                    className="py-1 px-1 rounded bg-[#1e3829] hover:bg-[#284a37] text-[#e5c158] hover:text-white text-[9px] font-bold flex items-center justify-center gap-0.5 border border-[#e5c158]/30 transition-all shadow active:scale-95"
-                  >
-                    <ChevronsDown className="w-3 h-3" />
-                    <span>BOT</span>
-                  </button>
-                </div>
-
-                {/* Extra Special Controls: Focus Active & Auto-Scroll Toggle */}
-                <div className="flex items-center justify-between gap-1 pt-0.5">
-                  <button
-                    onClick={handleJumpToActive}
-                    className="flex-1 py-1 px-1 bg-[#1b3325] hover:bg-[#244532] text-[#f4f0e6] hover:text-[#e5c158] text-[8.5px] font-bold rounded border border-[#e5c158]/25 flex items-center justify-center gap-1 transition-all shadow"
-                    title="Center view on active menu link"
-                  >
-                    <Target className="w-3 h-3 text-[#e5c158]" />
-                    <span>FOCUS ACTIVE</span>
-                  </button>
-                  <button
-                    onClick={() => setIsAutoScrolling(!isAutoScrolling)}
-                    className={`flex-1 py-1 px-1 text-[8.5px] font-bold rounded border flex items-center justify-center gap-1 transition-all shadow ${
-                      isAutoScrolling
-                        ? 'bg-[#e5c158] text-[#14251c] border-[#e5c158] font-black'
-                        : 'bg-[#1b3325] text-[#a3c9b0] border-[#43634e]/30 hover:text-white'
-                    }`}
-                    title="Toggle automatic smooth sidebar scrolling"
-                  >
-                    {isAutoScrolling ? <Pause className="w-3 h-3 text-[#14251c]" /> : <Play className="w-3 h-3 text-[#e5c158]" />}
-                    <span>{isAutoScrolling ? 'PAUSE AUTO' : 'AUTO SCROLL'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Navigation Links Container with Always-Visible Gold Y-Axis Scrollbar */}
+              {/* Navigation Links Container with Sleek Custom Y-Axis Scrollbar */}
               <div className="flex-1 min-h-0 rounded-2xl sidebar-glass-nav flex flex-col relative overflow-hidden border border-[#e5c158]/35 shadow-[inset_0_2px_8px_rgba(0,0,0,0.8)]">
-                
-                {/* Floating Quick Up Scroll Button overlay */}
-                {scrollPercent > 5 && (
-                  <button
-                    onClick={() => navRef.current?.scrollBy({ top: -140, behavior: 'smooth' })}
-                    className="absolute top-2 right-6 z-20 p-1 rounded-full bg-[#e5c158] text-[#14251c] shadow-[0_0_12px_rgba(229,193,88,0.9)] hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
-                    title="Scroll Up"
-                  >
-                    <ChevronUp className="w-3.5 h-3.5 stroke-[3]" />
-                  </button>
-                )}
-
-                {/* Floating Quick Down Scroll Button overlay */}
-                {scrollPercent < 95 && (
-                  <button
-                    onClick={() => navRef.current?.scrollBy({ top: 140, behavior: 'smooth' })}
-                    className="absolute bottom-2 right-6 z-20 p-1 rounded-full bg-[#e5c158] text-[#14251c] shadow-[0_0_12px_rgba(229,193,88,0.9)] hover:scale-110 transition-transform flex items-center justify-center cursor-pointer"
-                    title="Scroll Down"
-                  >
-                    <ChevronDown className="w-3.5 h-3.5 stroke-[3]" />
-                  </button>
-                )}
-
                 <nav 
-                  ref={navRef}
-                  onScroll={handleNavScroll}
                   data-lenis-prevent="true"
-                  className="flex-1 min-h-0 overflow-y-auto custom-sidebar-scroll space-y-1.5 p-2 pr-2.5 relative"
+                  className="flex-1 min-h-0 overflow-y-auto overflow-x-clip custom-sidebar-scroll space-y-1.5 p-2 pr-2.5 relative w-full min-w-0 max-w-full"
                 >
                   {/* Vertical Y-Axis Guide Line with Gold Accents */}
                   <div className="absolute left-2.5 top-3 bottom-3 w-[1.5px] bg-gradient-to-b from-[#e5c158]/50 via-[#43634e]/30 to-transparent pointer-events-none z-0 hidden sm:block" />
@@ -443,7 +271,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           </aside>
 
           {/* MAIN CONTENT WORKSPACE */}
-          <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 min-h-0">
+          <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden min-w-0">
             
             {/* TOP NAVBAR - CONCRETE STONE HEADER MATCHING REFERENCE IMAGE */}
             <header className="h-14 flex-none brutal-stone-header px-3 sm:px-6 flex items-center justify-between z-30">
@@ -519,7 +347,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
             </header>
 
             {/* Scrollable Main View Area */}
-            <main data-lenis-prevent="true" className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-4 sm:space-y-5">
+            <main data-lenis-prevent="true" className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-5 space-y-4 sm:space-y-5">
               {children}
             </main>
           </div>

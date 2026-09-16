@@ -38,7 +38,7 @@ export default function Tilt3D({
     rafId.current = requestAnimationFrame(() => {
       if (!cardRef.current || !glareRef.current) return;
       
-      cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateZ(10px) scale3d(${scale}, ${scale}, ${scale})`;
+      cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(${scale}, ${scale}, 1)`;
       
       const glX = (x / rect.width) * 100;
       const glY = (y / rect.height) * 100;
@@ -51,7 +51,7 @@ export default function Tilt3D({
     if (rafId.current) cancelAnimationFrame(rafId.current);
     if (!cardRef.current || !glareRef.current) return;
     
-    cardRef.current.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px) scale3d(1, 1, 1)";
+    cardRef.current.style.transform = "none";
     glareRef.current.style.opacity = "0";
   };
 
@@ -61,11 +61,9 @@ export default function Tilt3D({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px) scale3d(1, 1, 1)",
-        transformStyle: "preserve-3d",
-        transition: "transform 0.12s cubic-bezier(0.16, 1, 0.3, 1)",
+        transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
-      className={`relative overflow-hidden ${className}`}
+      className={`relative ${className}`}
     >
       {/* 3D Cursor Glare Overlay */}
       <div
@@ -77,3 +75,4 @@ export default function Tilt3D({
     </div>
   );
 }
+
