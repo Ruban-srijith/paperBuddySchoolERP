@@ -9,6 +9,7 @@ from app.db.database import get_db
 from app.db.models import LabAssignment, LabSubmission, SubmissionStatus, User, UserRole
 from app.schemas.labs import LabAssignmentCreate, LabSubmissionResponse
 from app.core.auth import get_current_user, require_role
+from app.services.cloudinary_service import upload_file_to_cloudinary
 
 router = APIRouter(prefix="/labs", tags=["Lab Assignments & Submissions"])
 
@@ -157,7 +158,13 @@ async def submit_lab_assignment(
     due_dt = assignment.due_date.replace(tzinfo=None) if assignment.due_date.tzinfo else assignment.due_date
     status = SubmissionStatus.LATE if now > due_dt else SubmissionStatus.SUBMITTED
 
-    file_filename = f"/uploads/submission_{actual_student_id[:8]}_{file.filename}"
+    # Upload directly to Cloudinary Storage using user's dwvdeqnyu account
+    pub_id = f"lab_sub_{actual_student_id[:8]}_{uuid.uuid4().hex[:6]}"
+    file_filename = await upload_file_to_cloudinary(
+        file_bytes,
+        folder="paperbuddy_lab_submissions",
+        public_id=pub_id
+    )
 
     # Check if submission already exists
     sub_q = select(LabSubmission).where(
