@@ -134,16 +134,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, isAuthenticated, hasChecked, router]);
 
-  if (pathname === '/login' || pathname === '/' || pathname === '/register') {
-    return <>{children}</>;
-  }
-
-  if (!hasChecked || !isAuthenticated || !user) {
-    return <PageLoader />;
-  }
-
-  const navItems = useMemo(() => ROLE_NAV_ITEMS[user.role] || ['dashboard'], [user.role]);
-  const roleLabel = useMemo(() => ROLE_LABELS[user.role], [user.role]);
+  // ⚠️ All hooks MUST be before any early returns (Rules of Hooks)
+  const navItems = useMemo(() => ROLE_NAV_ITEMS[user?.role || 'student'] || ['dashboard'], [user?.role]);
+  const roleLabel = useMemo(() => ROLE_LABELS[user?.role || 'student'], [user?.role]);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -153,6 +146,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const openMobileMenu = useCallback(() => setShowMobileMenu(true), []);
   const closeMobileMenu = useCallback(() => setShowMobileMenu(false), []);
   const toggleUserDropdown = useCallback(() => setShowUserDropdown(v => !v), []);
+
+  if (pathname === '/login' || pathname === '/' || pathname === '/register') {
+    return <>{children}</>;
+  }
+
+  if (!hasChecked || !isAuthenticated || !user) {
+    return <PageLoader />;
+  }
 
   return (
     <div className="min-h-screen w-screen overflow-hidden flex flex-col relative bg-[#14251c] text-[#f4f0e6]">

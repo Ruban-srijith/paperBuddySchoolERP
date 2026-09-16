@@ -66,10 +66,11 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
-img, video, svg {
+img, video {
   display: block;
   max-width: 100%;
 }
+
 
 /* Light mode override */
 html:not(.dark) body {
@@ -95,11 +96,11 @@ html:not(.dark) body {
   will-change: transform;
 }
 
-/* Contain layout/style for card components */
-.glass-emerald-tile,
+/* Contain layout/style for card components - only paint, not layout */
 .glass-panel-dark {
-  contain: layout style;
+  contain: paint;
 }
+
 
 /* =========================================
    MICRO-TRANSITIONS (compositor-only)
