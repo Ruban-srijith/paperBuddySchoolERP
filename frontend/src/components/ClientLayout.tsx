@@ -187,7 +187,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               {/* Shield & Torch Crest Emblem inside Carved Concrete Mount (Reference Top Left Badge) */}
               <div className="flex-none flex flex-col items-center justify-center pt-1 pb-3 border-b border-[#e5c158]/20 relative">
                 <Link href="/" className="flex flex-col items-center text-center group">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-[#243a2c] to-[#122218] border-2 border-[#e5c158]/50 flex items-center justify-center shadow-[0_8px_25px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.3)] mb-2 relative overflow-hidden group-hover:border-[#e5c158] transition-all">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-b from-[#243a2c] to-[#122218] border-2 border-[#e5c158]/50 flex items-center justify-center shadow-[0_8px_25px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.3)] mb-2 relative overflow-hidden group-hover:border-[#e5c158] transition-colors">
                     {/* Torch & Shield Icon Emblem */}
                     <div className="relative z-10 flex items-center justify-center text-[#e5c158]">
                       <Shield className="w-9 h-9 stroke-[1.6]" />
@@ -207,8 +207,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 </button>
               </div>
 
-              {/* Navigation Links inside Glass Slab Container with Y-Axis Scrollbar */}
-              <nav className="flex-1 overflow-y-auto custom-sidebar-scroll space-y-1.5 p-1 rounded-2xl bg-black/20 border border-white/10 backdrop-blur-md pr-1">
+              {/* Navigation Links inside Solid Glass Container with Fast Y-Axis Scrollbar */}
+              <nav className="flex-1 overflow-y-auto custom-sidebar-scroll space-y-1 p-1 rounded-2xl bg-black/40 border border-white/10 pr-1">
                 {navItems.map((key) => {
                   const config = NAV_CONFIG[key];
                   if (!config) return null;
@@ -219,7 +219,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                       key={key}
                       href={config.href}
                       onClick={() => setShowMobileMenu(false)}
-                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all relative overflow-hidden
+                      className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors duration-100 relative overflow-hidden
                         ${isActive 
                           ? 'bg-gradient-to-r from-[#2c4e38] to-[#1d3826] text-white border border-[#e5c158]/60 shadow-[0_4px_15px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)]' 
                           : 'text-[#e8e2d3]/80 hover:text-white hover:bg-white/10'
@@ -242,7 +242,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 {/* Always include Settings */}
                 <Link
                   href="/profile"
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors duration-100 ${
                     pathname === '/profile' 
                       ? 'bg-gradient-to-r from-[#2c4e38] to-[#1d3826] text-white border border-[#e5c158]/60' 
                       : 'text-[#e8e2d3]/80 hover:text-white hover:bg-white/10'
