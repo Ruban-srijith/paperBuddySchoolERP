@@ -70,6 +70,15 @@ async def list_users(
     result = await db.execute(query)
     users = result.scalars().all()
 
+    # If listing teachers and count is under 65, trigger background school seed
+    if role and role.lower() == "teacher" and len(users) < 65:
+        try:
+            import asyncio
+            from seed_school import seed as school_seed
+            asyncio.create_task(school_seed(drop=False))
+        except Exception:
+            pass
+
     return [_user_to_response(u) for u in users]
 
 
