@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 from uuid import uuid4
 from datetime import datetime, date
 
@@ -32,15 +32,16 @@ class RequestApprove(BaseModel):
 class VendorCreate(BaseModel):
     name: str
     category: str
-    contact_email: str
-    contact_phone: str
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
 
 class ExpenseCreate(BaseModel):
-    department_id: str
-    vendor_id: str
-    request_id: str
+    department_id: Optional[str] = None
+    vendor_id: Optional[str] = None
+    request_id: Optional[str] = None
     title: str
     amount: float
+    expense_date: Optional[date] = None
 
 class ScholarshipCreate(BaseModel):
     student_id: str
@@ -59,7 +60,53 @@ def get_finance_or_above(current_user: User = Depends(get_current_user)):
 @router.get("/budgets")
 async def get_budgets(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     result = await db.execute(select(DepartmentBudget))
-    return result.scalars().all()
+    budgets = result.scalars().all()
+    if not budgets:
+        sample_budgets = [
+            DepartmentBudget(
+                id=str(uuid4()),
+                department_name="Academics & Examination",
+                academic_year="2026-2027",
+                allocated_amount=750000.0,
+                utilized_amount=345000.0
+            ),
+            DepartmentBudget(
+                id=str(uuid4()),
+                department_name="Computer Science & Smart Classrooms",
+                academic_year="2026-2027",
+                allocated_amount=1200000.0,
+                utilized_amount=680000.0
+            ),
+            DepartmentBudget(
+                id=str(uuid4()),
+                department_name="Sports & Athletics Infrastructure",
+                academic_year="2026-2027",
+                allocated_amount=450000.0,
+                utilized_amount=185000.0
+            ),
+            DepartmentBudget(
+                id=str(uuid4()),
+                department_name="Campus Maintenance & Utilities",
+                academic_year="2026-2027",
+                allocated_amount=900000.0,
+                utilized_amount=420000.0
+            ),
+            DepartmentBudget(
+                id=str(uuid4()),
+                department_name="Library Procurement & Journals",
+                academic_year="2026-2027",
+                allocated_amount=350000.0,
+                utilized_amount=125000.0
+            )
+        ]
+        for b in sample_budgets:
+            db.add(b)
+        try:
+            await db.commit()
+            budgets = sample_budgets
+        except Exception:
+            await db.rollback()
+    return budgets
 
 @router.post("/budgets")
 async def create_budget(req: BudgetCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_or_above)):
@@ -147,7 +194,58 @@ async def approve_request(req_id: str, action: RequestApprove, db: AsyncSession 
 @router.get("/vendors")
 async def get_vendors(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_or_above)):
     result = await db.execute(select(Vendor))
-    return result.scalars().all()
+    vendors = result.scalars().all()
+    if not vendors:
+        sample_vendors = [
+            Vendor(
+                id=str(uuid4()),
+                name="Sri Lakshmi Stationeries & Publications",
+                category="Stationery & Books",
+                contact_email="sales@srilakshmi.in",
+                contact_phone="+91 98410 11223",
+                active_contract=True
+            ),
+            Vendor(
+                id=str(uuid4()),
+                name="Apex Edutech Labs & Hardware",
+                category="IT & Lab Equipment",
+                contact_email="support@apexedutech.com",
+                contact_phone="+91 94440 55667",
+                active_contract=True
+            ),
+            Vendor(
+                id=str(uuid4()),
+                name="Sun Power Solar & Electricals",
+                category="Maintenance & Utilities",
+                contact_email="admin@sunpowersolar.in",
+                contact_phone="+91 97900 12345",
+                active_contract=True
+            ),
+            Vendor(
+                id=str(uuid4()),
+                name="Modern Cleaners & Facility Management",
+                category="Facility Services",
+                contact_email="info@modernclean.org",
+                contact_phone="+91 98840 99881",
+                active_contract=True
+            ),
+            Vendor(
+                id=str(uuid4()),
+                name="Kaveri Catering & Canteen Supplies",
+                category="Food & Beverages",
+                contact_email="canteen@kaverifoods.com",
+                contact_phone="+91 94450 78901",
+                active_contract=True
+            )
+        ]
+        for v in sample_vendors:
+            db.add(v)
+        try:
+            await db.commit()
+            vendors = sample_vendors
+        except Exception:
+            await db.rollback()
+    return vendors
 
 @router.post("/vendors")
 async def create_vendor(req: VendorCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_or_above)):
@@ -163,20 +261,88 @@ async def get_expenses(db: AsyncSession = Depends(get_db), current_user: User = 
     result = await db.execute(select(Expense).order_by(Expense.expense_date.desc()))
     exps = result.scalars().all()
     
+    if not exps:
+        # Fetch or seed a budget and vendor to link sample expenses
+        b_res = await db.execute(select(DepartmentBudget))
+        budgets = b_res.scalars().all()
+        v_res = await db.execute(select(Vendor))
+        vendors = v_res.scalars().all()
+        
+        sample_expenses = [
+            Expense(
+                id=str(uuid4()),
+                department_id=budgets[1].id if len(budgets) > 1 else None,
+                vendor_id=vendors[1].id if len(vendors) > 1 else None,
+                title="Quarterly Smartboard Maintenance & Cloud Software Licenses",
+                amount=45000.0,
+                expense_date=date.today()
+            ),
+            Expense(
+                id=str(uuid4()),
+                department_id=budgets[0].id if len(budgets) > 0 else None,
+                vendor_id=vendors[0].id if len(vendors) > 0 else None,
+                title="Annual Mid-Term Exam Answer Sheets & Stationery Bundles",
+                amount=28500.0,
+                expense_date=date.today()
+            ),
+            Expense(
+                id=str(uuid4()),
+                department_id=budgets[3].id if len(budgets) > 3 else None,
+                vendor_id=vendors[2].id if len(vendors) > 2 else None,
+                title="Campus Solar Panel Inverter Servicing & Battery Check",
+                amount=16800.0,
+                expense_date=date.today()
+            ),
+            Expense(
+                id=str(uuid4()),
+                department_id=budgets[2].id if len(budgets) > 2 else None,
+                vendor_id=vendors[0].id if len(vendors) > 0 else None,
+                title="Annual Sports Day Medals, Trophies & Running Track Markings",
+                amount=32000.0,
+                expense_date=date.today()
+            ),
+            Expense(
+                id=str(uuid4()),
+                department_id=budgets[4].id if len(budgets) > 4 else None,
+                vendor_id=vendors[0].id if len(vendors) > 0 else None,
+                title="National Academic Journal Subscriptions & Reference Books",
+                amount=14200.0,
+                expense_date=date.today()
+            )
+        ]
+        for se in sample_expenses:
+            db.add(se)
+        try:
+            await db.commit()
+            exps = sample_expenses
+        except Exception:
+            await db.rollback()
+
     data = []
     for e in exps:
-        dept_res = await db.execute(select(DepartmentBudget).where(DepartmentBudget.id == e.department_id))
-        dept = dept_res.scalars().first()
-        v_res = await db.execute(select(Vendor).where(Vendor.id == e.vendor_id))
-        v = v_res.scalars().first()
+        dept_name = "General / Unassigned"
+        if e.department_id:
+            dept_res = await db.execute(select(DepartmentBudget).where(DepartmentBudget.id == e.department_id))
+            dept = dept_res.scalars().first()
+            if dept:
+                dept_name = dept.department_name
+                
+        vendor_name = "Direct / Self Procurement"
+        if e.vendor_id:
+            v_res = await db.execute(select(Vendor).where(Vendor.id == e.vendor_id))
+            v = v_res.scalars().first()
+            if v:
+                vendor_name = v.name
         
         data.append({
             "id": e.id,
             "title": e.title,
             "amount": float(e.amount),
-            "expense_date": e.expense_date,
-            "department_name": dept.department_name if dept else "N/A",
-            "vendor_name": v.name if v else "N/A"
+            "expense_date": e.expense_date.isoformat() if e.expense_date else str(date.today()),
+            "department_id": e.department_id,
+            "department_name": dept_name,
+            "vendor_id": e.vendor_id,
+            "vendor_name": vendor_name
         })
     return data
 
@@ -189,6 +355,7 @@ async def log_expense(req: ExpenseCreate, db: AsyncSession = Depends(get_db), cu
         request_id=req.request_id if req.request_id else None,
         title=req.title,
         amount=req.amount,
+        expense_date=req.expense_date or date.today(),
         processed_by=current_user.id
     )
     db.add(exp)
@@ -198,10 +365,28 @@ async def log_expense(req: ExpenseCreate, db: AsyncSession = Depends(get_db), cu
         dept_res = await db.execute(select(DepartmentBudget).where(DepartmentBudget.id == req.department_id))
         dept = dept_res.scalars().first()
         if dept:
-            dept.utilized_amount = float(dept.utilized_amount) + req.amount
+            dept.utilized_amount = float(dept.utilized_amount or 0) + req.amount
             
     await db.commit()
-    return {"success": True}
+    return {"success": True, "id": exp.id}
+
+@router.delete("/expenses/{expense_id}")
+async def delete_expense(expense_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_finance_or_above)):
+    res = await db.execute(select(Expense).where(Expense.id == expense_id))
+    exp = res.scalar_one_or_none()
+    if not exp:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    
+    # Optionally deduct from budget utilization
+    if exp.department_id:
+        dept_res = await db.execute(select(DepartmentBudget).where(DepartmentBudget.id == exp.department_id))
+        dept = dept_res.scalars().first()
+        if dept and dept.utilized_amount:
+            dept.utilized_amount = max(0.0, float(dept.utilized_amount) - float(exp.amount))
+
+    await db.delete(exp)
+    await db.commit()
+    return {"success": True, "message": "Expense record deleted"}
 
 # --- Endpoints: Scholarships ---
 

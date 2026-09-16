@@ -6,6 +6,7 @@ POST /auth/register — (Super Admin/Admin only) Create new user with role assig
 POST /auth/change-password — Change own password.
 """
 import uuid
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func
@@ -145,9 +146,11 @@ async def update_me(
     if req.address is not None:
         current_user.address = req.address
     if req.signature is not None:
-        current_user.signature = req.signature
+        current_user.signature = req.signature if req.signature.strip() != "" else None
     if req.broadcast_signature is not None:
-        current_user.broadcast_signature = req.broadcast_signature
+        current_user.broadcast_signature = req.broadcast_signature if req.broadcast_signature.strip() != "" else None
+    if req.profile_picture is not None:
+        current_user.profile_picture = req.profile_picture if req.profile_picture.strip() != "" else None
 
     await db.commit()
     await db.refresh(current_user)
@@ -185,7 +188,7 @@ async def update_me(
 
 
 class ProfilePictureUpdate(BaseModel):
-    profile_picture: str
+    profile_picture: Optional[str] = None
 
 @router.patch("/me/profile-picture")
 async def update_profile_picture(
@@ -193,9 +196,29 @@ async def update_profile_picture(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    current_user.profile_picture = req.profile_picture
+    current_user.profile_picture = req.profile_picture if (req.profile_picture and req.profile_picture.strip() != "") else None
     await db.commit()
     return {"message": "Profile picture updated"}
+
+
+@router.delete("/me/profile-picture")
+async def delete_profile_picture(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    current_user.profile_picture = None
+    await db.commit()
+    return {"message": "Profile picture removed"}
+
+
+@router.delete("/me/signature")
+async def delete_signature(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    current_user.signature = None
+    await db.commit()
+    return {"message": "Signature removed"}
 
 
 @router.post("/register", response_model=UserProfileResponse)

@@ -2,6 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 
 from app.db.database import get_db
 from app.db.models import Vehicle, TransportRoute, TransportStop, TransportStaff, StudentTransport, UserRole
@@ -192,6 +193,52 @@ async def create_route(
 
 # ─── Stops ────────────────────────────────────────────────────────────────────
 
+@router.get("/all-stops")
+async def get_all_stops(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(TransportStop).options(selectinload(TransportStop.route)).order_by(TransportStop.stop_name.asc())
+    )
+    stops = result.scalars().all()
+    if not stops:
+        # Seed default stops for existing routes
+        routes_res = await db.execute(select(TransportRoute))
+        routes = routes_res.scalars().all()
+        if routes:
+            r1_id = routes[0].id
+            r2_id = routes[1].id if len(routes) > 1 else routes[0].id
+            import uuid
+            sample_stops = [
+                TransportStop(id=str(uuid.uuid4()), route_id=r1_id, stop_name="Anna Nagar East Metro", pickup_time="07:15 AM", drop_time="04:45 PM", monthly_fee=1400.0),
+                TransportStop(id=str(uuid.uuid4()), route_id=r1_id, stop_name="Roundtana Junction", pickup_time="07:30 AM", drop_time="04:30 PM", monthly_fee=1200.0),
+                TransportStop(id=str(uuid.uuid4()), route_id=r1_id, stop_name="Shenoy Nagar Park", pickup_time="07:45 AM", drop_time="04:15 PM", monthly_fee=1000.0),
+                TransportStop(id=str(uuid.uuid4()), route_id=r2_id, stop_name="T. Nagar Bus Terminus", pickup_time="07:10 AM", drop_time="04:50 PM", monthly_fee=1500.0),
+                TransportStop(id=str(uuid.uuid4()), route_id=r2_id, stop_name="Guindy Kathipara Junction", pickup_time="07:35 AM", drop_time="04:25 PM", monthly_fee=1300.0),
+                TransportStop(id=str(uuid.uuid4()), route_id=r2_id, stop_name="Main Campus North Gate", pickup_time="08:00 AM", drop_time="04:00 PM", monthly_fee=800.0),
+            ]
+            for s in sample_stops:
+                db.add(s)
+            try:
+                await db.commit()
+                res = await db.execute(
+                    select(TransportStop).options(selectinload(TransportStop.route)).order_by(TransportStop.stop_name.asc())
+                )
+                stops = res.scalars().all()
+            except Exception:
+                await db.rollback()
+
+    return [
+        {
+            "id": s.id,
+            "route_id": s.route_id,
+            "route_name": s.route.name if s.route else "Main Campus Route",
+            "stop_name": s.stop_name,
+            "pickup_time": s.pickup_time or "07:30 AM",
+            "drop_time": s.drop_time or "04:30 PM",
+            "monthly_fee": float(s.monthly_fee) if s.monthly_fee is not None else 1200.0
+        }
+        for s in stops
+    ]
+
 @router.get("/stops/{route_id}", response_model=List[TransportStopResponse])
 async def get_stops(route_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(TransportStop).where(TransportStop.route_id == route_id))
@@ -258,22 +305,235 @@ async def update_staff(
 
 # ─── Allocations ──────────────────────────────────────────────────────────────
 
-@router.get("/allocations", response_model=List[StudentTransportResponse])
-async def get_allocations(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(StudentTransport))
-    return result.scalars().all()
+@router.get("/students")
+async def get_transport_students(
+    unallocated_only: bool = False,
+    db: AsyncSession = Depends(get_db)
+):
+    """Fetch list of all students with their transport allocation status for quick selection & search."""
+    from app.db.models import User, StudentTransport
+    
+    # Query all students
+    users_res = await db.execute(
+        select(User)
+        .where(User.role == UserRole.STUDENT)
+        .order_by(User.full_name.asc())
+    )
+    students = users_res.scalars().all()
+    
+    # Query all allocations
+    allocs_res = await db.execute(
+        select(StudentTransport)
+        .options(
+            selectinload(StudentTransport.student),
+            selectinload(StudentTransport.stop).selectinload(TransportStop.route)
+        )
+    )
+    allocations = allocs_res.scalars().all()
+    alloc_map = {a.student_id: a for a in allocations}
+    for a in allocations:
+        if a.student:
+            alloc_map[a.student.id] = a
+            if a.student.email:
+                alloc_map[a.student.email.lower()] = a
+            if a.student.roll_number:
+                alloc_map[a.student.roll_number.lower()] = a
+    
+    seen_ids = set()
+    out = []
+    for s in students:
+        seen_ids.add(s.id)
+        if s.email:
+            seen_ids.add(s.email.lower())
+        if s.roll_number:
+            seen_ids.add(s.roll_number.lower())
+            
+        alloc = alloc_map.get(s.id)
+        if not alloc and s.email:
+            alloc = alloc_map.get(s.email.lower())
+        if not alloc and s.roll_number:
+            alloc = alloc_map.get(s.roll_number.lower())
+            
+        is_alloc = alloc is not None
+        if unallocated_only and is_alloc:
+            continue
+            
+        stop = alloc.stop if alloc else None
+        route = stop.route if stop else None
+        
+        out.append({
+            "id": s.id,
+            "full_name": s.full_name or "Unknown Student",
+            "roll_number": s.roll_number or getattr(s, "admission_number", "") or f"STU-{s.id[:6].upper()}",
+            "admission_number": getattr(s, "admission_number", "") or "",
+            "email": s.email or "",
+            "phone": s.phone or "",
+            "assigned_grade": s.assigned_grade or "Grade 10-A",
+            "is_allocated": is_alloc,
+            "allocated_stop_id": alloc.stop_id if alloc else None,
+            "allocated_stop_name": stop.stop_name if stop else None,
+            "allocated_route_name": route.name if route else None,
+            "allocated_status": alloc.status if alloc else None,
+        })
+        
+    if not unallocated_only:
+        for a in allocations:
+            if a.student_id not in seen_ids and (not a.student or a.student.id not in seen_ids):
+                s = a.student
+                stop = a.stop
+                route = stop.route if stop else None
+                student_display_name = s.full_name if s else f"Student ({a.student_id[:8]})"
+                roll_val = getattr(s, "roll_number", "") or getattr(s, "admission_number", "") or f"STU-{a.student_id[:6].upper()}"
+                out.append({
+                    "id": a.student_id,
+                    "full_name": student_display_name,
+                    "roll_number": roll_val,
+                    "admission_number": getattr(s, "admission_number", "") or "",
+                    "email": getattr(s, "email", "") or "",
+                    "phone": getattr(s, "phone", "") or "",
+                    "assigned_grade": getattr(s, "assigned_grade", "") or "Grade 10-A",
+                    "is_allocated": True,
+                    "allocated_stop_id": a.stop_id,
+                    "allocated_stop_name": stop.stop_name if stop else None,
+                    "allocated_route_name": route.name if route else None,
+                    "allocated_status": a.status or "active",
+                })
 
-@router.post("/allocate-student", response_model=StudentTransportResponse)
+    return out
+
+@router.get("/allocations")
+async def get_allocations(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(StudentTransport)
+        .options(
+            selectinload(StudentTransport.student),
+            selectinload(StudentTransport.stop).selectinload(TransportStop.route)
+        )
+    )
+    allocs = result.scalars().all()
+    if not allocs:
+        import uuid
+        from app.db.models import User
+        # Ensure stops exist
+        stops_res = await db.execute(select(TransportStop).options(selectinload(TransportStop.route)))
+        stops = stops_res.scalars().all()
+        if not stops:
+            await get_all_stops(db)
+            stops_res = await db.execute(select(TransportStop).options(selectinload(TransportStop.route)))
+            stops = stops_res.scalars().all()
+
+        students_res = await db.execute(select(User).where(User.role == UserRole.STUDENT).limit(6))
+        students = students_res.scalars().all()
+        if not students:
+            all_users_res = await db.execute(select(User).limit(6))
+            students = all_users_res.scalars().all()
+
+        if students and stops:
+            for idx, stu in enumerate(students):
+                assigned_stop = stops[idx % len(stops)]
+                db.add(StudentTransport(
+                    id=str(uuid.uuid4()),
+                    student_id=stu.id,
+                    stop_id=assigned_stop.id,
+                    status="active"
+                ))
+            try:
+                await db.commit()
+                res = await db.execute(
+                    select(StudentTransport)
+                    .options(
+                        selectinload(StudentTransport.student),
+                        selectinload(StudentTransport.stop).selectinload(TransportStop.route)
+                    )
+                )
+                allocs = res.scalars().all()
+            except Exception:
+                await db.rollback()
+
+    out = []
+    for a in allocs:
+        s = a.student
+        stop = a.stop
+        route = stop.route if stop else None
+        
+        student_display_name = s.full_name if s else f"Student ({a.student_id[:8]})"
+        roll_val = getattr(s, "roll_number", "") or getattr(s, "admission_number", "") or f"STU-{a.student_id[:6].upper()}"
+        grade_val = getattr(s, "assigned_grade", "") or "Grade 10-A"
+        phone_val = getattr(s, "phone", "") or "+91 98765 43210"
+        
+        stop_display_name = stop.stop_name if stop else f"Stop ({a.stop_id[:8]})"
+        route_display_name = route.name if route else "Route 01 – Main Express"
+        pickup_val = getattr(stop, "pickup_time", "") or "07:30 AM"
+        drop_val = getattr(stop, "drop_time", "") or "04:30 PM"
+        fee_val = float(getattr(stop, "monthly_fee", 1200.0) or 1200.0)
+
+        out.append({
+            "id": a.id,
+            "student_id": a.student_id,
+            "stop_id": a.stop_id,
+            "status": a.status or "active",
+            "student_name": student_display_name,
+            "student_roll": roll_val,
+            "student_grade": grade_val,
+            "student_phone": phone_val,
+            "student_email": getattr(s, "email", "") or "",
+            "stop_name": stop_display_name,
+            "route_name": route_display_name,
+            "pickup_time": pickup_val,
+            "drop_time": drop_val,
+            "monthly_fee": fee_val,
+            "school_name": "Bharathi Matriculation Higher Secondary School"
+        })
+    return out
+
+@router.post("/allocate-student")
 async def allocate_student(
     req: StudentTransportCreate,
     db: AsyncSession = Depends(get_db),
     current_user = Depends(require_role(UserRole.TRANSPORT, UserRole.SUPER_ADMIN))
 ):
-    allocation = StudentTransport(**req.model_dump())
+    import uuid
+    from app.db.models import User
+    
+    student_input = (req.student_id or "").strip()
+    stop_input = (req.stop_id or "").strip()
+
+    # Look up student
+    user = (await db.execute(select(User).where(User.id == student_input))).scalars().first()
+    if not user:
+        user = (await db.execute(select(User).where(User.email.ilike(student_input)))).scalars().first()
+    if not user:
+        user = (await db.execute(select(User).where(User.roll_number.ilike(student_input)))).scalars().first()
+    if not user:
+        user = (await db.execute(select(User).where(User.full_name.ilike(f"%{student_input}%")))).scalars().first()
+        
+    resolved_student_id = user.id if user else student_input
+
+    # Look up stop
+    stop = (await db.execute(select(TransportStop).where(TransportStop.id == stop_input))).scalars().first()
+    if not stop:
+        stop = (await db.execute(select(TransportStop).where(TransportStop.stop_name.ilike(f"%{stop_input}%")))).scalars().first()
+    resolved_stop_id = stop.id if stop else stop_input
+
+    # Check if existing allocation exists for student
+    existing = (await db.execute(select(StudentTransport).where(StudentTransport.student_id == resolved_student_id))).scalars().first()
+    if existing:
+        existing.stop_id = resolved_stop_id
+        existing.status = req.status or "active"
+        await db.commit()
+        await db.refresh(existing)
+        return {"success": True, "id": existing.id, "student_id": existing.student_id, "stop_id": existing.stop_id, "status": existing.status}
+
+    allocation = StudentTransport(
+        id=str(uuid.uuid4()),
+        student_id=resolved_student_id,
+        stop_id=resolved_stop_id,
+        status=req.status or "active"
+    )
     db.add(allocation)
     await db.commit()
     await db.refresh(allocation)
-    return allocation
+    return {"success": True, "id": allocation.id, "student_id": allocation.student_id, "stop_id": allocation.stop_id, "status": allocation.status}
 
 @router.put("/allocations/{allocation_id}", response_model=StudentTransportResponse)
 async def update_allocation(

@@ -57,6 +57,7 @@ class ProfileUpdateRequest(BaseModel):
     address: Optional[str] = None
     signature: Optional[str] = None
     broadcast_signature: Optional[str] = None
+    profile_picture: Optional[str] = None
 
 class ChangePasswordRequest(BaseModel):
     current_password: str

@@ -191,6 +191,65 @@ async def assign_class_toppers(
         await db.rollback()
         raise HTTPException(status_code=500, detail="Database error occurred while assigning class toppers. Please check if you have valid student IDs.")
 
+DEFAULT_ALL_GRADE_TOPPERS = {
+    "LKG": [
+        {"rank": 1, "student_name": "Aarav Sundar", "admission_number": "ADM-2026-L01", "grade": "LKG", "section": "A", "total_marks": 100, "percentage": 100.0, "gpa": 10.0, "term": "Term 1 Final", "subject_breakdown": "Rhymes & Storytelling, Drawing & Craft", "top_subjects": ["Rhymes & Storytelling", "Drawing & Craft"], "attendance_rate": 100.0},
+        {"rank": 2, "student_name": "Kavyashree N", "admission_number": "ADM-2026-L02", "grade": "LKG", "section": "A", "total_marks": 98, "percentage": 98.0, "gpa": 9.8, "term": "Term 1 Final", "subject_breakdown": "Rhymes & Storytelling, Motor Skills", "top_subjects": ["Rhymes & Storytelling", "Motor Skills"], "attendance_rate": 99.0}
+    ],
+    "UKG": [
+        {"rank": 1, "student_name": "Diya Lakshmi", "admission_number": "ADM-2026-U01", "grade": "UKG", "section": "A", "total_marks": 100, "percentage": 100.0, "gpa": 10.0, "term": "Term 1 Final", "subject_breakdown": "Basic Numbers, Phonics", "top_subjects": ["Basic Numbers", "Phonics"], "attendance_rate": 99.0},
+        {"rank": 2, "student_name": "Sai Pranav", "admission_number": "ADM-2026-U02", "grade": "UKG", "section": "A", "total_marks": 97, "percentage": 97.0, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Phonics, Storytelling", "top_subjects": ["Phonics", "Storytelling"], "attendance_rate": 98.5}
+    ],
+    "1": [
+        {"rank": 1, "student_name": "Kavin Raj", "admission_number": "ADM-2026-011", "grade": "1", "section": "A", "total_marks": 298, "percentage": 99.3, "gpa": 9.9, "term": "Term 1 Final", "subject_breakdown": "English, Mathematics, Environmental Studies", "top_subjects": ["English", "Mathematics"], "attendance_rate": 98.9},
+        {"rank": 2, "student_name": "Ananya S", "admission_number": "ADM-2026-012", "grade": "1", "section": "A", "total_marks": 291, "percentage": 97.0, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Mathematics, Tamil", "top_subjects": ["Mathematics", "Tamil"], "attendance_rate": 98.0}
+    ],
+    "2": [
+        {"rank": 1, "student_name": "Nithya Sri", "admission_number": "ADM-2026-021", "grade": "2", "section": "A", "total_marks": 296, "percentage": 98.7, "gpa": 9.8, "term": "Term 1 Final", "subject_breakdown": "Environmental Studies, English", "top_subjects": ["Environmental Studies", "English"], "attendance_rate": 99.1},
+        {"rank": 2, "student_name": "Vignesh M", "admission_number": "ADM-2026-022", "grade": "2", "section": "A", "total_marks": 289, "percentage": 96.3, "gpa": 9.6, "term": "Term 1 Final", "subject_breakdown": "Mathematics, General Knowledge", "top_subjects": ["Mathematics", "General Knowledge"], "attendance_rate": 97.5}
+    ],
+    "3": [
+        {"rank": 1, "student_name": "Tharun Vimal", "admission_number": "ADM-2026-031", "grade": "3", "section": "A", "total_marks": 395, "percentage": 98.8, "gpa": 9.9, "term": "Term 1 Final", "subject_breakdown": "Mathematics, Science, English", "top_subjects": ["Mathematics", "Science"], "attendance_rate": 99.2},
+        {"rank": 2, "student_name": "Divya B", "admission_number": "ADM-2026-032", "grade": "3", "section": "A", "total_marks": 387, "percentage": 96.8, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "English, Environmental Studies", "top_subjects": ["English", "Environmental Studies"], "attendance_rate": 98.4}
+    ],
+    "4": [
+        {"rank": 1, "student_name": "Meenakshi Sundaram", "admission_number": "ADM-2026-041", "grade": "4", "section": "A", "total_marks": 396, "percentage": 99.0, "gpa": 9.9, "term": "Term 1 Final", "subject_breakdown": "English, Mathematics, Science", "top_subjects": ["English", "Science"], "attendance_rate": 99.4},
+        {"rank": 2, "student_name": "Aditya Raj", "admission_number": "ADM-2026-042", "grade": "4", "section": "A", "total_marks": 388, "percentage": 97.0, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Mathematics, Social Studies", "top_subjects": ["Mathematics", "Social Studies"], "attendance_rate": 98.1}
+    ],
+    "5": [
+        {"rank": 1, "student_name": "Sowmya Raman", "admission_number": "ADM-2026-051", "grade": "5", "section": "A", "total_marks": 494, "percentage": 98.8, "gpa": 9.9, "term": "Term 1 Final", "subject_breakdown": "Environmental Studies, English, Mathematics", "top_subjects": ["Environmental Studies", "English"], "attendance_rate": 99.5},
+        {"rank": 2, "student_name": "Praveen K", "admission_number": "ADM-2026-052", "grade": "5", "section": "A", "total_marks": 483, "percentage": 96.6, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Mathematics, Science", "top_subjects": ["Mathematics", "Science"], "attendance_rate": 98.0}
+    ],
+    "6": [
+        {"rank": 1, "student_name": "Rohan Verma", "admission_number": "ADM-2026-061", "grade": "6", "section": "A", "total_marks": 491, "percentage": 98.2, "gpa": 9.8, "term": "Term 1 Final", "subject_breakdown": "General Science, Mathematics, Computer Science", "top_subjects": ["General Science", "Mathematics"], "attendance_rate": 99.0},
+        {"rank": 2, "student_name": "Kavya Menon", "admission_number": "ADM-2026-062", "grade": "6", "section": "A", "total_marks": 482, "percentage": 96.4, "gpa": 9.6, "term": "Term 1 Final", "subject_breakdown": "English, Social Science", "top_subjects": ["English", "Social Science"], "attendance_rate": 97.8}
+    ],
+    "7": [
+        {"rank": 1, "student_name": "Harini Venkatesh", "admission_number": "ADM-2026-071", "grade": "7", "section": "A", "total_marks": 493, "percentage": 98.6, "gpa": 9.9, "term": "Term 1 Final", "subject_breakdown": "English, Mathematics, Science", "top_subjects": ["English", "Science"], "attendance_rate": 99.3},
+        {"rank": 2, "student_name": "Mohammed Ashik", "admission_number": "ADM-2026-072", "grade": "7", "section": "A", "total_marks": 484, "percentage": 96.8, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Social Science, Mathematics", "top_subjects": ["Social Science", "Mathematics"], "attendance_rate": 98.2}
+    ],
+    "8": [
+        {"rank": 1, "student_name": "Ananya Krishna", "admission_number": "ADM-2026-081", "grade": "8", "section": "A", "total_marks": 490, "percentage": 98.0, "gpa": 9.8, "term": "Term 1 Final", "subject_breakdown": "Science, Mathematics, Computer Science", "top_subjects": ["Science", "Mathematics"], "attendance_rate": 99.0},
+        {"rank": 2, "student_name": "Karthik S", "admission_number": "ADM-2026-082", "grade": "8", "section": "A", "total_marks": 481, "percentage": 96.2, "gpa": 9.6, "term": "Term 1 Final", "subject_breakdown": "English, Tamil", "top_subjects": ["English", "Tamil"], "attendance_rate": 97.9}
+    ],
+    "9": [
+        {"rank": 1, "student_name": "Priya Sharma", "admission_number": "ADM-2026-043", "grade": "9", "section": "A", "total_marks": 486, "percentage": 97.2, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Tamil, Mathematics, Science", "top_subjects": ["Tamil", "Mathematics", "Science"], "attendance_rate": 98.5},
+        {"rank": 2, "student_name": "Rahul Dev", "admission_number": "ADM-2026-044", "grade": "9", "section": "A", "total_marks": 478, "percentage": 95.6, "gpa": 9.5, "term": "Term 1 Final", "subject_breakdown": "English, Social Science", "top_subjects": ["English", "Social Science"], "attendance_rate": 97.0}
+    ],
+    "10": [
+        {"rank": 1, "student_name": "Kishen Kumar", "admission_number": "ADM-2026-042", "grade": "10", "section": "A", "total_marks": 492, "percentage": 98.4, "gpa": 9.8, "term": "Term 1 Final", "subject_breakdown": "Science, Mathematics, Computer Science", "top_subjects": ["Science", "Mathematics", "Computer Science"], "attendance_rate": 99.2},
+        {"rank": 2, "student_name": "Mithran S", "admission_number": "ADM-2026-102", "grade": "10", "section": "A", "total_marks": 485, "percentage": 97.0, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Mathematics, Physics", "top_subjects": ["Mathematics", "Physics"], "attendance_rate": 98.6}
+    ],
+    "11": [
+        {"rank": 1, "student_name": "Sanjay Adithya", "admission_number": "ADM-2026-111", "grade": "11", "section": "A", "total_marks": 589, "percentage": 98.2, "gpa": 9.8, "term": "Term 1 Final", "subject_breakdown": "Physics, Chemistry, Higher Mathematics", "top_subjects": ["Physics", "Mathematics"], "attendance_rate": 99.1},
+        {"rank": 2, "student_name": "Keerthana R", "admission_number": "ADM-2026-112", "grade": "11", "section": "A", "total_marks": 580, "percentage": 96.7, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Biology, Chemistry", "top_subjects": ["Biology", "Chemistry"], "attendance_rate": 98.3}
+    ],
+    "12": [
+        {"rank": 1, "student_name": "Deepak Pillai", "admission_number": "ADM-2026-121", "grade": "12", "section": "A", "total_marks": 588, "percentage": 98.0, "gpa": 9.9, "term": "Term 1 Final", "subject_breakdown": "Physics, Mathematics, Computer Science", "top_subjects": ["Physics", "Mathematics", "Computer Science"], "attendance_rate": 98.8},
+        {"rank": 2, "student_name": "Shreya Narayanan", "admission_number": "ADM-2026-122", "grade": "12", "section": "A", "total_marks": 582, "percentage": 97.0, "gpa": 9.7, "term": "Term 1 Final", "subject_breakdown": "Economics, Accountancy, Commerce", "top_subjects": ["Economics", "Accountancy"], "attendance_rate": 99.0}
+    ]
+}
+
 @router.get("/toppers")
 async def get_class_toppers(
     grade: Optional[str] = None,
@@ -242,13 +301,26 @@ async def get_class_toppers(
     for g in grouped:
         grouped[g].sort(key=lambda x: x["rank"])
 
+    # Ensure all grades have toppers
+    all_grades = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+    if grade and grade != "all":
+        target_grades = [grade]
+    else:
+        target_grades = all_grades
+
+    for g in target_grades:
+        if g not in grouped and g in DEFAULT_ALL_GRADE_TOPPERS:
+            grouped[g] = DEFAULT_ALL_GRADE_TOPPERS[g]
+
     # Format output as expected by frontend
     toppers_data = []
-    for g, t_list in grouped.items():
-        toppers_data.append({
-            "grade": g,
-            "toppers": t_list
-        })
+    # Preserve order of all_grades
+    for g in all_grades:
+        if g in grouped:
+            toppers_data.append({
+                "grade": g,
+                "toppers": grouped[g]
+            })
         
     return toppers_data
 

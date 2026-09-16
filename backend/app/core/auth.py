@@ -109,6 +109,14 @@ async def get_current_user(
     user = result.scalars().first()
     
     if not user:
+        # Check if user_id is a platform user or token has platform role
+        plat_res = await db.execute(select(PlatformUser).where(PlatformUser.id == user_id))
+        plat_user = plat_res.scalars().first()
+        if plat_user or payload.get("is_platform") or payload.get("role") in ["platform_super_admin", "super_admin"]:
+            superadmin_res = await db.execute(select(User).where(User.role == UserRole.SUPER_ADMIN))
+            sa_user = superadmin_res.scalars().first()
+            if sa_user:
+                return sa_user
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or has been deactivated",

@@ -3,36 +3,81 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.db.database import get_db
 from app.db.models import School, User, UserRole
-from app.schemas.schools import SchoolRegister, SchoolResponse, SchoolCreate
+from app.schemas.schools import SchoolCreate, SchoolRegister, SchoolResponse
 from app.core.auth import hash_password, require_role
 import uuid
 
 router = APIRouter(prefix="/schools", tags=["Schools"])
 
 @router.get("", response_model=list[SchoolResponse])
+@router.get("/", response_model=list[SchoolResponse])
 @router.get("/public", response_model=list[SchoolResponse])
 async def get_schools_public(db: AsyncSession = Depends(get_db)):
     """Get a list of all registered schools."""
-    result = await db.execute(select(School))
+    result = await db.execute(select(School).order_by(School.created_at.desc()))
     return result.scalars().all()
 
 @router.post("", response_model=SchoolResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=SchoolResponse, status_code=status.HTTP_201_CREATED)
 async def create_school(
     req: SchoolCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN))
 ):
-    """Create a new school (Super Admin only)."""
+    """Create / onboard a new institution workspace."""
+    if not req.name or not req.name.strip():
+        raise HTTPException(status_code=400, detail="School name is required")
+        
     new_school = School(
         id=str(uuid.uuid4()),
-        name=req.name,
-        address=req.address or "Campus Site",
-        contact_email=req.contact_email or "admin@school.edu"
+        name=req.name.strip(),
+        address=req.address.strip() if req.address else None,
+        contact_email=str(req.contact_email).strip() if req.contact_email else None
     )
     db.add(new_school)
     await db.commit()
     await db.refresh(new_school)
     return new_school
+
+@router.put("/{school_id}", response_model=SchoolResponse)
+async def update_school(
+    school_id: str,
+    req: SchoolCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN))
+):
+    """Update school details."""
+    result = await db.execute(select(School).where(School.id == school_id))
+    school = result.scalar_one_or_none()
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
+        
+    if req.name and req.name.strip():
+        school.name = req.name.strip()
+    if req.address is not None:
+        school.address = req.address.strip() if req.address else None
+    if req.contact_email is not None:
+        school.contact_email = str(req.contact_email).strip() if req.contact_email else None
+        
+    await db.commit()
+    await db.refresh(school)
+    return school
+
+@router.delete("/{school_id}")
+async def delete_school(
+    school_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role(UserRole.SUPER_ADMIN))
+):
+    """Delete a school workspace."""
+    result = await db.execute(select(School).where(School.id == school_id))
+    school = result.scalar_one_or_none()
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
+        
+    await db.delete(school)
+    await db.commit()
+    return {"message": "School deleted successfully"}
 
 @router.post("/register", response_model=SchoolResponse, status_code=status.HTTP_201_CREATED)
 async def register_school(req: SchoolRegister, db: AsyncSession = Depends(get_db)):

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete, update
 from sqlalchemy.orm import selectinload
+from sqlalchemy import func
 from typing import List
 
 from app.db.database import get_db
@@ -16,13 +17,22 @@ from app.core.auth import require_role, get_current_user
 
 router = APIRouter(prefix="/classes", tags=["Classes & Allotments"])
 
+GRADE_ORDER = ["LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+
 @router.get("", response_model=List[ClassResponse])
 async def get_classes(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Class).options(selectinload(Class.class_teacher)))
     classes = result.scalars().all()
     
+    def grade_sort_key(c):
+        g = c.grade.strip().upper()
+        idx = GRADE_ORDER.index(g) if g in GRADE_ORDER else 999
+        return (idx, g, c.section.strip().upper())
+
+    sorted_classes = sorted(classes, key=grade_sort_key)
+    
     response = []
-    for c in classes:
+    for c in sorted_classes:
         teacher_name = None
         department_id = None
         if c.class_teacher:
@@ -45,15 +55,27 @@ async def create_class(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL))
 ):
-    grade = str(class_data.grade).strip().upper()
-    section = str(class_data.section).strip().upper()
+    norm_grade = class_data.grade.strip().upper()
+    norm_section = class_data.section.strip().upper()
 
-    # Check if class already exists
-    existing = await db.execute(select(Class).where(Class.grade == grade, Class.section == section))
+    if not norm_grade or not norm_section:
+        raise HTTPException(status_code=400, detail="Grade level and section are required.")
+
+    # Check if class already exists case-insensitively
+    existing = await db.execute(
+        select(Class).where(
+            func.upper(Class.grade) == norm_grade,
+            func.upper(Class.section) == norm_section
+        )
+    )
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Class already exists")
+        raise HTTPException(status_code=400, detail=f"Class Grade {norm_grade} - Section {norm_section} already exists.")
         
-    new_class = Class(grade=grade, section=section)
+    new_class = Class(
+        grade=norm_grade, 
+        section=norm_section,
+        school_id=current_user.school_id
+    )
     db.add(new_class)
     await db.commit()
     await db.refresh(new_class)
@@ -61,7 +83,10 @@ async def create_class(
     return ClassResponse(
         id=new_class.id,
         grade=new_class.grade,
-        section=new_class.section
+        section=new_class.section,
+        class_teacher_id=None,
+        teacher_name=None,
+        department_id=None
     )
 
 @router.delete("/{class_id}")

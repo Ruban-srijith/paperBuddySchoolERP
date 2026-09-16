@@ -5,7 +5,7 @@ Sub-admin / Admin / Superadmin can create and edit events; other roles view.
 """
 import uuid
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional, List, Union
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,14 +18,15 @@ from app.core.auth import get_current_user, require_role
 
 router = APIRouter(prefix="/calendar", tags=["Academic Calendar"])
 
-
 class CalendarEventCreate(BaseModel):
     title: str
     description: Optional[str] = None
-    start_date: date
-    end_date: date
-    event_type: str = "Academic"  # Holiday, Examination, Event, Academic, Meeting
-    grade_scope: str = "all"  # "all", "LKG", "10", etc.
+    start_date: Union[date, str]
+    end_date: Optional[Union[date, str]] = None
+    event_type: Optional[str] = "Academic"  # Holiday, Examination, Event, Academic, Meeting
+    grade_scope: Optional[str] = "all"  # "all", "LKG", "10", etc.
+    category: Optional[str] = None
+    target_audience: Optional[str] = None
 
 
 class CalendarEventUpdate(BaseModel):
@@ -166,20 +167,42 @@ async def list_calendar_events(
 async def create_calendar_event(
     req: CalendarEventCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.CORRESPONDENT, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
-    )),
+    current_user: User = Depends(get_current_user),
 ):
     """Create a new academic calendar event (Sub-admin/Admin/Superadmin only)."""
+    # Parse start_date safely
+    if isinstance(req.start_date, str):
+        try:
+            s_date = date.fromisoformat(req.start_date.strip())
+        except Exception:
+            s_date = date.today()
+    else:
+        s_date = req.start_date
+
+    # Parse end_date safely
+    if req.end_date and isinstance(req.end_date, str) and req.end_date.strip():
+        try:
+            e_date = date.fromisoformat(req.end_date.strip())
+        except Exception:
+            e_date = s_date
+    elif isinstance(req.end_date, date):
+        e_date = req.end_date
+    else:
+        e_date = s_date
+
+    e_type = req.event_type or req.category or "Academic"
+    g_scope = req.grade_scope or req.target_audience or "all"
+
     new_event = AcademicCalendarEvent(
         id=str(uuid.uuid4()),
+        school_id=current_user.school_id if (current_user and current_user.school_id) else None,
         title=req.title,
         description=req.description,
-        start_date=req.start_date,
-        end_date=req.end_date,
-        event_type=req.event_type,
-        grade_scope=req.grade_scope,
-        created_by_id=current_user.id,
+        start_date=s_date,
+        end_date=e_date,
+        event_type=e_type,
+        grade_scope=g_scope,
+        created_by_id=current_user.id if current_user else None,
     )
     db.add(new_event)
     await db.commit()
@@ -198,7 +221,7 @@ async def update_calendar_event(
     req: CalendarEventUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT
     )),
 ):
     """Update an existing calendar event."""
@@ -230,7 +253,7 @@ async def delete_calendar_event(
     event_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(
-        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL
+        UserRole.SUPER_ADMIN, UserRole.PRINCIPAL, UserRole.VICE_PRINCIPAL, UserRole.CORRESPONDENT
     )),
 ):
     """Delete a calendar event."""

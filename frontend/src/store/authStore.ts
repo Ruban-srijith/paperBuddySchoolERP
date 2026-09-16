@@ -245,7 +245,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
   ],
 
   finance: [
-    'dashboard',
+    'finance_dashboard',
     'finance_approvals',
     'budgets',
     'vendors',
@@ -257,7 +257,7 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'reports'
   ],
   warden: [
-    'dashboard',
+    'warden_dashboard',
     'hostel_rooms',
     'outpasses',
     'hostel_attendance',
