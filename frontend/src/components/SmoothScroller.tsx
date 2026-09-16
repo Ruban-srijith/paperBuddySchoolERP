@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import Lenis from "@studio-freight/lenis";
+import Lenis from "lenis";
 
 export default function SmoothScroller({
   children,
@@ -15,7 +15,8 @@ export default function SmoothScroller({
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      touchMultiplier: 2,
+      syncTouch: false,
+      touchMultiplier: 1,
       infinite: false,
     });
 

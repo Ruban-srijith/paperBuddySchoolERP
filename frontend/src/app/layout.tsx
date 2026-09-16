@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
+import SmoothScroller from "@/components/SmoothScroller";
 
 export const metadata: Metadata = {
   title: "Genesis ERP - AI-Powered School Operations & ERP System",
@@ -50,7 +51,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen antialiased bg-[#EEF2F6] dark:bg-[#0b0f19] text-[#131313] dark:text-slate-100 transition-colors duration-200">
-        <ClientLayout>{children}</ClientLayout>
+        <SmoothScroller>
+          <ClientLayout>{children}</ClientLayout>
+        </SmoothScroller>
       </body>
     </html>
   );

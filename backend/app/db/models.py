@@ -87,7 +87,7 @@ class User(Base):
     role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.STUDENT)
     password_hash = Column(String(255), nullable=True)  # bcrypt hash
     department_id = Column(String(36), ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
-    assigned_grade = Column(String(20), nullable=True)  # e.g., "10", "LKG", "UKG"
+    assigned_grade = Column(String(100), nullable=True)  # e.g., "10", "Class 10-A", "Class Teacher (10-A)"
     phone = Column(String(20), nullable=True)
     roll_number = Column(String(50), nullable=True)
     admission_number = Column(String(50), nullable=True)

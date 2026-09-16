@@ -18,7 +18,11 @@ import {
 import { useAuthStore, ROLE_LABELS, ROLE_COLORS, ROLE_NAV_ITEMS, UserRole } from '@/store/authStore';
 import { ToastProvider } from '@/components/Toast';
 import PageLoader from '@/components/PageLoader';
-import BackgroundWallpaper from '@/components/BackgroundWallpaper';
+import dynamic from 'next/dynamic';
+
+const BackgroundWallpaper = dynamic(() => import('@/components/BackgroundWallpaper'), { 
+  ssr: false 
+});
 import CommandPalette from '@/components/CommandPalette';
 
 // Map nav item keys to their config
