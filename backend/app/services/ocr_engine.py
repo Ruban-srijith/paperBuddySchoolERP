@@ -1,22 +1,12 @@
-import asyncio
-from typing import Dict, Any, Tuple, Optional
-from .openrouter_service import openrouter_service
-from .ocr_service import ocr_service
+from typing import Dict, Any, Optional
+from .groq_service import groq_service
 
-class ExtractedFormMock:
-    def __init__(self, full_name: str, admission_number: str):
-        self.full_name = full_name
-        self.admission_number = admission_number
-
-class VisionModelResultMock:
-    def __init__(self, model_name: str):
-        self.model_name = model_name
 
 class OpenRouterOCREngine:
     """
     Unified AI Vision & OCR Engine for Student Profile Documents.
-    All document extraction, verification, and field audits are routed through
-    the real OCR pipeline and OpenRouter AI Vision Consensus.
+    All AI extraction is now routed through Groq Vision (llama-4-scout).
+    Local Tesseract OCR runs as the baseline; Groq enriches and verifies.
     """
 
     async def verify_student_document_with_ai(
@@ -28,32 +18,35 @@ class OpenRouterOCREngine:
         mother_name: Optional[str] = None,
         phone: Optional[str] = None,
         verified_aadhaar_data: Optional[Dict[str, Any]] = None,
-        filename: str = ""
+        filename: str = "",
     ) -> Dict[str, Any]:
         """
-        Runs AI Vision & OCR Consensus on uploaded Student Documents.
-        Cross-checks extracted document data against student profile.
+        Run Groq Vision + local OCR on a student document.
+        Extracts, cross-checks, and returns structured verification result.
         """
-        return await openrouter_service.verify_student_document(
+        # Infer mime type from filename extension
+        mime_type = "image/jpeg"
+        if filename:
+            ext = filename.lower().rsplit(".", 1)[-1]
+            mime_map = {
+                "pdf": "application/pdf",
+                "png": "image/png",
+                "jpg": "image/jpeg",
+                "jpeg": "image/jpeg",
+                "webp": "image/webp",
+            }
+            mime_type = mime_map.get(ext, "image/jpeg")
+
+        return await groq_service.verify_student_document(
             file_bytes=file_bytes,
             document_type=document_type,
             student_name=student_name,
             father_name=father_name,
             mother_name=mother_name,
             phone=phone,
-            verified_aadhaar_data=verified_aadhaar_data
+            verified_aadhaar_data=verified_aadhaar_data,
+            mime_type=mime_type,
         )
 
-    async def process_form(self, file_bytes: bytes):
-        """
-        Helper for OCR form processing.
-        """
-        extracted_text, fields, confidence = await openrouter_service.process_document_ocr(
-            file_bytes, role="student", document_type="profile_form"
-        )
-        extracted = ExtractedFormMock(full_name="Student User", admission_number="ADM-2026-001")
-        results = [VisionModelResultMock(model_name="PaperBuddy Vision Ensemble (Tesseract 5.5.1 + AI)")]
-        notes = "PaperBuddy OCR Verification Passed"
-        return extracted, results, notes
 
 ocr_engine = OpenRouterOCREngine()

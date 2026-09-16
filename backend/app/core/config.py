@@ -32,13 +32,23 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY", "898551657453688")
     CLOUDINARY_API_SECRET: str = os.getenv("CLOUDINARY_API_SECRET", "chjf-B2He5ceMCxFWgnwTQGy3n4")
 
-    # OpenRouter / OCR API Integration
+    # Groq Vision AI — Primary AI backend for document extraction
+    # Three keys are rotated automatically to avoid per-key rate limits
+    GROQ_API_KEY:   str = os.getenv("GROQ_API_KEY",   "")
+    GROQ_API_KEY_2: str = os.getenv("GROQ_API_KEY_2", "")
+    GROQ_API_KEY_3: str = os.getenv("GROQ_API_KEY_3", "")
+
+    def groq_api_keys(self) -> list[str]:
+        """Returns all configured, non-empty Groq API keys for rotation."""
+        return [k for k in [self.GROQ_API_KEY, self.GROQ_API_KEY_2, self.GROQ_API_KEY_3] if k.strip()]
+
+    # Legacy / unused — kept to avoid import errors during transition
     OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     OCR_API_KEY: str = os.getenv("OCR_API_KEY", "")
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "qwen/qwen3-vl-32b-instruct")
-    OPENROUTER_SITE_URL: str = os.getenv("OPENROUTER_SITE_URL", "https://paperbuddy.erp")
-    OPENROUTER_APP_NAME: str = os.getenv("OPENROUTER_APP_NAME", "PaperBuddy School ERP")
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "")
+    OPENROUTER_SITE_URL: str = os.getenv("OPENROUTER_SITE_URL", "")
+    OPENROUTER_APP_NAME: str = os.getenv("OPENROUTER_APP_NAME", "")
 
     # CORS: comma-separated list of allowed origins
     # e.g. ALLOWED_ORIGINS="https://app.paperbuddy.in,https://admin.paperbuddy.in"
