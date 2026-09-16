@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import Tilt3D from "@/components/Tilt3D";
+import InstallPWA from "@/components/InstallPWA";
 
 // Corner Arch SVG Line Ornament
 function CornerArchOrnament({ position = "tr" }: { position?: "tr" | "bl" | "br" }) {
@@ -67,10 +68,7 @@ export default function LandingPage() {
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <button className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#43634e]/50 hover:bg-[#43634e]/80 border border-[#f4f0e6]/25 text-xs font-bold text-[#f4f0e6] shadow-sm transition-colors">
-              <Download className="w-3.5 h-3.5 text-[#e8e2d3]" />
-              Download App
-            </button>
+            <InstallPWA variant="landing" className="hidden sm:inline-flex" />
             <Link
               href={isAuthenticated ? "/dashboard" : "/login"}
               className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full bg-[#f4f0e6] hover:bg-white text-[#16281e] text-xs font-extrabold transition-colors shadow-md"
@@ -90,7 +88,7 @@ export default function LandingPage() {
 
         {/* Mobile Nav Dropdown */}
         {mobileNavOpen && (
-          <div className="md:hidden mt-3 pb-3 border-t border-[#f4f0e6]/10 flex flex-col gap-1 pt-3">
+          <div className="md:hidden mt-3 pb-3 border-t border-[#f4f0e6]/10 flex flex-col gap-2 pt-3">
             {['#features', '#impact', '#testimonials', '#platform'].map((href) => (
               <a
                 key={href}
@@ -101,6 +99,9 @@ export default function LandingPage() {
                 {href.replace('#', '')}
               </a>
             ))}
+            <div className="pt-2 border-t border-[#f4f0e6]/10">
+              <InstallPWA variant="mobile" />
+            </div>
           </div>
         )}
       </nav>
