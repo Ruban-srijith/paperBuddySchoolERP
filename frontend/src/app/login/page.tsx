@@ -105,18 +105,16 @@ export default function LoginPage() {
   };
 
   const quickLogins = [
-    { label: 'Super Admin', email: 'superadmin@school.edu', icon: Crown, color: 'text-[#16281e]', bg: 'bg-amber-100 border-amber-300' },
-    { label: 'Platform Admin', email: 'platformadmin@paperbuddy.erp', icon: Laptop, color: 'text-[#16281e]', bg: 'bg-cyan-100 border-cyan-300' },
-    { label: 'Correspondent', email: 'correspondent@school.edu', icon: UserCheck, color: 'text-[#16281e]', bg: 'bg-purple-100 border-purple-300' },
-    { label: 'Principal', email: 'principal@school.edu', icon: GraduationCap, color: 'text-[#16281e]', bg: 'bg-rose-100 border-rose-300' },
-    { label: 'VP', email: 'vp@school.edu', icon: BarChart2, color: 'text-[#16281e]', bg: 'bg-blue-100 border-blue-300' },
-    { label: 'Teacher', email: 'sarah.connor@school.edu', icon: BookOpen, color: 'text-[#16281e]', bg: 'bg-emerald-100 border-emerald-300' },
-    { label: 'Mentor', email: 'mentor.10a@school.edu', icon: Users, color: 'text-[#16281e]', bg: 'bg-teal-100 border-teal-300' },
-    { label: 'Student', email: 'kishor.k@school.edu', icon: User, color: 'text-[#16281e]', bg: 'bg-indigo-100 border-indigo-300' },
-    { label: 'Finance', email: 'finance@school.edu', icon: Coins, color: 'text-[#16281e]', bg: 'bg-amber-100 border-amber-300' },
-    { label: 'Warden', email: 'warden@school.edu', icon: Home, color: 'text-[#16281e]', bg: 'bg-sky-100 border-sky-300' },
-    { label: 'Librarian', email: 'librarian@school.edu', icon: Book, color: 'text-[#16281e]', bg: 'bg-violet-100 border-violet-300' },
-    { label: 'Transport', email: 'transport@school.edu', icon: Bus, color: 'text-[#16281e]', bg: 'bg-emerald-100 border-emerald-300' },
+    { label: 'Super Admin',    email: 'superadmin@bharathischool.edu',   icon: Crown,          color: 'text-[#16281e]', bg: 'bg-amber-100 border-amber-300' },
+    { label: 'Correspondent',  email: 'correspondent@bharathischool.edu',icon: UserCheck,      color: 'text-[#16281e]', bg: 'bg-purple-100 border-purple-300' },
+    { label: 'Principal',      email: 'principal@bharathischool.edu',    icon: GraduationCap,  color: 'text-[#16281e]', bg: 'bg-rose-100 border-rose-300' },
+    { label: 'VP',             email: 'vp@bharathischool.edu',           icon: BarChart2,      color: 'text-[#16281e]', bg: 'bg-blue-100 border-blue-300' },
+    { label: 'Teacher',        email: 'teacher.annapoorani.emp1021@bharathischool.edu', icon: BookOpen, color: 'text-[#16281e]', bg: 'bg-emerald-100 border-emerald-300' },
+    { label: 'Student',        email: 'student.adm2024001@bharathischool.edu',          icon: User,    color: 'text-[#16281e]', bg: 'bg-indigo-100 border-indigo-300' },
+    { label: 'Finance',        email: 'finance@bharathischool.edu',      icon: Coins,          color: 'text-[#16281e]', bg: 'bg-amber-100 border-amber-300' },
+    { label: 'Warden',         email: 'warden@bharathischool.edu',       icon: Home,           color: 'text-[#16281e]', bg: 'bg-sky-100 border-sky-300' },
+    { label: 'Librarian',      email: 'librarian@bharathischool.edu',    icon: Book,           color: 'text-[#16281e]', bg: 'bg-violet-100 border-violet-300' },
+    { label: 'Transport',      email: 'transport@bharathischool.edu',    icon: Bus,            color: 'text-[#16281e]', bg: 'bg-emerald-100 border-emerald-300' },
   ];
 
   return (
