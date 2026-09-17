@@ -112,6 +112,93 @@ export default function BackgroundWallpaper() {
           <circle cx="300" cy="300" r="120" strokeDasharray="2 2" />
         </svg>
       </div>
+      {/* ─── 6. FLOATING OPTICAL MIRROR GLASSMORPHISM CARDS (BACKGROUND MIRROR MORPHISM) ─── */}
+      {/* Top-Left: Active Students */}
+      <div className="absolute top-[12%] left-[4%] hidden xl:block z-0 pointer-events-none anti-gravity-1">
+        <div className="glass-emerald-tile p-4 rounded-[20px] w-64 shadow-2xl backdrop-blur-xl border border-white/40">
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-[#182e22] border border-[#e8e2d3]/30 flex items-center justify-center text-[#e8e2d3] shadow-md">
+              <GraduationCap className="w-5 h-5 text-[#e8e2d3]" />
+            </div>
+            <div>
+              <div className="text-sm font-extrabold text-[#f4f0e6] tracking-tight font-syne">2,450+ <span className="text-[10px] font-normal text-[#a3c9b0]">Active</span></div>
+              <div className="text-[11px] font-bold text-[#a3c9b0]">Active Students</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mid-Left: AI OCR Evaluation */}
+      <div className="absolute top-[38%] left-[2%] hidden xl:block z-0 pointer-events-none anti-gravity-2">
+        <div className="glass-emerald-tile p-5 rounded-[22px] w-72 shadow-2xl backdrop-blur-2xl border border-white/40 space-y-2">
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-[10px] font-extrabold text-[#a3c9b0] uppercase tracking-widest font-mono">AI EVALUATION</span>
+            <Sparkles className="w-4 h-4 text-amber-300" />
+          </div>
+          <div className="text-sm font-extrabold text-[#f4f0e6] font-syne relative z-10">Autonomous OCR Grading</div>
+          <p className="text-[11px] text-[#a3c9b0] font-medium leading-relaxed relative z-10">
+            Real-time marks dispatch & analytics
+          </p>
+        </div>
+      </div>
+
+      {/* Bottom-Left: Encryption & Security */}
+      <div className="absolute bottom-[15%] left-[4%] hidden xl:block z-0 pointer-events-none anti-gravity-3">
+        <div className="glass-emerald-tile p-4 rounded-[20px] w-64 shadow-2xl backdrop-blur-xl border border-white/40">
+          <div className="text-[10px] font-mono text-[#a3c9b0] mb-1 font-bold relative z-10">SEC // TLS-256</div>
+          <div className="flex items-center gap-2.5 relative z-10">
+            <div className="w-8 h-8 rounded-lg bg-[#182e22] border border-[#e8e2d3]/30 flex items-center justify-center text-[#e8e2d3]">
+              <Lock className="w-4 h-4 text-[#e8e2d3]" />
+            </div>
+            <span className="text-xs font-extrabold text-[#f4f0e6] font-syne">End-to-End Encrypted</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Top-Right: Genesis ERP Version Badge */}
+      <div className="absolute top-[12%] right-[4%] hidden xl:block z-0 pointer-events-none anti-gravity-4">
+        <div className="glass-emerald-tile p-4 rounded-[20px] w-60 shadow-2xl backdrop-blur-xl border border-white/40">
+          <div className="flex items-center gap-2.5 relative z-10">
+            <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+            <span className="text-xs font-extrabold text-[#f4f0e6] font-syne">Genesis ERP</span>
+            <span className="text-[10px] font-mono text-[#a3c9b0] font-bold">v2.0</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Mid-Right: Live Attendance Indicator */}
+      <div className="absolute top-[38%] right-[2%] hidden xl:block z-0 pointer-events-none anti-gravity-1">
+        <div className="glass-emerald-tile p-5 rounded-[22px] w-72 shadow-2xl backdrop-blur-2xl border border-white/40 space-y-2">
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-[10px] font-extrabold text-[#a3c9b0] uppercase tracking-widest font-mono">ATTENDANCE LIVE</span>
+            <Activity className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div className="text-2xl font-extrabold text-[#f4f0e6] font-syne relative z-10">98.4%</div>
+          <div className="w-full h-1.5 rounded-full bg-[#12281b] overflow-hidden border border-[#a3c9b0]/20 relative z-10">
+            <div className="h-full bg-emerald-400 rounded-full w-[98.4%]" />
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom-Right: Campus Location Badge */}
+      <div className="absolute bottom-[15%] right-[4%] hidden xl:block z-0 pointer-events-none anti-gravity-2">
+        <div className="glass-emerald-tile p-4 rounded-[20px] w-64 shadow-2xl backdrop-blur-xl border border-white/40">
+          <div className="text-[10px] font-mono text-[#a3c9b0] mb-1 font-bold relative z-10">LOC // SEC-01</div>
+          <div className="flex items-center gap-2.5 relative z-10">
+            <div className="w-8 h-8 rounded-lg bg-[#182e22] border border-[#e8e2d3]/30 flex items-center justify-center text-[#e8e2d3]">
+              <Shield className="w-4 h-4 text-[#e8e2d3]" />
+            </div>
+            <span className="text-xs font-extrabold text-[#f4f0e6] font-syne">Genesis School ERP</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── 7. FLOATING AMBIENT DUST PARTICLES ──────────────────────────── */}
+      <div className="absolute top-[15%] left-[20%] w-2 h-2 rounded-full bg-[#e8e2d3]/40 blur-[1px] animate-pulse" />
+      <div className="absolute top-[45%] left-[12%] w-1.5 h-1.5 rounded-full bg-emerald-300/30 blur-[1px] animate-ping" />
+      <div className="absolute bottom-[30%] left-[25%] w-2 h-2 rounded-full bg-[#e8e2d3]/30 blur-[1px] animate-pulse" />
+      <div className="absolute top-[25%] right-[18%] w-1.5 h-1.5 rounded-full bg-amber-200/40 blur-[1px] animate-pulse" />
+      <div className="absolute bottom-[20%] right-[15%] w-2 h-2 rounded-full bg-emerald-400/30 blur-[1px] animate-pulse" />
     </div>
   );
 }

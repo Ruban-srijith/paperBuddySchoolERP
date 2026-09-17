@@ -427,7 +427,7 @@ function UsersPageContent() {
       u.created_at ? new Date(u.created_at).toLocaleDateString() : ''
     ]);
 
-    const filename = `paperbuddy_${activeTab}_directory_${new Date().toISOString().slice(0, 10)}.csv`;
+    const filename = `genesis_${activeTab}_directory_${new Date().toISOString().slice(0, 10)}.csv`;
     exportToCsv(filename, headers, rows);
     toast.success(`Exported ${processedUsers.length} records to ${filename}`, 'CSV Export Ready');
   };
@@ -1374,7 +1374,7 @@ function UsersPageContent() {
                     value={newUser.email} 
                     onChange={e => setNewUser({...newUser, email: e.target.value})}
                     required 
-                    placeholder="user@bharathischool.edu"
+                    placeholder="user@genesisschool.edu"
                     className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-brand-black font-mono text-xs focus:outline-none focus:border-indigo-500"
                   />
                 </div>
@@ -1538,7 +1538,7 @@ function UsersPageContent() {
 
 export default function UsersPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'vice_principal']}>
       <UsersPageContent />
     </ProtectedRoute>
   );

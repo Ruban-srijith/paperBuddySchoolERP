@@ -24,15 +24,24 @@ const nextConfig = {
   },
 };
 
-const withPWA = require("@ducanh2912/next-pwa").default({
-  dest: "public",
-  disable: false,
-  register: true,
-  skipWaiting: true,
-  workboxOptions: {
-    disableDevLogs: true,
-  },
-});
+let withPWA = (config) => config;
+try {
+  const pwaInit = require("@ducanh2912/next-pwa");
+  const pwaFunc = pwaInit.default || pwaInit;
+  if (typeof pwaFunc === 'function') {
+    withPWA = pwaFunc({
+      dest: "public",
+      disable: process.env.NODE_ENV === "development",
+      register: true,
+      skipWaiting: true,
+      workboxOptions: {
+        disableDevLogs: true,
+      },
+    });
+  }
+} catch (e) {
+  console.warn("Notice: @ducanh2912/next-pwa package not found, proceeding with standard next config.");
+}
 
 module.exports = withPWA(nextConfig);
 

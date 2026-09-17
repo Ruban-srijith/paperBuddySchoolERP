@@ -2,7 +2,7 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "PaperBuddy School Operations & ERP"
+    PROJECT_NAME: str = "Genesis School Operations & ERP"
     API_V1_STR: str = "/api/v1"
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL", 
@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     # MongoDB Settings (Local MongoDB)
     MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-    MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "paperbuddy_erp")
+    MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "genesis_erp")
 
     # JWT Authentication Settings
     SECRET_KEY: str = os.getenv("SECRET_KEY", "paperbuddy-super-secret-key-change-in-production-2026")

@@ -301,7 +301,7 @@ async def download_fee_receipt(
         raise HTTPException(status_code=403, detail="You can only download your own receipts")
 
     receipt_data = {
-        "institution": "PaperBuddy International Academy",
+        "institution": "Genesis International Academy",
         "receipt_number": payment.receipt_number,
         "transaction_id": payment.transaction_id,
         "date": payment.created_at.strftime("%Y-%m-%d %H:%M:%S UTC"),

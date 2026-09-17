@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: paperbuddy-backend
+    name: genesis-backend
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
@@ -11,7 +11,7 @@ services:
       - key: MONGODB_URL
         value: mongodb://localhost:27017 # Optional dev/seed database (Not required for production)
       - key: MONGODB_DB_NAME
-        value: paperbuddy_erp
+        value: genesis_erp
       - key: SECRET_KEY
         sync: false   # Set manually in Render Dashboard
       - key: ALGORITHM
