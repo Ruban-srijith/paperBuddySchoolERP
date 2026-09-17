@@ -54,8 +54,28 @@ async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate user with email + password and return JWT token."""
     email_clean = (req.email or "").strip().lower()
 
-    result = await db.execute(select(User).where(func.lower(User.email) == email_clean))
-    user = result.scalars().first()
+    user = None
+    for attempt in range(2):
+        try:
+            result = await db.execute(select(User).where(func.lower(User.email) == email_clean))
+            user = result.scalars().first()
+
+            # Fallback: cross-domain matching between @school.edu and @bharathischool.edu
+            if not user:
+                if email_clean.endswith("@school.edu"):
+                    alt_email = email_clean.replace("@school.edu", "@bharathischool.edu")
+                    res_alt = await db.execute(select(User).where(func.lower(User.email) == alt_email))
+                    user = res_alt.scalars().first()
+                elif email_clean.endswith("@bharathischool.edu"):
+                    alt_email = email_clean.replace("@bharathischool.edu", "@school.edu")
+                    res_alt = await db.execute(select(User).where(func.lower(User.email) == alt_email))
+                    user = res_alt.scalars().first()
+            break
+        except Exception:
+            if attempt == 0:
+                await asyncio.sleep(0.3)
+                continue
+            raise
 
     if not user or not user.password_hash or not verify_password(req.password, user.password_hash):
         raise HTTPException(

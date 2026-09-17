@@ -23,6 +23,9 @@ def _build_engine(raw_url: str):
     is_sqlite = "sqlite" in db_url
     is_postgres = "postgresql+asyncpg" in db_url
 
+    if is_postgres and "neon.tech" in db_url and "-pooler." in db_url:
+        db_url = db_url.replace("-pooler.", ".")
+
     connect_args = {}
     if is_postgres:
         parsed = urlparse(db_url)
@@ -37,17 +40,27 @@ def _build_engine(raw_url: str):
             ctx = _ssl.create_default_context()
             ctx.check_hostname = False
             ctx.verify_mode = _ssl.CERT_NONE
-            connect_args = {"ssl": ctx}
+            connect_args = {
+                "ssl": ctx,
+                "statement_cache_size": 0,
+                "prepared_statement_cache_size": 0,
+            }
     elif is_sqlite:
         connect_args = {"check_same_thread": False}
 
     try:
-        return create_async_engine(
-            db_url,
-            echo=False,
-            future=True,
-            connect_args=connect_args,
-        )
+        engine_kwargs: dict = {
+            "echo": False,
+            "future": True,
+            "connect_args": connect_args,
+        }
+        if is_postgres:
+            engine_kwargs["pool_pre_ping"] = True
+            engine_kwargs["pool_recycle"] = 300
+            engine_kwargs["pool_size"] = 10
+            engine_kwargs["max_overflow"] = 20
+
+        return create_async_engine(db_url, **engine_kwargs)
     except Exception as err:
         logger.error(f"Failed to create engine with URL '{db_url}': {err}. Falling back to SQLite.")
         return create_async_engine(

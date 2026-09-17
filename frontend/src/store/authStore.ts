@@ -326,7 +326,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const apiBase = getApiBaseUrl();
     try {
       const cleanEmail = (email || '').trim().toLowerCase();
-      const response = await axios.post(`${apiBase}/auth/login`, { email: cleanEmail, password });
+      let response;
+      try {
+        response = await axios.post(`${apiBase}/auth/login`, { email: cleanEmail, password });
+      } catch (firstErr: any) {
+        // Retry once on transient network drop or 500 server wake-up error
+        if (!firstErr.response || firstErr.response.status >= 500) {
+          await new Promise((r) => setTimeout(r, 600));
+          response = await axios.post(`${apiBase}/auth/login`, { email: cleanEmail, password });
+        } else {
+          throw firstErr;
+        }
+      }
       const data = response.data;
 
       const user: AuthUser = {
