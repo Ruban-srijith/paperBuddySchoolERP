@@ -165,7 +165,7 @@ function SuperAdminDashboardContent() {
   const [schoolQuotas, setSchoolQuotas] = useState<SchoolAIQuota[]>([
     {
       id: '1',
-      schoolName: 'Bharathi Matriculation Higher Secondary School',
+      schoolName: 'Genesis International School',
       monthlyScanLimit: 2000,
       activeOcrModel: 'Gemini Flash',
       scansUsed: 1450,
@@ -200,20 +200,20 @@ function SuperAdminDashboardContent() {
 
   // Mock static data for other tabs
   const [admins, setAdmins] = useState<AdminData[]>([
-    { id: '1', name: 'Dr. Raghavan Nair', username: 'principal101', college: 'Bharathi Matriculation', status: 'Changed', created: '2026-07-21' },
-    { id: '2', name: 'Mrs. Gayatri Varma', username: 'vp_gayatri', college: 'Bharathi Matriculation', status: 'Pending Change', created: '2026-07-25' },
+    { id: '1', name: 'Dr. Raghavan Nair', username: 'principal101', college: 'Genesis International', status: 'Changed', created: '2026-07-21' },
+    { id: '2', name: 'Mrs. Gayatri Varma', username: 'vp_gayatri', college: 'Genesis International', status: 'Pending Change', created: '2026-07-25' },
     { id: '3', name: 'Dr. John Miller', username: 'dps_admin', college: 'Delhi Public International', status: 'Changed', created: '2026-07-06' },
   ]);
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([
-    { timestamp: '2026-08-18 10:14 PM', action: 'UPDATED_AI_ACCESS', details: 'AI models enabled for Bharathi Matriculation', actor: 'Founder', tenant: 'BMHSS' },
+    { timestamp: '2026-08-18 10:14 PM', action: 'UPDATED_AI_ACCESS', details: 'AI models enabled for Genesis International', actor: 'Founder', tenant: 'GIS' },
     { timestamp: '2026-08-18 09:44 PM', action: 'PROVISION_ADMIN', details: 'Assigned Principal account to Dr. Raghavan Nair', actor: 'Founder', tenant: 'BMHSS' },
     { timestamp: '2026-08-17 04:12 PM', action: 'PROVISION_TENANT', details: 'Onboarded Delhi Public International School', actor: 'System Auto', tenant: 'DPIS' },
     { timestamp: '2026-08-15 08:00 AM', action: 'CONFIG_PAYMENT_GATEWAY', details: 'Verified central UPI platform gateway settlement credentials', actor: 'Founder', tenant: 'GLOBAL' },
   ]);
 
   const [payments, setPayments] = useState<PaymentRecord[]>([
-    { college: 'Bharathi Matriculation', mode: 'Central Platform', platform: 9013165, own: 0, cash: 312300, total: 9325465, balance: 112300 },
+    { college: 'Genesis International', mode: 'Central Platform', platform: 9013165, own: 0, cash: 312300, total: 9325465, balance: 112300 },
     { college: 'Delhi Public School', mode: 'Central Platform', platform: 4500000, own: 0, cash: 120000, total: 4620000, balance: 85000 },
     { college: 'St. Xavier Academy', mode: 'Central Platform', platform: 3200000, own: 0, cash: 95000, total: 3295000, balance: 0 },
   ]);

@@ -4,8 +4,6 @@ import { getApiBaseUrl } from '@/lib/config';
 
 export type UserRole = 
   | 'super_admin' 
-  | 'platform_super_admin'
-  | 'platform_support'
   | 'correspondent'
   | 'principal' 
   | 'vice_principal'
@@ -22,7 +20,7 @@ export interface AuthUser {
   email: string;
   full_name: string;
   role: UserRole;
-  platform_role?: 'platform_super_admin' | 'platform_support' | string | null;
+  platform_role?: string | null;
   roles: string[];
   permissions: string[];
   school_id?: string | null;
@@ -54,8 +52,6 @@ interface AuthState {
 // Role display names for UI
 export const ROLE_LABELS: Record<UserRole, string> = {
   super_admin: 'Founder / Super Admin',
-  platform_super_admin: 'Platform Super Admin',
-  platform_support: 'Platform Support',
   correspondent: 'Correspondent',
   principal: 'Principal',
   vice_principal: 'Vice-Principal',
@@ -71,8 +67,6 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 // Role colors for badges
 export const ROLE_COLORS: Record<UserRole, string> = {
   super_admin: 'from-fuchsia-500 to-purple-600',
-  platform_super_admin: 'from-amber-400 to-orange-500',
-  platform_support: 'from-cyan-400 to-blue-500',
   correspondent: 'from-amber-500 to-red-500',
   principal: 'from-amber-500 to-yellow-500',
   vice_principal: 'from-blue-600 to-cyan-500',
@@ -273,21 +267,6 @@ export const ROLE_NAV_ITEMS: Record<UserRole, string[]> = {
     'librarian_digital',
     'librarian_requests'
   ],
-  platform_super_admin: [
-    'dashboard',
-    'superadmin_analytics',
-    'superadmin_colleges',
-    'superadmin_admins',
-    'superadmin_logs',
-    'superadmin_payments',
-    'superadmin_broadcasts',
-    'superadmin_aiconfig'
-  ],
-  platform_support: [
-    'dashboard',
-    'superadmin_logs',
-    'superadmin_broadcasts'
-  ],
   transport: [
     'transport_dashboard',
     'transport_fleet',
@@ -307,7 +286,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hasPermission: (permissionCode: string) => {
     const user = get().user;
     if (!user) return false;
-    if (user.platform_role === 'platform_super_admin' || (user.permissions && user.permissions.includes('*'))) {
+    if (user.permissions && user.permissions.includes('*')) {
       return true;
     }
     return user.permissions ? user.permissions.includes(permissionCode) : false;
@@ -316,7 +295,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hasAnyRole: (roleCodes: string[]) => {
     const user = get().user;
     if (!user) return false;
-    if (user.platform_role === 'platform_super_admin' || user.role === 'platform_super_admin') return true;
     if (user.roles && user.roles.some(r => roleCodes.includes(r))) return true;
     return roleCodes.includes(user.role);
   },

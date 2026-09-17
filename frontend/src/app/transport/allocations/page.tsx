@@ -188,7 +188,7 @@ export default function StudentAllocationsPage() {
         a.drop_time || "04:30 PM",
         a.monthly_fee !== undefined ? `₹${a.monthly_fee}` : "₹1,200",
         (a.status || "active").toUpperCase(),
-        a.school_name || "Bharathi Matriculation Higher Secondary School"
+        a.school_name || "Genesis International School"
       ]);
 
       const headerRow = headers.map(escapeCell).join(",");
@@ -883,7 +883,7 @@ export default function StudentAllocationsPage() {
                       <Bus className="w-4 h-4" />
                     </div>
                     <span className="font-extrabold tracking-wider text-xs uppercase text-amber-300">
-                      {selectedPass.school_name || "BHARATHI MATRICULATION HR. SEC. SCHOOL"}
+                      {selectedPass.school_name || "GENESIS INTERNATIONAL SCHOOL"}
                     </span>
                   </div>
                   <div className="text-[10px] tracking-widest text-slate-300 font-medium uppercase">

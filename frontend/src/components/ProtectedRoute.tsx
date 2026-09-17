@@ -10,14 +10,12 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: UserRole[];
   requiredPermission?: string;
-  requirePlatformAdmin?: boolean;
 }
 
 export default function ProtectedRoute({
   children,
   allowedRoles,
   requiredPermission,
-  requirePlatformAdmin = false
 }: ProtectedRouteProps) {
   const router = useRouter();
   const { isAuthenticated, user, checkAuth, hasPermission, hasAnyRole } = useAuthStore();
@@ -36,11 +34,6 @@ export default function ProtectedRoute({
 
   if (!hasChecked || !isAuthenticated || !user) {
     return <PageLoader />;
-  }
-
-  if (requirePlatformAdmin && user.platform_role !== 'platform_super_admin') {
-    router.replace('/dashboard');
-    return null;
   }
 
   if (requiredPermission && !hasPermission(requiredPermission)) {

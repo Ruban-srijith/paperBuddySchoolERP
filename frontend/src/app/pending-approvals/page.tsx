@@ -62,7 +62,7 @@ export default function PendingApprovalsPage() {
   const getStoredStatuses = (): Record<string, "pending" | "approved" | "rejected"> => {
     if (typeof window === "undefined") return {};
     try {
-      const saved = localStorage.getItem("paperbuddy_pending_approvals_status");
+      const saved = localStorage.getItem("genesis_pending_approvals_status");
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
@@ -74,7 +74,7 @@ export default function PendingApprovalsPage() {
     try {
       const current = getStoredStatuses();
       current[id] = status;
-      localStorage.setItem("paperbuddy_pending_approvals_status", JSON.stringify(current));
+      localStorage.setItem("genesis_pending_approvals_status", JSON.stringify(current));
     } catch (e) {
       console.error("Failed to save status locally", e);
     }
