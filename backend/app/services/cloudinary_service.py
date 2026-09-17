@@ -18,7 +18,7 @@ cloudinary.config(
 
 async def upload_file_to_cloudinary(
     file_data: bytes | str,
-    folder: str = "paperbuddy_documents",
+    folder: str = "genesis_documents",
     public_id: str | None = None
 ) -> str:
     """
