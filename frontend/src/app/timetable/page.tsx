@@ -68,13 +68,33 @@ export default function TimetablePage() {
 
   // Teachers directory
   const teachers = [
-    { id: "t1111111-1111-1111-1111-111111111111", name: "Dr. Sarah Connor", subject: "Science" },
-    { id: "t2222222-2222-2222-2222-222222222222", name: "Prof. Alan Turing", subject: "Mathematics" },
-    { id: "t3333333-3333-3333-3333-333333333333", name: "Dr. Marie Curie", subject: "Chemistry" },
-    { id: "t4444444-4444-4444-4444-444444444444", name: "Alex Mercer", subject: "Computer Science" },
-    { id: "de111111-1111-1111-1111-111111111111", name: "Prof. Venkat Raman", subject: "Physics" },
-    { id: "dh111111-1111-1111-1111-111111111111", name: "Dr. Lakshmi Iyer", subject: "English Language" },
-    { id: "dh222222-2222-2222-2222-222222222222", name: "Prof. Suresh Babu", subject: "Social Science" },
+    { id: "cd54a593-d67b-49d8-9477-c3d60fdc4ca1", name: "Dr. Sarah Connor", subject: "Science" },
+    { id: "0dc69666-54d5-412b-9c9d-2b9273ab8077", name: "Prof. Alan Turing", subject: "Mathematics" },
+    { id: "9ac7ef9a-30c3-40b9-84f8-6b0c98c609c1", name: "Dr. Marie Curie", subject: "Chemistry" },
+    { id: "857f735e-e570-433b-9d4e-28629f24383b", name: "Alex Mercer", subject: "Computer Science" },
+    { id: "b6416709-b49b-428b-86a1-f4b15e1f9948", name: "Prof. Venkat Raman", subject: "Physics" },
+    { id: "9166eeb8-28e8-4310-afee-f866981491f5", name: "Dr. Lakshmi Iyer", subject: "English Language" },
+    { id: "28cd22b3-ea01-4b49-a7c7-ade3949a701c", name: "Prof. Suresh Babu", subject: "Social Science" },
+    { id: "7e00866b-1e78-41cd-8894-ebeb3ad5b89d", name: "Mr. K. Sundaram", subject: "Tamil Language" },
+    { id: "98c9a947-6d8e-4f97-90da-46ded35306c9", name: "Mr. P. Murugan", subject: "Tamil Language" },
+    { id: "433e738d-1040-4a6e-acb0-434a55c99a82", name: "Mrs. S. Radhika", subject: "English Literature" },
+    { id: "348f8f81-4ca8-4979-9ca1-2803b289709f", name: "Mrs. Geetha Swaminathan", subject: "Mathematics" },
+    { id: "f043fcbb-525d-4079-a804-ab112ec23d72", name: "Coach Rajesh V.", subject: "Physical Education" },
+    { id: "9332f6ef-1e57-4ae1-a301-5f126d7985df", name: "Mrs. Priya Raman", subject: "English & Phonics" },
+    { id: "cf0f3b7f-821a-4570-b30d-a085c8fe3e12", name: "Ms. Anitha Raj", subject: "Basic Numbers" },
+    { id: "661b51ae-095f-4fe3-bd5a-34448b55fc5f", name: "Mrs. Shalini Gupta", subject: "Environmental Awareness" },
+    { id: "84f7fa65-0a0c-4f0f-b387-5cfa61d502a7", name: "Mrs. Deepa Krishnan", subject: "Rhymes & Storytelling" },
+    { id: "21270b89-193d-4e01-b04d-62688fcfad45", name: "Ms. Kavitha Sundar", subject: "Drawing & Craft" },
+    { id: "8b38cad5-c1aa-42e8-b00e-74960fe8c320", name: "Mr. Vignesh Kumar", subject: "Play Activity" },
+    { id: "857da175-8743-44d6-87b1-f645cf541cee", name: "Mr. Karthik Narayanan", subject: "Information Technology" },
+    { id: "2621f4f1-41ef-4413-9b73-54aa4aadb703", name: "Mrs. Malini Devi", subject: "Practical Lab" },
+    { id: "3312997e-f3b6-434f-b82d-3890d9994062", name: "Mrs. Revathi Mohan", subject: "Environmental Studies" },
+    { id: "1e88ac82-9141-4e0a-a2a2-3471037376c6", name: "Dr. Aruna Swaminathan", subject: "Biology" },
+    { id: "3411be66-b203-4e61-a102-100f04676cbe", name: "Mrs. Sunita Sharma", subject: "Basic Numbers" },
+    { id: "b64f3260-db63-4c3a-909b-d4ff72de1a00", name: "Mrs. Meena Kumari", subject: "Environmental Awareness" },
+    { id: "0647b6d9-7009-4508-b6e5-ad61cb833a3c", name: "Soundarya", subject: "Rhymes & Storytelling" },
+    { id: "7b92ef57-f2a8-4578-97fa-0ea2645e9525", name: "Vijayalakshmi", subject: "Drawing & Craft" },
+    { id: "77efe8bf-0b54-4be5-b5e8-8a4449ef8633", name: "Parimalam", subject: "Play Activity" },
   ];
 
   const isSubAdmin = user && ['vice_principal'].includes(user.role?.toLowerCase() || '');
@@ -174,42 +194,103 @@ export default function TimetablePage() {
   };
 
   const generateGradeDemoSchedule = (grade: string, sec: string, offset: number = generationOffset): TimetableSlot[] => {
-    let subjects = ["English Language", "Mathematics", "Science", "Social Studies", "Computer Science", "Tamil", "Physical Ed"];
     const normGrade = grade.toUpperCase().replace("GRADE ", "");
 
-    if (["LKG", "UKG"].includes(normGrade)) {
-      subjects = ["English & Phonics", "Basic Numbers", "Environmental Awareness", "Rhymes & Storytelling", "Drawing & Craft", "Play Activity"];
-    } else if (["1", "2", "3", "4", "5"].includes(normGrade)) {
-      subjects = ["English Language", "Tamil", "Mathematics", "Environmental Studies (EVS)", "Computer Basics", "General Knowledge", "Physical Education"];
-    } else if (["6", "7", "8"].includes(normGrade)) {
-      subjects = ["English Literature", "Tamil", "Mathematics", "General Science", "Social Science", "Computer Science", "Hindi"];
-    } else if (["9", "10"].includes(normGrade)) {
-      subjects = ["English Language", "Tamil", "Mathematics", "Science (Phy/Chem/Bio)", "Social Science", "Information Technology", "Physical Education"];
-    } else if (["11", "12"].includes(normGrade)) {
-      subjects = ["Physics", "Chemistry", "Higher Mathematics", "Computer Science", "English Core", "Biology / Accountancy", "Practical Lab"];
+    interface SubjectTeacherConfig {
+      subject: string;
+      teacher: { id: string; name: string; subject: string };
+      room: string;
     }
 
-    const classRooms = ["Room 101", "Room 102", "Science Lab", "Computer Lab 1", "Activity Hall", "Main Ground"];
+    let curriculum: SubjectTeacherConfig[] = [];
+
+    if (normGrade === "LKG") {
+      curriculum = [
+        { subject: "English & Phonics", teacher: teachers.find(t => t.name === "Mrs. Priya Raman") || teachers[12], room: "Activity Hall" },
+        { subject: "Basic Numbers", teacher: teachers.find(t => t.name === "Ms. Anitha Raj") || teachers[13], room: "KG Room 1" },
+        { subject: "Environmental Awareness", teacher: teachers.find(t => t.name === "Mrs. Shalini Gupta") || teachers[14], room: "KG Room 2" },
+        { subject: "Rhymes & Storytelling", teacher: teachers.find(t => t.name === "Mrs. Deepa Krishnan") || teachers[15], room: "Activity Hall" },
+        { subject: "Drawing & Craft", teacher: teachers.find(t => t.name === "Ms. Kavitha Sundar") || teachers[16], room: "Art Studio" },
+        { subject: "Play Activity", teacher: teachers.find(t => t.name === "Mr. Vignesh Kumar") || teachers[17], room: "KG Playground" },
+      ];
+    } else if (normGrade === "UKG") {
+      curriculum = [
+        { subject: "English & Phonics", teacher: teachers.find(t => t.name === "Mrs. Revathi Mohan") || teachers[20], room: "Activity Hall" },
+        { subject: "Basic Numbers", teacher: teachers.find(t => t.name === "Mrs. Sunita Sharma") || teachers[22], room: "KG Room 1" },
+        { subject: "Environmental Awareness", teacher: teachers.find(t => t.name === "Mrs. Meena Kumari") || teachers[23], room: "KG Room 2" },
+        { subject: "Rhymes & Storytelling", teacher: teachers.find(t => t.name === "Soundarya") || teachers[24], room: "Activity Hall" },
+        { subject: "Drawing & Craft", teacher: teachers.find(t => t.name === "Vijayalakshmi") || teachers[25], room: "Art Studio" },
+        { subject: "Play Activity", teacher: teachers.find(t => t.name === "Parimalam") || teachers[26], room: "KG Playground" },
+      ];
+    } else if (["1", "2", "3", "4", "5"].includes(normGrade)) {
+      curriculum = [
+        { subject: "English Language", teacher: teachers.find(t => t.name === "Dr. Lakshmi Iyer") || teachers[5], room: `Room ${grade}-${sec}` },
+        { subject: "Tamil Language", teacher: teachers.find(t => t.name === "Mr. K. Sundaram") || teachers[7], room: `Room ${grade}-${sec}` },
+        { subject: "Mathematics", teacher: teachers.find(t => t.name === "Prof. Alan Turing") || teachers[1], room: `Room ${grade}-${sec}` },
+        { subject: "Environmental Studies (EVS)", teacher: teachers.find(t => t.name === "Mrs. Revathi Mohan") || teachers[20], room: `Room ${grade}-${sec}` },
+        { subject: "Computer Basics", teacher: teachers.find(t => t.name === "Alex Mercer") || teachers[3], room: "Computer Lab 1" },
+        { subject: "Physical Education", teacher: teachers.find(t => t.name === "Coach Rajesh V.") || teachers[11], room: "Main Ground" },
+      ];
+    } else if (["6", "7", "8"].includes(normGrade)) {
+      curriculum = [
+        { subject: "English Literature", teacher: teachers.find(t => t.name === "Mrs. S. Radhika") || teachers[9], room: `Room ${grade}-${sec}` },
+        { subject: "Tamil Language", teacher: teachers.find(t => t.name === "Mr. P. Murugan") || teachers[8], room: `Room ${grade}-${sec}` },
+        { subject: "Mathematics", teacher: teachers.find(t => t.name === "Mrs. Geetha Swaminathan") || teachers[10], room: `Room ${grade}-${sec}` },
+        { subject: "General Science", teacher: teachers.find(t => t.name === "Dr. Sarah Connor") || teachers[0], room: "Science Lab" },
+        { subject: "Social Science", teacher: teachers.find(t => t.name === "Prof. Suresh Babu") || teachers[6], room: `Room ${grade}-${sec}` },
+        { subject: "Computer Science", teacher: teachers.find(t => t.name === "Alex Mercer") || teachers[3], room: "Computer Lab 1" },
+      ];
+    } else if (["9", "10"].includes(normGrade)) {
+      curriculum = [
+        { subject: "English Language", teacher: teachers.find(t => t.name === "Dr. Lakshmi Iyer") || teachers[5], room: `Room ${grade}-${sec}` },
+        { subject: "Tamil Language", teacher: teachers.find(t => t.name === "Mr. P. Murugan") || teachers[8], room: `Room ${grade}-${sec}` },
+        { subject: "Mathematics", teacher: teachers.find(t => t.name === "Prof. Alan Turing") || teachers[1], room: `Room ${grade}-${sec}` },
+        { subject: "Science (Phy/Chem/Bio)", teacher: teachers.find(t => t.name === "Dr. Sarah Connor") || teachers[0], room: "Science Lab" },
+        { subject: "Social Science", teacher: teachers.find(t => t.name === "Prof. Suresh Babu") || teachers[6], room: `Room ${grade}-${sec}` },
+        { subject: "Information Technology", teacher: teachers.find(t => t.name === "Mr. Karthik Narayanan") || teachers[18], room: "Computer Lab 1" },
+      ];
+    } else {
+      curriculum = [
+        { subject: "Physics", teacher: teachers.find(t => t.name === "Prof. Venkat Raman") || teachers[4], room: "Physics Lab" },
+        { subject: "Chemistry", teacher: teachers.find(t => t.name === "Dr. Marie Curie") || teachers[2], room: "Chem Lab 2" },
+        { subject: "Higher Mathematics", teacher: teachers.find(t => t.name === "Prof. Alan Turing") || teachers[1], room: `Room ${grade}-${sec}` },
+        { subject: "Computer Science", teacher: teachers.find(t => t.name === "Alex Mercer") || teachers[3], room: "Computer Lab 1" },
+        { subject: "English Core", teacher: teachers.find(t => t.name === "Mrs. S. Radhika") || teachers[9], room: `Room ${grade}-${sec}` },
+        { subject: "Practical Lab", teacher: teachers.find(t => t.name === "Mrs. Malini Devi") || teachers[19], room: "Science Lab" },
+      ];
+    }
+
+    // If section B (or section other than A), assign alternative distinct teachers from the faculty roster
+    // so no teacher is repeated across subjects in that section either!
+    if (sec.toUpperCase() === "B") {
+      const bOffset = 7;
+      curriculum = curriculum.map((item, idx) => ({
+        ...item,
+        teacher: teachers[(idx + bOffset) % teachers.length],
+      }));
+    }
+
     const slots: TimetableSlot[] = [];
     let id = 1;
 
+    // Distribute 6 distinct subjects/teachers across the 6 daily slots with balanced daily rotation
     DAYS.forEach((day, dIdx) => {
       TIME_SLOTS.slice(0, 6).forEach((slot, sIdx) => {
-        const tObj = teachers[(dIdx + sIdx + offset) % teachers.length];
-        const sub = subjects[(dIdx * 2 + sIdx + offset) % subjects.length];
-        const room = classRooms[(dIdx + sIdx + offset) % classRooms.length];
+        const itemIdx = (sIdx + dIdx) % curriculum.length;
+        const cur = curriculum[itemIdx];
         slots.push({
           id: `${grade}-${sec}-${id++}`,
           class_name: `${grade}-${sec}`,
-          teacher_id: tObj.id,
-          teacher_name: tObj.name,
-          subject_name: sub,
-          classroom_name: room,
+          teacher_id: cur.teacher.id,
+          teacher_name: cur.teacher.name,
+          subject_name: cur.subject,
+          classroom_name: cur.room,
           day_of_week: day,
           time_slot: slot,
         });
       });
     });
+
     return slots;
   };
 
@@ -430,11 +511,14 @@ export default function TimetablePage() {
                   <label className="text-[11px] font-bold uppercase text-[#a3c9b0] tracking-wider">Select Grade Level (LKG - 12th)</label>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[#a3c9b0] font-semibold">Section:</span>
-                    {SECTIONS.map(sec => (
+                    {(["11", "12"].includes(selectedGrade.toUpperCase().replace("GRADE ", ""))
+                      ? ["A", "B", "PCM-CS", "BioPCM", "Commerce"]
+                      : SECTIONS
+                    ).map(sec => (
                       <button
                         key={sec}
                         onClick={() => setSelectedSection(sec)}
-                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                        className={`px-2.5 h-7 min-w-[28px] rounded-lg text-xs font-bold transition-all ${
                           selectedSection === sec
                             ? "bg-[#e5c158] text-[#0f1c15] shadow-md"
                             : "bg-black/30 text-[#a3c9b0] hover:bg-white/10"

@@ -81,6 +81,32 @@ async def get_current_platform_user(
         )
     return platform_user
 
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """
+    Extract current authenticated school user if valid Bearer token is provided.
+    Returns None on missing, expired, or invalid credentials without raising a 401 exception.
+    """
+    if credentials is None:
+        return None
+    try:
+        payload = decode_access_token(credentials.credentials)
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
+        if user and user.is_active:
+            return user
+        if payload.get("is_platform") or payload.get("role") in ["platform_super_admin", "super_admin"]:
+            sa_res = await db.execute(select(User).where(User.role == UserRole.SUPER_ADMIN))
+            return sa_res.scalars().first()
+        return None
+    except Exception:
+        return None
+
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db),

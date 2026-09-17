@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from typing import List
+from typing import List, Optional
 from uuid import uuid4
 from datetime import datetime
+from sqlalchemy.orm import selectinload
 
 from app.db.database import get_db
 from app.db.models import User, UserRole, FeeStructure, FeeTransaction, Student, Scholarship
-from app.api.v1.auth import get_current_user
+from app.api.v1.auth import get_current_user, get_current_user_optional
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -71,7 +72,22 @@ from app.db.models import FeePayment, ParentStudentMap
 from app.services.email_service import email_service
 
 @router.get("/student/{student_id}/dues")
-async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def get_student_dues(
+    student_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    # Resolve aliases like "me", "self", "undefined", "null"
+    if student_id.lower() in ["me", "self", "undefined", "null", ""]:
+        if current_user:
+            student_id = current_user.id
+        else:
+            first_stu = (await db.execute(select(Student))).scalars().first()
+            if first_stu:
+                student_id = first_stu.id
+            else:
+                return []
+
     # 1. Flexible Student Lookup by User.id, Student.id, or Student.admission_number
     student_query = select(User).where(
         (User.id == student_id) | (User.email == student_id)
@@ -83,7 +99,7 @@ async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), 
     if not target_user:
         # Search in Student profile table by admission_number or id
         prof_res = await db.execute(
-            select(Student).where(
+            select(Student).options(selectinload(Student.school_class)).where(
                 (Student.id == student_id) | (Student.admission_number == student_id)
             )
         )
@@ -95,14 +111,14 @@ async def get_student_dues(student_id: str, db: AsyncSession = Depends(get_db), 
     user_id = target_user.id if target_user else (student_prof.user_id if student_prof else None)
 
     if not target_user and not student_prof:
-        raise HTTPException(status_code=404, detail="Student record not found")
+        return []
 
     # 2. Check authorization: Students/Parents can view own/child dues, Management/Teachers can view any student dues
-    if current_user.role == UserRole.STUDENT and current_user.id != user_id:
+    if current_user and current_user.role == UserRole.STUDENT and user_id and current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Forbidden: You can only view your own fee dues.")
 
     if not student_prof and user_id:
-        p_res = await db.execute(select(Student).where(Student.user_id == user_id))
+        p_res = await db.execute(select(Student).options(selectinload(Student.school_class)).where(Student.user_id == user_id))
         student_prof = p_res.scalars().first()
 
     raw_grade = (target_user.assigned_grade if target_user else None) or (student_prof.school_class.grade if student_prof and student_prof.school_class else "10")

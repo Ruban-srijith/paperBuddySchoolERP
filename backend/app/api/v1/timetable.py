@@ -57,6 +57,18 @@ STANDARD_TEACHERS = [
     ("Mrs. Priya Raman", "priya.raman@school.edu"),
     ("Ms. Anitha Raj", "anitha.raj@school.edu"),
     ("Mrs. Shalini Gupta", "shalini.gupta@school.edu"),
+    ("Mrs. Deepa Krishnan", "deepa.krishnan@school.edu"),
+    ("Ms. Kavitha Sundar", "kavitha.sundar@school.edu"),
+    ("Mr. Vignesh Kumar", "vignesh.kumar@school.edu"),
+    ("Mrs. Revathi Mohan", "revathi.mohan@school.edu"),
+    ("Mrs. Sunita Sharma", "sunita.sharma@school.edu"),
+    ("Mrs. Meena Kumari", "meena.kumari@school.edu"),
+    ("Soundarya", "teacher.soundarya.emp1031@bharathischool.edu"),
+    ("Vijayalakshmi", "teacher.vijayalakshmi.emp1038@bharathischool.edu"),
+    ("Parimalam", "teacher.parimalam.emp1041@bharathischool.edu"),
+    ("Mr. Karthik Narayanan", "karthik.n@school.edu"),
+    ("Mrs. Malini Devi", "malini.devi@school.edu"),
+    ("Dr. Aruna Swaminathan", "aruna.s@school.edu"),
 ]
 
 async def _ensure_prerequisites(db: AsyncSession):
@@ -299,19 +311,31 @@ async def get_class_timetable(
     res = await db.execute(query)
     entries = res.scalars().all()
 
-    # Filter matching class
+    # Filter matching class:
+    # 1. Exact match for grade-section (e.g., "10-A", "10-B", "12-BioPCM")
     matching = [
         e for e in entries
-        if e.school_class and (
-            (section and f"{e.school_class.grade}-{e.school_class.section}" == grade_section) or
-            (not section and e.school_class.grade == grade) or
-            f"{e.school_class.grade}-{e.school_class.section}" == grade_section or
-            e.school_class.grade == grade
-        )
+        if e.school_class and f"{e.school_class.grade}-{e.school_class.section}".lower() == grade_section.lower()
     ]
-    target_list = matching if matching else [
-        e for e in entries if e.school_class and e.school_class.grade == grade
-    ]
+
+    # 2. If not found by exact grade-section and section is provided, try prefix/partial match
+    if not matching and section:
+        matching = [
+            e for e in entries
+            if e.school_class and e.school_class.grade.lower() == grade.lower() and (
+                e.school_class.section.lower().startswith(section.lower()) or
+                section.lower() in e.school_class.section.lower()
+            )
+        ]
+
+    # 3. If still not matched, pick entries from the single first section of that grade
+    if not matching:
+        grade_classes = [e for e in entries if e.school_class and e.school_class.grade.lower() == grade.lower()]
+        if grade_classes:
+            first_sec = grade_classes[0].school_class.section
+            matching = [e for e in grade_classes if e.school_class.section == first_sec]
+
+    target_list = matching
 
     return [
         {

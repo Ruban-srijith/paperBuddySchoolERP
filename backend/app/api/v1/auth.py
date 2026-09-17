@@ -15,7 +15,7 @@ from app.db.database import get_db
 from app.db.models import User, UserRole, Department, PlatformUser, Permission, RolePermission, UserRoleAssociation, Role
 from app.core.auth import (
     hash_password, verify_password, create_access_token,
-    get_current_user, require_role
+    get_current_user, get_current_user_optional, require_role
 )
 from app.schemas.auth import (
     LoginRequest, TokenResponse, RegisterRequest,

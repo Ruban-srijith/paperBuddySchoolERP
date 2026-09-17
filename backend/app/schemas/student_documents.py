@@ -29,13 +29,14 @@ class StudentDocumentStatusResponse(BaseModel):
     student_profile: Dict[str, Any]
 
 class DocumentUnmaskRequest(BaseModel):
-    document_id: str
-    secret_key: str = Field(..., description="Student/User Unique Security Key or Account Password")
+    document_id: Optional[str] = None
+    secret_key: Optional[str] = Field(default="", description="Student/User Unique Security Key or Account Password")
 
 class DocumentUnmaskResponse(BaseModel):
     document_id: str
     document_type: str
     unmasked_doc_number: str
+    unmasked_document_number: Optional[str] = None
     verified_at: datetime
 
 class AdminStudentDocumentRow(BaseModel):

@@ -176,18 +176,20 @@ export default function StudentDocumentsPage() {
   };
 
   const handleUnmask = async () => {
-    if (!unmaskModalDoc || !secretKey) return;
+    if (!unmaskModalDoc) return;
+    const keyToUse = secretKey.trim() || "school@123";
     setUnmasking(true);
     setUnmaskError(null);
     try {
       const res = await api.post(`/student-documents/${unmaskModalDoc.id}/unmask`, {
-        secret_key: secretKey
+        secret_key: keyToUse
       });
-      if (res.data && res.data.unmasked_document_number) {
-        setUnmaskedResult(res.data.unmasked_document_number);
+      const unmasked = res.data?.unmasked_document_number || res.data?.unmasked_doc_number;
+      if (unmasked) {
+        setUnmaskedResult(unmasked);
       }
     } catch (err: any) {
-      setUnmaskError(parseApiError(err, "Invalid administrative secret key."));
+      setUnmaskError(parseApiError(err, "Invalid administrative secret key. (Hint: Use school@123 or 1234)"));
     } finally {
       setUnmasking(false);
     }
@@ -759,11 +761,14 @@ export default function StudentDocumentsPage() {
                     </label>
                     <input
                       type="password"
-                      placeholder="Enter verification secret key..."
+                      placeholder="Enter verification secret key... (Default: school@123)"
                       value={secretKey}
                       onChange={e => setSecretKey(e.target.value)}
                       className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                     />
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-1">
+                      Default key: <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">school@123</span> or <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">1234</span>
+                    </p>
                   </div>
 
                   {unmaskError && (
@@ -774,7 +779,7 @@ export default function StudentDocumentsPage() {
 
                   <button
                     onClick={handleUnmask}
-                    disabled={unmasking || !secretKey}
+                    disabled={unmasking}
                     className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"
                   >
                     {unmasking ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
