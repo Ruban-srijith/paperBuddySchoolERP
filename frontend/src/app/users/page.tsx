@@ -1538,7 +1538,7 @@ function UsersPageContent() {
 
 export default function UsersPage() {
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'platform_super_admin', 'correspondent', 'principal', 'vice_principal']}>
+    <ProtectedRoute allowedRoles={['super_admin', 'correspondent', 'principal', 'vice_principal']}>
       <UsersPageContent />
     </ProtectedRoute>
   );

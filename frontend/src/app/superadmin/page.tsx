@@ -333,7 +333,7 @@ function SuperAdminDashboardContent() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={['super_admin', 'platform_super_admin', 'platform_support']}>
+    <ProtectedRoute allowedRoles={['super_admin']}>
       <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
         
         {/* Dynamic Header Section with Glassmorphism */}

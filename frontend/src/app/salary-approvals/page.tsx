@@ -251,7 +251,7 @@ export default function SalaryApprovalsPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["super_admin", "platform_super_admin", "correspondent", "principal", "vice_principal"]}>
+    <ProtectedRoute allowedRoles={["super_admin", "correspondent", "principal", "vice_principal"]}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="glass-box-gold p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
