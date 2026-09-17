@@ -48,28 +48,7 @@ async def lifespan(app: FastAPI):
                     await seed(drop_first=False)
                     logger.info("Fallback auto-seed completed.")
             else:
-                # Also ensure PlatformUsers are seeded if missing
-                plat_count = (await session.execute(select(func.count(PlatformUser.id)))).scalar()
-                if plat_count == 0:
-                    logger.info("PlatformUser table empty. Seeding platform users...")
-                    from seed_data import DEFAULT_PWD
-                    plat_super_admin = PlatformUser(
-                        id="psa11111-1111-1111-1111-111111111111",
-                        email="platformadmin@paperbuddy.erp",
-                        full_name="Platform Super Admin",
-                        password_hash=DEFAULT_PWD,
-                        platform_role="platform_super_admin"
-                    )
-                    plat_support = PlatformUser(
-                        id="psup1111-1111-1111-1111-111111111111",
-                        email="support@paperbuddy.erp",
-                        full_name="Platform Support Agent",
-                        password_hash=DEFAULT_PWD,
-                        platform_role="platform_support"
-                    )
-                    session.add_all([plat_super_admin, plat_support])
-                    await session.commit()
-                    logger.info("Platform users seeded successfully!")
+                pass
     except Exception as seed_err:
         logger.warning(f"Auto-seed check/execution notice: {seed_err}")
     

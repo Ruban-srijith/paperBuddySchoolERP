@@ -238,7 +238,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                       <Flame className="w-3.5 h-3.5 absolute text-[#fff] fill-[#e5c158]" />
                     </div>
                   </div>
-                  <span className="font-extrabold text-xs tracking-tight text-[#f4f0e6] font-syne group-hover:text-[#e5c158] transition-colors">PaperBuddy ERP</span>
+                  <span className="font-extrabold text-xs tracking-tight text-[#f4f0e6] font-syne group-hover:text-[#e5c158] transition-colors">Genesis ERP</span>
                   <span className="text-[9px] text-[#a3c9b0] tracking-widest uppercase font-semibold">School Operations</span>
                 </Link>
 

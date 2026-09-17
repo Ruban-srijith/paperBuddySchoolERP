@@ -173,7 +173,7 @@ export default function FeesPage() {
       key: razorpayKey,
       amount: Math.round((orderData?.amount || form.amount) * 100),
       currency: orderData?.currency || "INR",
-      name: "PaperBuddy ERP",
+      name: "Genesis ERP",
       description: form.title,
       order_id: orderData?.order_id,
       handler: async function (response: any) {
@@ -664,10 +664,10 @@ const generateReceiptHtml = (receipt: ReceiptItem): string => {
     
     <div class="header">
       <div class="school-info">
-        <h1>PAPERBUDDY INTERNATIONAL SCHOOL</h1>
+        <h1>GENESIS INTERNATIONAL SCHOOL</h1>
         <p>Affiliated to CBSE, New Delhi • Affiliation No. 1930842</p>
         <p>104 Knowledge Park Boulevard, Cyber City, Chennai - 600113</p>
-        <p>Email: accounts@paperbuddy.edu • Phone: +91 44 2847 9000</p>
+        <p>Email: accounts@genesis.edu • Phone: +91 44 2847 9000</p>
         <p style="margin-top: 3px; font-weight: 600; color: #475569;">GSTIN: 33AAAAA0000A1Z5</p>
       </div>
       <div class="receipt-badge">
@@ -762,7 +762,7 @@ const generateReceiptHtml = (receipt: ReceiptItem): string => {
     </div>
     
     <div class="footer-note">
-      This is a digitally generated electronic receipt verified by PaperBuddy School ERP. No physical signature is required under the Information Technology Act, 2000. For billing inquiries, contact accounts@paperbuddy.edu.
+      This is a digitally generated electronic receipt verified by Genesis School ERP. No physical signature is required under the Information Technology Act, 2000. For billing inquiries, contact accounts@genesis.edu.
     </div>
   </div>
 </body>

@@ -106,7 +106,6 @@ export default function LoginPage() {
 
   const quickLogins = [
     { label: 'Super Admin', email: 'superadmin@school.edu', icon: Crown, color: 'text-[#16281e]', bg: 'bg-amber-100 border-amber-300' },
-    { label: 'Platform Admin', email: 'platformadmin@paperbuddy.erp', icon: Laptop, color: 'text-[#16281e]', bg: 'bg-cyan-100 border-cyan-300' },
     { label: 'Correspondent', email: 'correspondent@school.edu', icon: UserCheck, color: 'text-[#16281e]', bg: 'bg-purple-100 border-purple-300' },
     { label: 'Principal', email: 'principal@school.edu', icon: GraduationCap, color: 'text-[#16281e]', bg: 'bg-rose-100 border-rose-300' },
     { label: 'VP', email: 'vp@school.edu', icon: BarChart2, color: 'text-[#16281e]', bg: 'bg-blue-100 border-blue-300' },
@@ -147,13 +146,13 @@ export default function LoginPage() {
             </div>
 
             <h1 className="text-2xl sm:text-[28px] font-extrabold text-[#f4f0e6] font-syne tracking-tight leading-tight">
-              Bharathi Matriculation
+              Genesis International
             </h1>
             <h2 className="text-xl sm:text-[22px] font-bold text-[#a3c9b0] font-syne tracking-tight leading-tight mt-0.5">
-              Hr. Sec. School
+              School & ERP
             </h2>
             <p className="text-xs font-semibold text-[#e8e2d3]/80 mt-1">
-              PaperBuddy School ERP Portal
+              Genesis School ERP Portal
             </p>
           </div>
 

@@ -1,5 +1,5 @@
 /**
- * Universal CSV Export Utility for PaperBuddy School ERP
+ * Universal CSV Export Utility for Genesis School ERP
  * Generates RFC-4180 compliant CSV files with UTF-8 BOM encoding
  * for seamless compatibility with Microsoft Excel, Apple Numbers, and Google Sheets.
  */

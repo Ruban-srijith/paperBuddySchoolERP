@@ -163,7 +163,7 @@ const generateReportHtml = (rep: ReportItem) => {
 <body>
   <div class="header">
     <div>
-      <div class="logo">PaperBuddy School ERP</div>
+      <div class="logo">Genesis School ERP</div>
       <div class="title">${rep.title}</div>
       <div class="meta">
         <span><strong>Report ID:</strong> ${rep.id}</span>
@@ -236,7 +236,7 @@ const generateReportHtml = (rep: ReportItem) => {
 
   <div class="footer">
     <div>
-      <p style="margin:0 0 4px 0;"><strong>PaperBuddy School ERP</strong></p>
+      <p style="margin:0 0 4px 0;"><strong>Genesis School ERP</strong></p>
       <p style="margin:0; font-size:11px; color:#94a3b8;">Generated on ${rep.date} • Electronic Audit Record</p>
     </div>
     <div class="sign-box">

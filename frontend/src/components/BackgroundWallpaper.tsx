@@ -189,7 +189,7 @@ export default function BackgroundWallpaper() {
             <div className="w-8 h-8 rounded-lg bg-[#182e22] border border-[#e8e2d3]/30 flex items-center justify-center text-[#e8e2d3]">
               <Shield className="w-4 h-4 text-[#e8e2d3]" />
             </div>
-            <span className="text-xs font-extrabold text-[#f4f0e6] font-syne">Bharathi Hr. Sec.</span>
+            <span className="text-xs font-extrabold text-[#f4f0e6] font-syne">Genesis School ERP</span>
           </div>
         </div>
       </div>
