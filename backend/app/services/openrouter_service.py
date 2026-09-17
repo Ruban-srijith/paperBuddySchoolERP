@@ -20,8 +20,8 @@ class OpenRouterService:
     def _get_headers(self) -> Dict[str, str]:
         headers = {
             "Content-Type": "application/json",
-            "HTTP-Referer": settings.OPENROUTER_SITE_URL or "https://paperbuddy.erp",
-            "X-Title": settings.OPENROUTER_APP_NAME or "PaperBuddy School ERP",
+            "HTTP-Referer": settings.OPENROUTER_SITE_URL or "https://genesis.erp",
+            "X-Title": settings.OPENROUTER_APP_NAME or "Genesis School ERP",
         }
         if settings.OPENROUTER_API_KEY:
             headers["Authorization"] = f"Bearer {settings.OPENROUTER_API_KEY}"

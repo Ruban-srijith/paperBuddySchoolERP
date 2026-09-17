@@ -136,7 +136,7 @@ async def upload_student_document(
     # Upload directly to Cloudinary Cloud Storage using user's dwvdeqnyu account
     file_url = await upload_file_to_cloudinary(
         file_bytes,
-        folder="paperbuddy_student_documents",
+        folder="genesis_student_documents",
         public_id=unique_filename
     )
 

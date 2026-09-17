@@ -162,7 +162,7 @@ async def submit_lab_assignment(
     pub_id = f"lab_sub_{actual_student_id[:8]}_{uuid.uuid4().hex[:6]}"
     file_filename = await upload_file_to_cloudinary(
         file_bytes,
-        folder="paperbuddy_lab_submissions",
+        folder="genesis_lab_submissions",
         public_id=pub_id
     )
 
